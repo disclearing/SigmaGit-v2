@@ -1,0 +1,26 @@
+{
+  "name": "@sigmagit/lib",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./language": "./src/language.ts",
+    "./validation": "./src/validation.ts",
+    "./api": "./src/api.ts",
+    "./query": "./src/query.ts",
+    "./date": "./src/date.ts",
+    "./string": "./src/string.ts"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@sigmagit/hooks": "workspace:*",
+    "typescript": "^5"
+  }
+}

@@ -18,6 +18,21 @@ import {
   handleStatusCommand,
   handleLinkButton,
 } from './commands/link';
+import {
+  handleTicketCreate,
+  handleTicketClose,
+  handleTicketButton,
+  handleKick,
+  handleBan,
+  handleTimeout,
+  handleWarn,
+  handlePurge,
+  handleSlowmode,
+  handleLockChannel,
+  handleUnlockChannel,
+  handleUserInfo,
+  handleServerInfo,
+} from './commands/management';
 
 const { discord, api, webhook } = getBotConfig();
 
@@ -29,6 +44,8 @@ const client: GlobalClient = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildIntegrations,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildModeration,
   ],
   partials: [
     Partials.Channel,
@@ -96,11 +113,59 @@ client.on('interactionCreate', async (interaction) => {
         case 'link-status':
           await handleStatusCommand(interaction, apiClient);
           break;
+        // Ticket Management
+        case 'ticket':
+          await handleTicketCreate(interaction);
+          break;
+        case 'ticket-close':
+          await handleTicketClose(interaction);
+          break;
+        // Moderation
+        case 'kick':
+          await handleKick(interaction);
+          break;
+        case 'ban':
+          await handleBan(interaction);
+          break;
+        case 'timeout':
+          await handleTimeout(interaction);
+          break;
+        case 'warn':
+          await handleWarn(interaction);
+          break;
+        // Server Management
+        case 'purge':
+          await handlePurge(interaction);
+          break;
+        case 'slowmode':
+          await handleSlowmode(interaction);
+          break;
+        case 'lock':
+          await handleLockChannel(interaction);
+          break;
+        case 'unlock':
+          await handleUnlockChannel(interaction);
+          break;
+        // Info Commands
+        case 'userinfo':
+          await handleUserInfo(interaction);
+          break;
+        case 'serverinfo':
+          await handleServerInfo(interaction);
+          break;
         default:
           await interaction.editReply({ content: 'Unknown command' });
       }
     } else if (interaction.isButton()) {
-      const [action, id] = interaction.customId.split('_');
+      const [action, type] = interaction.customId.split('_');
+      
+      // Handle ticket buttons
+      if (action === 'ticket') {
+        await handleTicketButton(interaction);
+        return;
+      }
+      
+      // Handle link buttons
       await handleLinkButton(interaction, apiClient, (action || 'start') as 'start' | 'email' | 'verify');
     }
   } catch (error) {

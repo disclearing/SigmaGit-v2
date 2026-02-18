@@ -10,6 +10,7 @@ import {
   ListObjectsV2Command,
   HeadObjectCommand,
 } from '@aws-sdk/client-s3';
+import { withTimeout } from './middleware/limits';
 
 export type StorageType = 's3' | 'local';
 
@@ -53,11 +54,15 @@ class S3StorageBackend implements StorageBackend {
     }
 
     try {
-      const response = await this.client.send(
-        new GetObjectCommand({
-          Bucket: this.bucket,
-          Key: key,
-        })
+      const response = await withTimeout(
+        this.client.send(
+          new GetObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+          })
+        ),
+        30000,
+        'S3 get operation timeout'
       );
 
       if (!response.Body) {
@@ -169,6 +174,10 @@ class S3StorageBackend implements StorageBackend {
     for (let i = 0; i < keys.length; i += BATCH_SIZE) {
       const batch = keys.slice(i, i + BATCH_SIZE);
       await Promise.all(batch.map((key) => this.delete(key)));
+
+      if ((i / BATCH_SIZE) % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
     }
   }
 
@@ -176,15 +185,26 @@ class S3StorageBackend implements StorageBackend {
     const keys = await this.list(sourcePrefix);
     const normalizedSource = sourcePrefix.replace(/\/$/, '');
     const normalizedTarget = targetPrefix.replace(/\/$/, '');
+    const BATCH_SIZE = 20;
 
-    for (const key of keys) {
-      const data = await this.get(key);
-      if (!data) {
-        continue;
+    for (let i = 0; i < keys.length; i += BATCH_SIZE) {
+      const batch = keys.slice(i, i + BATCH_SIZE);
+
+      await Promise.all(
+        batch.map(async (key) => {
+          const data = await this.get(key);
+          if (!data) {
+            return;
+          }
+          const suffix = key.slice(normalizedSource.length);
+          const targetKey = `${normalizedTarget}${suffix}`;
+          await this.put(targetKey, data);
+        })
+      );
+
+      if ((i / BATCH_SIZE) % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
-      const suffix = key.slice(normalizedSource.length);
-      const targetKey = `${normalizedTarget}${suffix}`;
-      await this.put(targetKey, data);
     }
   }
 
@@ -309,26 +329,54 @@ class LocalStorageBackend implements StorageBackend {
 
   async copyPrefix(sourcePrefix: string, targetPrefix: string): Promise<void> {
     const keys = await this.list(sourcePrefix);
+    const BATCH_SIZE = 20;
 
-    for (const key of keys) {
-      const data = await this.get(key);
-      if (!data) {
-        continue;
+    for (let i = 0; i < keys.length; i += BATCH_SIZE) {
+      const batch = keys.slice(i, i + BATCH_SIZE);
+
+      await Promise.all(
+        batch.map(async (key) => {
+          const data = await this.get(key);
+          if (!data) {
+            return;
+          }
+          const suffix = key.slice(sourcePrefix.length);
+          const targetKey = `${targetPrefix}${suffix}`;
+          await this.put(targetKey, data);
+        })
+      );
+
+      if ((i / BATCH_SIZE) % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
-      const suffix = key.slice(sourcePrefix.length);
-      const targetKey = `${targetPrefix}${suffix}`;
-      await this.put(targetKey, data);
     }
   }
 
   async getStream(key: string): Promise<ReadableStream | null> {
     try {
       const fullPath = this.getFullPath(key);
-      const data = await readFile(fullPath);
+
       return new ReadableStream({
-        start(controller) {
-          controller.enqueue(data);
-          controller.close();
+        async start(controller) {
+          try {
+            const fileHandle = await Bun.file(fullPath);
+            const stream = fileHandle.stream();
+            const reader = stream.getReader();
+
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                controller.enqueue(value);
+              }
+            } finally {
+              reader.cancel();
+            }
+
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
         },
       });
     } catch (error: any) {

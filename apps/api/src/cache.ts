@@ -84,11 +84,36 @@ export async function deleteCachePattern(pattern: string): Promise<void> {
   if (!client) return;
 
   try {
-    const keys = await client.keys(pattern);
-    if (keys.length > 0) {
-      await client.del(keys);
+    let cursor = '0';
+    const SCAN_BATCH_SIZE = 100;
+    let totalDeleted = 0;
+
+    do {
+      const result = await client.scan(cursor, {
+        MATCH: pattern,
+        COUNT: SCAN_BATCH_SIZE,
+      });
+
+      cursor = result.cursor;
+      const keys = result.keys;
+
+      if (keys.length > 0) {
+        await client.del(keys);
+        totalDeleted += keys.length;
+      }
+
+      if (cursor === '0') break;
+
+      if (totalDeleted % 1000 === 0) {
+        console.log(`[Cache] Deleted ${totalDeleted} keys for pattern ${pattern}`);
+      }
+    } while (cursor !== '0');
+
+    if (totalDeleted > 0) {
+      console.log(`[Cache] Total deleted ${totalDeleted} keys for pattern ${pattern}`);
     }
-  } catch {
+  } catch (error) {
+    console.error('[Cache] Error deleting pattern:', error);
   }
 }
 

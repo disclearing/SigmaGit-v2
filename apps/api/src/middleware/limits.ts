@@ -3,9 +3,9 @@ import { createMiddleware } from 'hono/factory';
 const MAX_REQUEST_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_RESPONSE_SIZE = 50 * 1024 * 1024; // 50MB
 const MEMORY_THRESHOLD = 0.8; // 80% of heap
-const GIT_PUSH_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
-const GIT_MAX_OBJECTS_PER_PUSH = 50000;
-const GIT_MAX_DELTA_DEPTH = 100;
+export const GIT_PUSH_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
+export const GIT_MAX_OBJECTS_PER_PUSH = 50000;
+export const GIT_MAX_DELTA_DEPTH = 100;
 
 export function shouldRejectRequest(): boolean {
   try {
@@ -86,15 +86,17 @@ export const gitLimitsMiddleware = createMiddleware(async (c, next) => {
 });
 
 export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMsg: string): Promise<T> {
-  const timeout = setTimeout(timeoutMs, errorMsg);
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(errorMsg));
+    }, timeoutMs);
 
-  return Promise.race([
-    promise,
-    timeout.then(() => {
-      throw new Error(errorMsg);
-    }),
-  ]).finally(() => {
-    clearTimeout(timeout);
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        clearTimeout(timeoutId);
+      });
   });
 }
 

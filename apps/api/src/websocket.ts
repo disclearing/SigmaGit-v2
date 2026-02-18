@@ -4,9 +4,53 @@ import { getAuth } from "./auth";
 type WebSocketData = {
   userId: string;
   sessionId: string;
+  timestamp: number;
+  lastPing: number;
 };
 
 const wsConnections = new Map<string, Set<ServerWebSocket<WebSocketData>>>();
+const CONNECTION_TIMEOUT = 30 * 60 * 1000;
+const PING_INTERVAL = 5 * 60 * 1000;
+
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+function startCleanupInterval() {
+  if (cleanupInterval) return;
+
+  cleanupInterval = setInterval(() => {
+    cleanupStaleConnections();
+  }, PING_INTERVAL);
+}
+
+function cleanupStaleConnections() {
+  const now = Date.now();
+  let cleaned = 0;
+
+  for (const [userId, connections] of wsConnections.entries()) {
+    for (const ws of connections) {
+      if (now - ws.data.lastPing > CONNECTION_TIMEOUT) {
+        console.log(`[WS] Closing stale connection for user ${userId}`);
+        try {
+          ws.close();
+        } catch (err) {
+          console.error("[WS] Error closing stale connection:", err);
+        }
+        connections.delete(ws);
+        cleaned++;
+      }
+    }
+
+    if (connections.size === 0) {
+      wsConnections.delete(userId);
+    }
+  }
+
+  if (cleaned > 0) {
+    console.log(`[WS] Cleaned up ${cleaned} stale connections`);
+  }
+}
+
+startCleanupInterval();
 
 export function registerConnection(userId: string, ws: ServerWebSocket<WebSocketData>) {
   if (!wsConnections.has(userId)) {
@@ -34,6 +78,7 @@ export function notifyUser(userId: string, message: object) {
         ws.send(payload);
       } catch (err) {
         console.error("[WS] Failed to send message:", err);
+        connections.delete(ws);
       }
     }
   }
@@ -82,6 +127,8 @@ export async function handleWebSocketUpgrade(
       data: {
         userId: session.user.id,
         sessionId: session.session.id,
+        timestamp: Date.now(),
+        lastPing: Date.now(),
       },
     });
 
@@ -99,6 +146,7 @@ export async function handleWebSocketUpgrade(
 export const websocketHandlers = {
   open(ws: ServerWebSocket<WebSocketData>) {
     const { userId } = ws.data;
+    ws.data.lastPing = Date.now();
     registerConnection(userId, ws);
 
     ws.send(JSON.stringify({ type: "connected", userId }));
@@ -109,6 +157,7 @@ export const websocketHandlers = {
       const data = JSON.parse(message.toString());
 
       if (data.type === "ping") {
+        ws.data.lastPing = Date.now();
         ws.send(JSON.stringify({ type: "pong" }));
       }
     } catch (err) {
@@ -123,5 +172,7 @@ export const websocketHandlers = {
 
   error(ws: ServerWebSocket<WebSocketData>, error: Error) {
     console.error("[WS] Error:", error);
+    const { userId } = ws.data;
+    unregisterConnection(userId, ws);
   },
 };

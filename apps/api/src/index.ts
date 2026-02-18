@@ -5,6 +5,8 @@ import { config, getAllowedOrigins } from "./config";
 import { initAuth } from "./auth";
 import { mountRoutes } from "./routes";
 import { handleWebSocketUpgrade, websocketHandlers } from "./websocket";
+import { memoryMiddleware, requestSizeMiddleware, gitLimitsMiddleware } from "./middleware/limits";
+import "./monitoring";
 
 const app = new Hono();
 
@@ -47,6 +49,10 @@ app.use("*", createMiddleware(async (c, next) => {
   await initAuth();
   await next();
 }));
+
+app.use("*", memoryMiddleware);
+app.use("*", requestSizeMiddleware);
+app.use("*", gitLimitsMiddleware);
 
 mountRoutes(app);
 

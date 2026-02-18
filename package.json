@@ -22,10 +22,13 @@
   "packageManager": "bun@1.3.5",
   "private": true,
   "scripts": {
-    "dev:web": "turbo dev --filter=@sigmagit/web --filter=@sigmagit/api",
-    "dev:mobile": "turbo dev --filter=@sigmagit/mobile --filter=@sigmagit/api",
+    "dev:web": "turbo dev --filter=@sigmagit/web --filter=@sigmagit/api --filter=@sigmagit/discord-bot",
+    "dev:mobile": "turbo dev --filter=@sigmagit/mobile --filter=@sigmagit/api --filter=@sigmagit/discord-bot",
+    "dev:discord": "turbo dev --filter=@sigmagit/discord-bot",
     "build": "turbo build",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "db:migrate:discord": "cd packages/db && bun run db:migrate:discord",
+    "discord:register": "cd apps/discord-bot && bun run register"
   },
   "workspaces": [
     "apps/*",

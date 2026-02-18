@@ -17,6 +17,8 @@
     "@sigmagit/db": "workspace:*",
     "@sigmagit/lib": "workspace:*",
     "better-auth": "^1.4.10",
+    "discord-interactions": "^4.4.0",
+    "discord.js": "^14.25.1",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.6.11",
     "isomorphic-git": "^1.27.1",

@@ -937,3 +937,6 @@ export const prReactionRelations = relations(prReactions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+import { discordLinks, linkTokens } from './discord';
+export { discordLinks, linkTokens };

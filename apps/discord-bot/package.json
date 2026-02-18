@@ -1,0 +1,21 @@
+{
+  "name": "@sigmagit/discord-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "bun run --watch --env-file ../../.env src/index.ts",
+    "start": "bun run --env-file ../../.env src/index.ts",
+    "register": "bun run --env-file ../../.env src/commands/register.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "@discordjs/rest": "^2.4.3",
+    "@discordjs/builders": "^1.10.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25",
+    "typescript": "^5"
+  }
+}

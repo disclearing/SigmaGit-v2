@@ -1,252 +1,248 @@
-# sigmagit
+# Sigmagit
 
-A GitHub alternative built with modern web technologies, featuring real Git repository support with S3-compatible storage. Available on web and mobile platforms.
+A modern GitHub-like git hosting platform built with TypeScript, Bun, React, and more.
 
-## Tech Stack
+## Overview
 
-### Frontend (Web)
-- **Framework**: TanStack Start
-- **UI**: shadcn/ui + Tailwind CSS
-- **Data Fetching**: TanStack React Query
-- **Icons**: Lucide React
-- **Code Highlighting**: Shiki
-- **Diff Viewing**: Diffs by Pierre Computer Co.
+Sigmagit is a fully-featured git hosting platform that allows you to host and manage your code with ease.
 
-### Backend
-- **Runtime**: Bun
-- **Framework**: Hono
-- **Auth**: better-auth (email/password + passkeys)
-- **Database**: PostgreSQL + Drizzle ORM
-- **Storage**: Railway S3-compatible storage
-- **Caching**: Redis (optional)
-- **Git**: isomorphic-git + Git HTTP Smart Protocol
-
-### Mobile
-- **Framework**: Expo + React Native
-- **Router**: Expo Router
-- **Styling**: NativeWind (Tailwind CSS for React Native)
-- **Auth**: better-auth with Expo support
-
-### Infrastructure
-- **Monorepo**: Turbo
-- **Package Manager**: Bun
-- **Hosting**: Railway
-
-## Project Structure
-
-```
-sigmagit/
-├── apps/
-│   ├── web/              # TanStack Start web application
-│   │   ├── app/          # Routes and pages
-│   │   ├── components/   # React components
-│   │   └── lib/          # Utilities and API client
-│   ├── api/              # Hono API server
-│   │   └── src/
-│   │       ├── routes/   # API endpoints
-│   │       ├── git/      # Git protocol handlers
-│   │       └── middleware/
-│   └── mobile/           # Expo React Native app
-│       ├── app/          # Expo Router routes
-│       └── components/   # React Native components
-└── packages/
-    ├── db/               # Drizzle ORM schema
-    ├── hooks/            # Shared React hooks
-    └── lib/              # Shared utilities
-```
-
-## Features
-
-### Core Functionality
-- **User Authentication**: Email/password and passkey (WebAuthn) support
-- **Repository Management**: Create, fork, and manage public/private repositories
-- **Git Operations**: Full Git HTTP Smart Protocol support (clone, push, pull)
-- **File Browsing**: Navigate repository trees with syntax highlighting
-- **Code Viewing**: View file contents with syntax highlighting and diff support
-- **Commit History**: Browse commits by branch with detailed commit information
-
-### Collaboration Features
-- **Issues**: Create, manage, and track issues with labels, assignees, and comments
-- **Issue Reactions**: React to issues and comments with emojis
-- **Stars**: Star repositories to show appreciation
-- **Forks**: Fork repositories to create your own copy
-
-### User Features
-- **Profiles**: Customizable user profiles with bio, location, and social links
-- **Settings**: Manage account settings, email, password, and preferences
-- **API Keys**: Generate and manage API keys for programmatic access
-- **Passkeys**: Manage WebAuthn passkeys for passwordless authentication
-
-### Mobile Support
-- Native mobile app built with Expo
-- Full feature parity with web application
-- Optimized mobile UI with glass morphism effects
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
+- **Bun 1.3+**: JavaScript runtime and package manager
+- **Node.js 20+**: For certain dependencies
+- **PostgreSQL 14+**: Database
+- **Redis** (optional): For caching
+- **S3-compatible storage** or local filesystem: For git objects
 
-- **Bun** 1.3.5+ (recommended) or Node.js 18+
-- **PostgreSQL** database
-- **Redis** (optional, for caching)
-- **S3-compatible storage** (Railway, AWS S3, or compatible service)
-
-### Setup
-
-1. **Clone the repository**:
+### Installation
 
 ```bash
+# Clone repository
 git clone <repository-url>
 cd sigmagit
-```
 
-2. **Install dependencies**:
-
-```bash
+# Install dependencies
 bun install
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run database migrations
+bun run db:push
+
+# Start API server
+bun run dev:api
+
+# Start web app (in another terminal)
+bun run dev:web
+
+# Start Discord bot (optional)
+bun run dev:discord
 ```
 
-3. **Set up environment variables**:
+## 📁 Project Structure
 
-Create a `.env` file in the root directory:
+```
+sigmagitv2/
+├── apps/
+│   ├── web/              # TanStack Start web application
+│   ├── mobile/           # Expo React Native mobile app
+│   ├── api/               # Hono API server (Bun)
+│   └── discord-bot/      # Discord integration bot
+├── packages/
+│   ├── db/                # Drizzle ORM database schema
+│   ├── lib/               # Shared utilities
+│   └── hooks/             # React Query hooks
+├── docs/                   # Documentation (this directory)
+└── .env.example           # Environment variables template
+```
+
+## 📚 Documentation
+
+### Getting Started
+- [Quick Start](/README.md) - This file
+- [API Documentation](docs/api/README.md) - API endpoints and usage
+- [Web App](docs/web/README.md) - Web app development
+- [Mobile App](docs/mobile/README.md) - Mobile app development
+- [Discord Bot](docs/discord-bot/README.md) - Discord integration
+- [Architecture](docs/architecture/README.md) - System architecture
+- [Development](docs/development/README.md) - Development workflow
+- [Deployment](docs/deployment/README.md) - Deployment guides
+- [Features](docs/features/README.md) - Feature documentation
+- [Security](docs/security/README.md) - Security best practices
+
+### Technical Documentation
+- [Git Operations](docs/features/git/README.md) - Git hosting features
+- [Authentication](docs/features/auth/README.md) - User authentication
+- [Storage](docs/features/storage/README.md) - Git object storage
+- [Webhooks](docs/features/webhooks/README.md) - Webhook notifications
+- [Account Linking](docs/features/account-linking/README.md) - Discord account linking
+
+## 🛠 Tech Stack
+
+### Core Technologies
+- **Runtime**: Bun 1.3.5+
+- **Language**: TypeScript
+- **Frontend**: React 19, TanStack Start, TailwindCSS
+- **Backend**: Hono, Bun
+- **Mobile**: React Native, Expo
+- **Database**: PostgreSQL, Drizzle ORM
+- **Caching**: Redis (optional)
+- **Storage**: S3-compatible or local filesystem
+- **Authentication**: better-auth
+
+### Key Libraries
+- **UI**: shadcn/ui, lucide-react, tanstack-theme-kit
+- **State Management**: TanStack Query, TanStack Store
+- **Forms**: react-hook-form
+- **Routing**: TanStack Router (file-based)
+- **Git**: isomorphic-git
+- **Email**: Resend or Nodemailer (SMTP)
+- **Database**: Drizzle ORM, postgres
+
+## 🔒 Configuration
+
+### Required Environment Variables
+
+See [Environment Variables](#environment-variables) section below) for required configuration.
+
+### Optional Features
+
+- **Redis**: Enable for caching and rate limiting
+- **S3**: Configure for git object storage (alternatively use local)
+- **SMTP**: Configure for email sending (alternatively use Resend)
+
+## 🔗 API
+
+The API server provides REST endpoints for all Sigmagit functionality.
+
+- Base URL: `http://localhost:3001` (configurable)
+- Documentation: [API Documentation](docs/api/README.md)
+
+## 🌐 Web App
+
+Modern React-based web application with file-based routing.
+
+- Base URL: `http://localhost:3000` (configurable)
+- Documentation: [Web App](docs/web/README.md)
+
+## 📱 Mobile App
+
+React Native mobile application built with Expo.
+
+- Documentation: [Mobile App](docs/mobile/README.md)
+
+## 🤖 Discord Bot
+
+Discord integration for notifications and repository management.
+
+- Documentation: [Discord Bot](docs/discord-bot/README.md)
+- Feature Details: [Account Linking](docs/features/account-linking/README.md)
+
+## 🔐 Architecture
+
+System architecture and data flow.
+
+- Documentation: [Architecture](docs/architecture/README.md)
+
+## 🛠 Development
+
+Development setup, workflow, and best practices.
+
+- Documentation: [Development](docs/development/README.md)
+
+## 🚢 Deployment
+
+Production deployment guides for various platforms.
+
+- Documentation: [Deployment](docs/deployment/README.md)
+
+## 🔐 Features
+
+Detailed feature documentation.
+
+- [Git Operations](docs/features/git/README.md)
+- [Authentication](docs/features/auth/README.md)
+- [Storage](docs/features/storage/README.md)
+- [Webhooks](docs/features/webhooks/README.md)
+- [Account Linking](docs/features/account-linking/README.md)
+
+## 🔒 Security
+
+Security best practices and guidelines.
+
+- Documentation: [Security](docs/security/README.md)
+
+## 📞 Environment Variables
+
+### Required
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/sigmagit
-BETTER_AUTH_SECRET=your-secret-key-here-at-least-32-characters
-
-S3_ACCESS_KEY_ID=your-s3-access-key-id
-S3_SECRET_ACCESS_KEY=your-s3-secret-access-key
-S3_BUCKET_NAME=sigmagit-repos
-
-REDIS_URL=redis://localhost:6379
-
-EXPO_PUBLIC_API_URL=http://localhost:3001
+DATABASE_URL="postgresql://user:password@localhost:5432/sigmagit"
+BETTER_AUTH_SECRET="your-super-secret-key-here"
 ```
 
-4. **Set up the database**:
+### Optional
 
-```bash
-bun run db:push
+```env
+# Storage
+STORAGE_TYPE="s3"  # Options: s3, local
+S3_ENDPOINT="https://your-s3-endpoint.com"
+S3_REGION="auto"
+S3_ACCESS_KEY_ID="your-access-key-id"
+S3_SECRET_ACCESS_KEY="your-secret-access-key"
+S3_BUCKET_NAME="your-bucket-name"
+STORAGE_LOCAL_PATH="./data/repos"  # Only if STORAGE_TYPE=local
+
+# Redis (recommended)
+REDIS_URL="redis://localhost:6379"
+
+# Email
+EMAIL_PROVIDER="resend"  # Options: resend, smtp
+RESEND_API_KEY="resend-api-key-here"
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"
+SMTP_USER="your-username"
+SMTP_PASS="your-password"
+EMAIL_FROM="Sigmagit <noreply@sigmagit.dev>"
+
+# API
+API_URL="http://localhost:3001"
+WEB_URL="http://localhost:3000"
+
+# Discord Bot
+DISCORD_BOT_TOKEN="your-bot-token-here"
+DISCORD_CLIENT_ID="your-client-id-here"
+DISCORD_GUILD_ID="your-server-id-here"
+
+# Discord Webhooks (for API to send notifications to Discord)
+DISCORD_WEBHOOK_URL="https://your-discord-webhook-url.com"
+WEBHOOK_SECRET="your-webhook-secret-here"
+PUBLIC_WEBHOOK_URL="http://your-domain.com/api/webhooks/discord"
 ```
 
-5. **Start the development servers**:
+## 📚 Additional Documentation
 
-For web development:
-```bash
-bun run dev:web
-```
+- [API_ENHANCEMENTS.md](API_ENHANCEMENTS.md) - Recent API enhancements
+- [MEMORY_LEAK_ANALYSIS.md](MEMORY_LEAK_ANALYSIS.md) - Memory leak analysis
+- [DISCORD_LINKING.md](D_SCORD_LINKING.md) - Discord linking details
+- [AGENTS.md](AGENTS.md) - Agent coding guidelines
 
-For mobile development:
-```bash
-bun run dev:mobile
-```
+## 🤝 Contributing
 
-This will start:
-- API server on `http://localhost:3001`
-- Web app on `http://localhost:3000`
-- Mobile app (via Expo) on `http://localhost:8081`
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
 
-## Git Operations
+## 📄 License
 
-### Clone a Repository
+[License](LICENSE) - See LICENSE file for details.
 
-```bash
-git clone http://localhost:3001/api/git/username/repo.git
-```
+## 🆘 Support
 
-### Push to a Repository
+For support, please open an issue on [GitHub Issues](https://github.com/sigmagit/sigmagit/issues).
 
-```bash
-cd your-repo
-git push origin main
-```
+---
 
-When prompted, enter your email and password (or use an API key).
-
-### Using API Keys
-
-You can generate API keys in your account settings and use them for authentication:
-
-```bash
-git config credential.helper store
-git push origin main
-# Enter your API key as the password
-```
-
-## Database Schema
-
-The project uses Drizzle ORM with PostgreSQL. Key tables include:
-
-- `users` - User accounts and profiles
-- `repositories` - Git repositories
-- `issues` - Issue tracking
-- `labels` - Repository labels
-- `issue_comments` - Issue comments
-- `issue_reactions` - Reactions on issues and comments
-- `stars` - Repository stars
-- `api_keys` - API key management
-- `passkeys` - WebAuthn passkeys
-
-## Development
-
-### Available Scripts
-
-- `bun run dev:web` - Start web app and API server
-- `bun run dev:mobile` - Start mobile app and API server
-- `bun run build` - Build all applications
-- `bun run lint` - Lint all packages
-- `bun run db:push` - Push database schema changes
-- `bun run db:studio` - Open Drizzle Studio
-
-### Architecture
-
-Git repositories are stored in S3-compatible storage as bare repositories. When Git operations occur:
-
-1. Repository files are synced from S3 to a temporary directory
-2. Git commands execute against the temporary directory using isomorphic-git
-3. For push operations, changes are synced back to S3
-4. Temporary directory is cleaned up
-
-This architecture allows for serverless-compatible deployment while maintaining full Git compatibility.
-
-### API Endpoints
-
-The API server exposes the following main routes:
-
-- `/api/auth/*` - Authentication endpoints (handled by better-auth)
-- `/api/repositories/*` - Repository management
-- `/api/git/*` - Git HTTP Smart Protocol
-- `/api/issues/*` - Issue management
-- `/api/users/*` - User management
-- `/api/settings/*` - User settings
-- `/api/file/*` - File operations
-
-## Deployment
-
-### Backend (API + Database + Storage)
-
-Deploy to Railway:
-1. Connect your repository to Railway
-2. Set environment variables in Railway dashboard
-3. Railway will automatically detect and deploy the API service
-
-### Frontend (Web)
-
-Deploy to Vercel:
-1. Connect your repository to Vercel
-2. Set the root directory to `apps/web`
-3. Configure environment variables
-4. Deploy
-
-### Mobile
-
-Build and deploy using Expo:
-```bash
-cd apps/mobile
-bun run build:ios    # For iOS
-bun run build:android # For Android
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+Made with ❤️ using Bun, TypeScript, and React

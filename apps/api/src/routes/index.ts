@@ -13,6 +13,8 @@ import search from "./search";
 import notifications from "./notifications";
 import discussions from "./discussions";
 import projects from "./projects";
+import webhooks from "./webhooks";
+import discord from "./discord";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
@@ -29,4 +31,6 @@ export function mountRoutes(app: Hono) {
   app.route("/", notifications);
   app.route("/", discussions);
   app.route("/", projects);
+  app.route("/", webhooks);
+  app.route("/", discord);
 }

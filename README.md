@@ -224,13 +224,6 @@ WEBHOOK_SECRET="your-webhook-secret-here"
 PUBLIC_WEBHOOK_URL="http://your-domain.com/api/webhooks/discord"
 ```
 
-## 📚 Additional Documentation
-
-- [API_ENHANCEMENTS.md](API_ENHANCEMENTS.md) - Recent API enhancements
-- [MEMORY_LEAK_ANALYSIS.md](MEMORY_LEAK_ANALYSIS.md) - Memory leak analysis
-- [DISCORD_LINKING.md](D_SCORD_LINKING.md) - Discord linking details
-- [AGENTS.md](AGENTS.md) - Agent coding guidelines
-
 ## 🤝 Contributing
 
 We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details.

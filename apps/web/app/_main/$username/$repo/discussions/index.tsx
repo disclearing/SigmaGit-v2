@@ -17,36 +17,41 @@ function DiscussionsListPage() {
   const discussions = data?.discussions || [];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Discussions</h1>
-        <Button asChild>
-          <Link to="/$username/$repo/discussions/new" params={{ username, repo }}>
-            <Add01Icon className="size-4 mr-2" />
-            New discussion
-          </Link>
-        </Button>
-      </div>
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-semibold mb-2">Discussions</h1>
+            <p className="text-muted-foreground">Community discussions and Q&A</p>
+          </div>
+          <Button asChild>
+            <Link to="/$username/$repo/discussions/new" params={{ username, repo }}>
+              <Plus className="size-4 mr-2" />
+              New discussion
+            </Link>
+          </Button>
+        </div>
 
       {isLoading ? (
         <div className="text-center py-16">
           <Loader2 className="size-8 mx-auto animate-spin text-muted-foreground" />
         </div>
       ) : discussions.length === 0 ? (
-        <div className="text-center py-16 border border-border">
-          <Message01Icon className="size-12 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-lg font-medium mb-2">No discussions yet</h2>
-          <p className="text-muted-foreground text-sm mb-6">
+        <div className="text-center py-20 border border-dashed border-border rounded-lg bg-card/30">
+          <MessageSquare className="size-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <h2 className="text-lg font-semibold mb-2">No discussions yet</h2>
+          <p className="text-muted-foreground mb-6">
             Start a discussion to engage with the community.
           </p>
           <Button asChild>
             <Link to="/$username/$repo/discussions/new" params={{ username, repo }}>
+              <Plus className="size-4 mr-2" />
               Start a discussion
             </Link>
           </Button>
         </div>
       ) : (
-        <div className="border border-border divide-y divide-border">
+        <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
           {discussions.map((discussion) => (
             <Link
               key={discussion.id}
@@ -64,7 +69,7 @@ function DiscussionsListPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {discussion.isPinned && (
-                    <PinIcon className="size-4 text-yellow-500" />
+                    <Pin className="size-4 text-yellow-500" />
                   )}
                   {discussion.isAnswered && (
                     <CheckCircle2 className="size-4 text-green-500" />
@@ -82,7 +87,7 @@ function DiscussionsListPage() {
                   <span>by {discussion.author.username}</span>
                   <span>{formatRelativeTime(discussion.createdAt)}</span>
                   <span className="flex items-center gap-1">
-                    <Message01Icon className="size-3.5" />
+                    <MessageSquare className="size-3.5" />
                     {discussion.commentCount}
                   </span>
                 </div>
@@ -91,6 +96,7 @@ function DiscussionsListPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

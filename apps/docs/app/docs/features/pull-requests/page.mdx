@@ -1,0 +1,78 @@
+export const metadata = {
+  title: 'Pull Requests',
+  description: 'Code review workflows with Sigmagit Pull Requests.',
+};
+
+# Pull Requests
+
+Pull requests let contributors propose changes and get them reviewed before merging.
+
+## Creating a Pull Request
+
+After pushing a branch, Sigmagit will suggest opening a pull request. Or navigate to **Pull Requests → New pull request**.
+
+1. Select the **base branch** (where you want to merge into)
+2. Select the **compare branch** (your changes)
+3. Add a title and description
+4. Request reviewers
+
+## PR States
+
+| State | Icon | Description |
+|-------|------|-------------|
+| Open | 🟢 | Active, awaiting review or merge |
+| Merged | 🟣 | Successfully merged |
+| Closed | 🔴 | Closed without merging |
+| Draft | ⚪ | Work in progress, not ready for review |
+
+## Draft Pull Requests
+
+Mark a PR as draft when it's not ready for review. Draft PRs can't be merged.
+
+```bash
+# Push and create draft PR via API
+curl -X POST .../api/repos/owner/repo/pulls \
+  -d '{"draft": true, "title": "WIP: new feature"}'
+```
+
+## Reviews
+
+Reviewers can:
+
+- **Approve** — The changes look good
+- **Request Changes** — Changes are required before merge
+- **Comment** — General feedback without blocking
+
+## Diff View
+
+Pull requests show a unified diff of all changed files. You can:
+
+- View **inline comments** on specific lines
+- **Collapse** files that don't need attention
+- Switch between **unified** and **split** diff views
+
+## Merge Strategies
+
+| Strategy | Description |
+|----------|-------------|
+| Merge commit | Creates a merge commit preserving history |
+| Squash and merge | Squashes all commits into one |
+| Rebase and merge | Replays commits onto base branch |
+
+## Auto-merge
+
+Enable auto-merge to automatically merge a PR when all required checks pass and reviewers approve.
+
+## Closing Issues via PR
+
+Reference issues in your PR description to automatically close them on merge:
+
+```markdown
+This PR fixes #42 and resolves #43.
+```
+
+Keywords: `fixes`, `closes`, `resolves` (and their variations)
+
+<Callout type="warning">
+  Auto-close only works when merging into the **default branch**.
+</Callout>

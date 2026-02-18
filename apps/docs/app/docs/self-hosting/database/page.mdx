@@ -1,0 +1,111 @@
+export const metadata = {
+  title: 'Database Setup',
+  description: 'Configure PostgreSQL for Sigmagit.',
+};
+
+# Database Setup
+
+Sigmagit uses **PostgreSQL 14+** as its primary database.
+
+## Recommended Versions
+
+- **PostgreSQL 16** — Latest stable, recommended
+- **PostgreSQL 15** — Fully supported
+- **PostgreSQL 14** — Minimum supported version
+
+## Managed Database Options
+
+For production, consider a managed PostgreSQL service:
+
+| Provider | Notes |
+|----------|-------|
+| Neon | Serverless, free tier available |
+| Supabase | PostgreSQL with extras |
+| Railway | Simple deployment |
+| AWS RDS | Enterprise-grade |
+| DigitalOcean Managed Databases | Simple, reliable |
+
+## Connection String Format
+
+```
+postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require
+```
+
+Examples:
+
+```bash
+# Local
+DATABASE_URL=postgresql://sigmagit:password@localhost:5432/sigmagit
+
+# With SSL (required for managed databases)
+DATABASE_URL=postgresql://sigmagit:password@db.example.com:5432/sigmagit?sslmode=require
+
+# Neon
+DATABASE_URL=postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
+
+## Migrations
+
+Sigmagit uses [Drizzle ORM](https://orm.drizzle.team) for database migrations.
+
+```bash
+# Apply all pending migrations
+bun run db:migrate
+
+# Generate new migration after schema changes
+bun run db:generate
+
+# Push schema directly (development only)
+bun run db:push
+
+# Open Drizzle Studio (GUI)
+bun run db:studio
+```
+
+## Backup & Restore
+
+### Backup
+
+```bash
+pg_dump -U sigmagit -h localhost sigmagit | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+```
+
+### Restore
+
+```bash
+gunzip < backup_20240101_120000.sql.gz | psql -U sigmagit -h localhost sigmagit
+```
+
+### Automated Backups
+
+Add to crontab (`crontab -e`):
+
+```bash
+# Daily backup at 2 AM, keep last 30 days
+0 2 * * * pg_dump -U sigmagit sigmagit | gzip > /backups/sigmagit_$(date +\%Y\%m\%d).sql.gz
+0 3 * * * find /backups -name "sigmagit_*.sql.gz" -mtime +30 -delete
+```
+
+## Performance Tuning
+
+For a server with 8GB RAM, add to `postgresql.conf`:
+
+```ini
+# Memory
+shared_buffers = 2GB
+effective_cache_size = 6GB
+work_mem = 64MB
+maintenance_work_mem = 512MB
+
+# Connections
+max_connections = 100
+
+# WAL
+wal_buffers = 64MB
+checkpoint_completion_target = 0.9
+```
+
+<Callout type="info">
+  Use [PGTune](https://pgtune.leopard.in.ua) to generate PostgreSQL configuration optimized for your hardware.
+</Callout>

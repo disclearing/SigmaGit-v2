@@ -50,57 +50,73 @@ function SearchPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <form onSubmit={handleSearch} className="mb-6">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
-            <Input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search repositories, issues, pull requests, and users..."
-              className="pl-10 h-9 text-lg"
-              autoFocus
-            />
-          </div>
-          <Button type="submit" size="lg" disabled={!query.trim()}>
-            Search
-          </Button>
+    <div className="container max-w-[1280px] mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold mb-2">Search</h1>
+          <p className="text-muted-foreground">Find repositories, issues, pull requests, and users</p>
         </div>
-      </form>
 
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {SEARCH_TYPES.map((t) => (
-          <Button
-            key={t.value}
-            variant={type === t.value ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => handleTypeChange(t.value)}
-          >
-            {t.label}
-          </Button>
-        ))}
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+              <Input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search repositories, issues, pull requests, and users..."
+                className="pl-10 h-12 text-base"
+                autoFocus
+              />
+            </div>
+            <Button type="submit" size="lg" className="h-12 px-6" disabled={!query.trim()}>
+              Search
+            </Button>
+          </div>
+        </form>
+
+        <div className="flex gap-2 mb-8 flex-wrap">
+          {SEARCH_TYPES.map((t) => (
+            <Button
+              key={t.value}
+              variant={type === t.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleTypeChange(t.value)}
+            >
+              {t.label}
+            </Button>
+          ))}
+        </div>
+
+        {q.length < 2 ? (
+          <div className="text-center py-20 border border-dashed border-border rounded-lg bg-card/30">
+            <Search className="size-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">Start searching</h3>
+            <p className="text-muted-foreground">Enter at least 2 characters to search</p>
+          </div>
+        ) : isLoading || isFetching ? (
+          <div className="text-center py-20">
+            <Loader2 className="size-8 mx-auto animate-spin text-muted-foreground" />
+            <p className="mt-4 text-muted-foreground">Searching...</p>
+          </div>
+        ) : data?.results && data.results.length > 0 ? (
+          <>
+            <div className="mb-6 text-sm text-muted-foreground">
+              Found {data.results.length} result{data.results.length !== 1 ? "s" : ""} for <span className="font-medium text-foreground">"{q}"</span>
+            </div>
+            <div className="border border-border rounded-lg bg-card divide-y divide-border">
+              <SearchResultsList results={data.results} />
+            </div>
+          </>
+        ) : data?.results && data.results.length === 0 ? (
+          <div className="text-center py-20 border border-dashed border-border rounded-lg bg-card/30">
+            <Search className="size-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">No results found</h3>
+            <p className="text-muted-foreground">Try adjusting your search query or filters</p>
+          </div>
+        ) : null}
       </div>
-
-      {q.length < 2 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <Search className="size-12 mx-auto mb-4 opacity-50" />
-          <p>Enter at least 2 characters to search</p>
-        </div>
-      ) : isLoading || isFetching ? (
-        <div className="text-center py-16">
-          <Loader2 className="size-8 mx-auto animate-spin text-muted-foreground" />
-          <p className="mt-4 text-muted-foreground">Searching...</p>
-        </div>
-      ) : data?.results ? (
-        <>
-          <div className="mb-4 text-sm text-muted-foreground">
-            {data.results.length} result{data.results.length !== 1 ? "s" : ""} for "{q}"
-          </div>
-          <SearchResultsList results={data.results} />
-        </>
-      ) : null}
     </div>
   );
 }

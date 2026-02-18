@@ -59,11 +59,11 @@ function CommitRow({
     <Link
       to="/$username/$repo/commits/$branch/$oid"
       params={{ username, repo: repoName, branch, oid: commit.oid }}
-      className="flex items-start gap-4 px-4 py-3 hover:bg-muted/30 transition-colors"
+      className="flex items-start gap-4 px-6 py-4 hover:bg-muted/50 transition-colors"
     >
-      <Avatar className="h-8 w-8 mt-0.5 rounded-none border-none after:border-none">
-        <AvatarImage src={commit.author.avatarUrl || undefined} className="rounded-none border-none" />
-        <AvatarFallback className="bg-muted text-muted-foreground font-semibold rounded-none">{commit.author.name.charAt(0).toUpperCase()}</AvatarFallback>
+      <Avatar className="h-8 w-8 mt-0.5 rounded-full border border-border">
+        <AvatarImage src={commit.author.avatarUrl || undefined} />
+        <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xs">{commit.author.name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{getCommitTitle(commit.message)}</p>
@@ -103,19 +103,19 @@ function CommitsPage() {
   const hasMore = commitsData?.hasMore || false;
 
   return (
-    <div className="container max-w-6xl px-4">
-      <div className="border border-border overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3 bg-card border-b border-border">
-          <History className="size-4" />
-          <span className="text-sm text-muted-foreground">Commits on <span className="font-mono text-foreground">{currentBranch}</span></span>
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="border border-border rounded-lg bg-card overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border-b border-border">
+          <History className="size-5 text-primary" />
+          <span className="text-sm font-medium">Commits on <span className="font-mono text-foreground">{currentBranch}</span></span>
         </div>
 
         {commitsLoading ? (
           <CommitsSkeleton />
         ) : commits.length === 0 ? (
-          <div className="p-12 text-center">
-            <History className="size-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-medium mb-2">No commits yet</h3>
+          <div className="p-20 text-center border-t border-border">
+            <History className="size-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">No commits yet</h3>
             <p className="text-muted-foreground">This branch doesn't have any commits.</p>
           </div>
         ) : (
@@ -127,7 +127,7 @@ function CommitsPage() {
             </div>
 
             {(page > 1 || hasMore) && (
-              <div className="flex items-center justify-between px-4 py-3 bg-card border-t border-border">
+              <div className="flex items-center justify-between px-6 py-4 bg-muted/30 border-t border-border">
                 <Link
                   to="/$username/$repo/commits/$branch"
                   params={{ username, repo: repoName, branch: currentBranch }}
@@ -135,7 +135,7 @@ function CommitsPage() {
                   className={page <= 1 ? "pointer-events-none opacity-50" : ""}
                 >
                   <Button variant="outline" size="sm" disabled={page <= 1}>
-                    <ArrowLeft01Icon className="size-4 mr-1" />
+                    <ChevronLeft className="size-4 mr-1" />
                     Newer
                   </Button>
                 </Link>
@@ -148,7 +148,7 @@ function CommitsPage() {
                 >
                   <Button variant="outline" size="sm" disabled={!hasMore}>
                     Older
-                    <ArrowRight01Icon className="size-4 ml-1" />
+                    <ChevronRight className="size-4 ml-1" />
                   </Button>
                 </Link>
               </div>

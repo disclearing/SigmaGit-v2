@@ -200,7 +200,6 @@ export function IssueDetail({
                 disabled={isSubmitting}
               >
                 {issue.locked ? <Unlock className="size-4 mr-2" /> : <Lock className="size-4 mr-2" />}
-                />
                 {issue.locked ? "Unlock conversation" : "Lock conversation"}
               </Button>
             )}

@@ -1,0 +1,132 @@
+export const metadata = {
+  title: 'Code Style',
+  description: 'Code style and formatting guidelines for Sigmagit.',
+};
+
+# Code Style
+
+Sigmagit enforces consistent code style using Prettier and ESLint.
+
+## Formatting
+
+We use **Prettier** with the following config:
+
+```json title=".prettierrc"
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "plugins": [
+    "prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss"
+  ]
+}
+```
+
+Format all files:
+
+```bash
+bunx prettier --write .
+```
+
+## TypeScript
+
+- **Strict mode** enabled
+- Prefer **type inference** where possible
+- Use `interface` for object shapes, `type` for unions/primitives
+- Avoid `any` — use `unknown` or proper types
+- Export types with `export type`
+
+```typescript
+// ✅ Good
+interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+}
+
+// ❌ Avoid
+const user: any = {};
+```
+
+## Import Order
+
+Imports are automatically sorted by `prettier-plugin-sort-imports`:
+
+1. External libraries (React, TanStack, Lucide, etc.)
+2. Workspace packages (`@sigmagit/*`)
+3. Local imports using `@/` alias
+4. Type imports
+
+```typescript
+// External
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Star } from 'lucide-react';
+
+// Workspace packages
+import { timeAgo } from '@sigmagit/lib';
+
+// Local
+import { Button } from '@/components/ui/button';
+import type { Repository } from '@/types';
+```
+
+## React Components
+
+- Functional components only
+- Add `"use client"` for client components
+- Define prop types with `interface`
+- Use `cn()` for conditional classNames
+- Destructure props in function signature
+
+```typescript
+'use client';
+
+import { cn } from '@/lib/utils';
+
+interface ButtonProps {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
+
+export function MyButton({ children, className, onClick }: ButtonProps) {
+  return (
+    <button
+      className={cn('rounded-md px-4 py-2 bg-primary text-primary-foreground', className)}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+## Naming Conventions
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| Components | PascalCase | `RepoCard`, `StarButton` |
+| Functions | camelCase | `getRepoInfo`, `toggleStar` |
+| Types/Interfaces | PascalCase | `Repository`, `UserProfile` |
+| Constants | UPPER_SNAKE_CASE | `API_BASE_URL`, `MAX_RETRIES` |
+| Files | kebab-case | `repo-card.tsx`, `star-button.tsx` |
+| CSS classes | Tailwind utilities | — |
+
+## Tailwind CSS
+
+- Use utility classes exclusively (no custom CSS where possible)
+- Prefer semantic colors (`primary`, `secondary`, `muted`, etc.)
+- Use `size-*` for width/height (e.g., `size-4`)
+- Use `cn()` from `@/lib/utils` for conditional classes
+
+```tsx
+// ✅ Good
+<div className={cn('flex items-center gap-2', isActive && 'text-primary')}>
+
+// ❌ Avoid custom CSS
+<style>{`.active { color: blue; }`}</style>
+```

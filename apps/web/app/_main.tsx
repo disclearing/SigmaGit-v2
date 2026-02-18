@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { QueryProvider } from "@/lib/query-client";
 
 export const Route = createFileRoute("/_main")({
@@ -14,6 +15,7 @@ function MainLayout() {
         <main className="flex-1">
           <Outlet />
         </main>
+        <Footer />
       </div>
     </QueryProvider>
   );

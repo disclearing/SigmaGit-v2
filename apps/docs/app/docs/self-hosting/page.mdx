@@ -1,0 +1,72 @@
+export const metadata = {
+  title: 'Self Hosting Overview',
+  description: 'Deploy and manage your own Sigmagit instance.',
+};
+
+# Self Hosting
+
+Sigmagit is designed to be self-hosted. This section covers everything you need to deploy and maintain your own instance.
+
+## Deployment Options
+
+| Option | Difficulty | Best for |
+|--------|-----------|---------|
+| [Docker](/docs/self-hosting/docker) | Easy | Most users |
+| [VPS](/docs/self-hosting/vps) | Medium | Full control |
+| Kubernetes | Advanced | Large teams |
+
+## Architecture Overview
+
+A production Sigmagit deployment consists of:
+
+```
+┌─────────────────────────────────────────┐
+│           Reverse Proxy (Nginx/Caddy)    │
+│     sigmagit.com → :3000                │
+│     sigmagit.com/api → :3001            │
+└─────────────────────────────────────────┘
+         │                    │
+         ▼                    ▼
+  ┌──────────┐        ┌──────────────┐
+  │  Web App │        │  API Server  │
+  │  :3000   │        │  :3001       │
+  └──────────┘        └──────────────┘
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+       ┌──────────┐  ┌──────────┐  ┌──────────┐
+       │PostgreSQL│  │  Redis   │  │  S3/Minio │
+       │  :5432   │  │  :6379   │  │  :9000   │
+       └──────────┘  └──────────┘  └──────────┘
+```
+
+## Checklist
+
+Before going to production, make sure you have:
+
+- [ ] PostgreSQL database configured
+- [ ] S3-compatible storage for Git repos
+- [ ] Valid SSL certificate
+- [ ] `BETTER_AUTH_SECRET` set to a secure random value
+- [ ] Reverse proxy configured
+- [ ] Backups configured (database + S3)
+- [ ] Email configured (for notifications)
+
+## Security Recommendations
+
+- Run services as non-root users
+- Use environment variables, never hardcode secrets
+- Enable firewall — only expose ports 80 and 443
+- Keep the application updated
+- Set up automated backups
+
+<Callout type="warning">
+  Never expose your PostgreSQL or Redis ports to the internet. Use a firewall to restrict access.
+</Callout>
+
+## Next Steps
+
+- [Docker Deployment](/docs/self-hosting/docker) — Get started quickly with Docker Compose
+- [VPS Deployment](/docs/self-hosting/vps) — Full manual setup guide
+- [Database Setup](/docs/self-hosting/database) — PostgreSQL configuration
+- [Storage Setup](/docs/self-hosting/storage) — S3 configuration

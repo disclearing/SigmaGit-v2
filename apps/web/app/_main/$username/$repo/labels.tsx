@@ -40,25 +40,26 @@ function LabelsPage() {
   };
 
   return (
-    <div className="container max-w-6xl px-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold">Labels</h1>
-          <p className="text-sm text-muted-foreground">
-            {labels.length} label{labels.length !== 1 ? "s" : ""}
-          </p>
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-semibold mb-2">Labels</h1>
+            <p className="text-muted-foreground">
+              {labels.length} label{labels.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          {isOwner && !isCreating && (
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="size-4 mr-1.5" />
+              New label
+            </Button>
+          )}
         </div>
 
-        {isOwner && !isCreating && (
-          <Button onClick={() => setIsCreating(true)}>
-            <Add01Icon className="size-4 mr-1.5" />
-            New label
-          </Button>
-        )}
-      </div>
-
       {isCreating && (
-        <div className="border border-border bg-card p-4 mb-4">
+        <div className="border border-border rounded-lg bg-card p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-1">
               <label className="text-sm font-medium">Preview</label>
@@ -123,22 +124,23 @@ function LabelsPage() {
       {isLoading ? (
         <LabelsSkeleton />
       ) : labels.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-border">
-          <p className="text-muted-foreground mb-4">No labels yet</p>
+        <div className="text-center py-20 border border-dashed border-border rounded-lg bg-card/30">
+          <p className="text-muted-foreground mb-6 text-lg font-medium">No labels yet</p>
           {isOwner && (
             <Button onClick={() => setIsCreating(true)}>
-              <Add01Icon className="size-4 mr-1.5" />
+              <Plus className="size-4 mr-1.5" />
               Create the first label
             </Button>
           )}
         </div>
       ) : (
-        <div className="border border-border bg-card overflow-hidden">
+        <div className="border border-border rounded-lg bg-card overflow-hidden divide-y divide-border">
           {labels.map((label) => (
             <LabelRow key={label.id} label={label} username={username} repo={repo} isOwner={isOwner} />
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -224,7 +226,7 @@ function LabelRow({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-border last:border-b-0 hover:bg-secondary/30 transition-colors">
+    <div className="flex items-center justify-between px-6 py-4 hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-3">
         <LabelBadge label={label} />
         {label.description && (
@@ -234,7 +236,7 @@ function LabelRow({
       {isOwner && (
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setIsEditing(true)}>
-            <Edit02Icon className="size-4" />
+            <Edit className="size-4" />
           </Button>
           <Button
             variant="ghost"
@@ -243,7 +245,7 @@ function LabelRow({
             onClick={handleDelete}
             disabled={deleteLabel.isPending}
           >
-            <Delete02Icon className="size-4" />
+            <Trash2 className="size-4" />
           </Button>
         </div>
       )}

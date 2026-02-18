@@ -24,6 +24,7 @@
   "scripts": {
     "dev:web": "turbo dev --filter=@sigmagit/web --filter=@sigmagit/api --filter=@sigmagit/discord-bot",
     "dev:mobile": "turbo dev --filter=@sigmagit/mobile --filter=@sigmagit/api --filter=@sigmagit/discord-bot",
+    "dev:docs": "turbo dev --filter=@sigmagit/docs",
     "dev:discord": "turbo dev --filter=@sigmagit/discord-bot",
     "build": "turbo build",
     "lint": "turbo lint",

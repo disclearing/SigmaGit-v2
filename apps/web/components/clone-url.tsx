@@ -12,7 +12,7 @@ export function CloneUrl({ username, repoName }: { username: string; repoName: s
   const [protocol, setProtocol] = useState<"https" | "ssh">("https");
 
   const httpsUrl = `${getApiUrl()}/${username}/${repoName}.git`;
-  const sshUrl = `git@sigmagit.local:${username}/${repoName}.git`;
+  const sshUrl = `git@sigmagit.com:${username}/${repoName}.git`;
 
   // const url = httpsUrl;
   const url = protocol === "https" ? httpsUrl : sshUrl;

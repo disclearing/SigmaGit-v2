@@ -51,10 +51,13 @@ function NewDiscussionPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Start a new discussion</h1>
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-semibold mb-2">Start a new discussion</h1>
+        <p className="text-muted-foreground mb-8">Share your thoughts, ask questions, or start a conversation</p>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="border border-border rounded-lg bg-card p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
         {categories.length > 0 && (
           <div className="space-y-2">
             <Label>Category</Label>
@@ -116,6 +119,8 @@ function NewDiscussionPage() {
           </Button>
         </div>
       </form>
+        </div>
+      </div>
     </div>
   );
 }

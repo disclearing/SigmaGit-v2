@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Loader2, CheckCircle2, Pin, Lock, ArrowLeft02 } from "lucide-react";
+import { Loader2, CheckCircle2, Pin, Lock, ArrowLeft } from "lucide-react";
 import {
   useDiscussion,
   useDiscussionComments,
@@ -73,22 +73,23 @@ function DiscussionDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Link
-        to="/$username/$repo/discussions"
-        params={{ username, repo }}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
-      >
-        <ArrowLeft02Icon className="size-4" />
-        Back to discussions
-      </Link>
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto">
+        <Link
+          to="/$username/$repo/discussions"
+          params={{ username, repo }}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+        >
+          <ArrowLeft className="size-4" />
+          Back to discussions
+        </Link>
 
-      <div className="border border-border mb-6">
+      <div className="border border-border rounded-lg bg-card mb-6 overflow-hidden">
         <div className="p-6">
           <div className="flex items-center gap-2 flex-wrap mb-3">
             {discussion.isPinned && (
               <span className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 text-yellow-600 px-2 py-0.5">
-                <PinIcon className="size-3" />
+                <Pin className="size-3" />
                 Pinned
               </span>
             )}
@@ -100,7 +101,7 @@ function DiscussionDetailPage() {
             )}
             {discussion.isLocked && (
               <span className="inline-flex items-center gap-1 text-xs bg-red-500/10 text-red-600 px-2 py-0.5">
-                <LockIcon className="size-3" />
+                <Lock className="size-3" />
                 Locked
               </span>
             )}
@@ -139,7 +140,7 @@ function DiscussionDetailPage() {
           <div
             key={comment.id}
             className={cn(
-              "border border-border p-4",
+              "border border-border rounded-lg p-4 bg-card",
               comment.isAnswer && "border-green-500 bg-green-500/5"
             )}
           >
@@ -188,7 +189,7 @@ function DiscussionDetailPage() {
       </div>
 
       {!discussion.isLocked && session?.user && (
-        <form onSubmit={handleSubmitComment} className="border border-border p-4">
+        <form onSubmit={handleSubmitComment} className="border border-border rounded-lg bg-card p-4">
           <Textarea
             value={commentBody}
             onChange={(e) => setCommentBody(e.target.value)}
@@ -212,11 +213,13 @@ function DiscussionDetailPage() {
       )}
 
       {discussion.isLocked && (
-        <div className="text-center py-8 text-muted-foreground text-sm border border-border">
-          <LockIcon className="size-6 mx-auto mb-2" />
-          This discussion is locked. You cannot add new comments.
+        <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg bg-card/30">
+          <Lock className="size-8 mx-auto mb-3 opacity-50" />
+          <p className="font-medium">This discussion is locked</p>
+          <p className="text-sm mt-1">You cannot add new comments.</p>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -13,9 +13,15 @@ import { Route as MainRouteImport } from './app/_main'
 import { Route as AuthRouteImport } from './app/_auth'
 import { Route as SplatRouteImport } from './app/$'
 import { Route as MainIndexRouteImport } from './app/_main/index'
+import { Route as MainTermsRouteImport } from './app/_main/terms'
 import { Route as MainSettingsRouteImport } from './app/_main/settings'
+import { Route as MainSecurityRouteImport } from './app/_main/security'
 import { Route as MainSearchRouteImport } from './app/_main/search'
+import { Route as MainPrivacyRouteImport } from './app/_main/privacy'
 import { Route as MainExploreRouteImport } from './app/_main/explore'
+import { Route as MainContactRouteImport } from './app/_main/contact'
+import { Route as MainCareersRouteImport } from './app/_main/careers'
+import { Route as MainAboutRouteImport } from './app/_main/about'
 import { Route as MainUsernameRouteImport } from './app/_main/$username'
 import { Route as AuthVerifyEmailRouteImport } from './app/_auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './app/_auth/reset-password'
@@ -63,9 +69,19 @@ const MainIndexRoute = MainIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MainRoute,
 } as any)
+const MainTermsRoute = MainTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainSettingsRoute = MainSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSecurityRoute = MainSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => MainRoute,
 } as any)
 const MainSearchRoute = MainSearchRouteImport.update({
@@ -73,9 +89,29 @@ const MainSearchRoute = MainSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => MainRoute,
 } as any)
+const MainPrivacyRoute = MainPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainExploreRoute = MainExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainContactRoute = MainContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainCareersRoute = MainCareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainAboutRoute = MainAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => MainRoute,
 } as any)
 const MainUsernameRoute = MainUsernameRouteImport.update({
@@ -245,9 +281,15 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof AuthResetPasswordRoute
   '/verify-email': typeof AuthVerifyEmailRoute
   '/$username': typeof MainUsernameRouteWithChildren
+  '/about': typeof MainAboutRoute
+  '/careers': typeof MainCareersRoute
+  '/contact': typeof MainContactRoute
   '/explore': typeof MainExploreRoute
+  '/privacy': typeof MainPrivacyRoute
   '/search': typeof MainSearchRoute
+  '/security': typeof MainSecurityRoute
   '/settings': typeof MainSettingsRoute
+  '/terms': typeof MainTermsRoute
   '/$username/$repo': typeof MainUsernameRepoRouteWithChildren
   '/$username/': typeof MainUsernameIndexRoute
   '/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
@@ -279,9 +321,15 @@ export interface FileRoutesByTo {
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/verify-email': typeof AuthVerifyEmailRoute
+  '/about': typeof MainAboutRoute
+  '/careers': typeof MainCareersRoute
+  '/contact': typeof MainContactRoute
   '/explore': typeof MainExploreRoute
+  '/privacy': typeof MainPrivacyRoute
   '/search': typeof MainSearchRoute
+  '/security': typeof MainSecurityRoute
   '/settings': typeof MainSettingsRoute
+  '/terms': typeof MainTermsRoute
   '/$username': typeof MainUsernameIndexRoute
   '/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
@@ -314,9 +362,15 @@ export interface FileRoutesById {
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/verify-email': typeof AuthVerifyEmailRoute
   '/_main/$username': typeof MainUsernameRouteWithChildren
+  '/_main/about': typeof MainAboutRoute
+  '/_main/careers': typeof MainCareersRoute
+  '/_main/contact': typeof MainContactRoute
   '/_main/explore': typeof MainExploreRoute
+  '/_main/privacy': typeof MainPrivacyRoute
   '/_main/search': typeof MainSearchRoute
+  '/_main/security': typeof MainSecurityRoute
   '/_main/settings': typeof MainSettingsRoute
+  '/_main/terms': typeof MainTermsRoute
   '/_main/': typeof MainIndexRoute
   '/_main/$username/$repo': typeof MainUsernameRepoRouteWithChildren
   '/_main/$username/': typeof MainUsernameIndexRoute
@@ -352,9 +406,15 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/verify-email'
     | '/$username'
+    | '/about'
+    | '/careers'
+    | '/contact'
     | '/explore'
+    | '/privacy'
     | '/search'
+    | '/security'
     | '/settings'
+    | '/terms'
     | '/$username/$repo'
     | '/$username/'
     | '/$username/$repo/commits'
@@ -386,9 +446,15 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/verify-email'
+    | '/about'
+    | '/careers'
+    | '/contact'
     | '/explore'
+    | '/privacy'
     | '/search'
+    | '/security'
     | '/settings'
+    | '/terms'
     | '/$username'
     | '/$username/$repo/commits'
     | '/$username/$repo/labels'
@@ -420,9 +486,15 @@ export interface FileRouteTypes {
     | '/_auth/reset-password'
     | '/_auth/verify-email'
     | '/_main/$username'
+    | '/_main/about'
+    | '/_main/careers'
+    | '/_main/contact'
     | '/_main/explore'
+    | '/_main/privacy'
     | '/_main/search'
+    | '/_main/security'
     | '/_main/settings'
+    | '/_main/terms'
     | '/_main/'
     | '/_main/$username/$repo'
     | '/_main/$username/'
@@ -484,11 +556,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/terms': {
+      id: '/_main/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof MainTermsRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings': {
       id: '/_main/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof MainSettingsRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/security': {
+      id: '/_main/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof MainSecurityRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/search': {
@@ -498,11 +584,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSearchRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/privacy': {
+      id: '/_main/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof MainPrivacyRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/explore': {
       id: '/_main/explore'
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof MainExploreRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/contact': {
+      id: '/_main/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof MainContactRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/careers': {
+      id: '/_main/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof MainCareersRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/about': {
+      id: '/_main/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof MainAboutRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/$username': {
@@ -816,17 +930,29 @@ const MainUsernameRouteWithChildren = MainUsernameRoute._addFileChildren(
 
 interface MainRouteChildren {
   MainUsernameRoute: typeof MainUsernameRouteWithChildren
+  MainAboutRoute: typeof MainAboutRoute
+  MainCareersRoute: typeof MainCareersRoute
+  MainContactRoute: typeof MainContactRoute
   MainExploreRoute: typeof MainExploreRoute
+  MainPrivacyRoute: typeof MainPrivacyRoute
   MainSearchRoute: typeof MainSearchRoute
+  MainSecurityRoute: typeof MainSecurityRoute
   MainSettingsRoute: typeof MainSettingsRoute
+  MainTermsRoute: typeof MainTermsRoute
   MainIndexRoute: typeof MainIndexRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
   MainUsernameRoute: MainUsernameRouteWithChildren,
+  MainAboutRoute: MainAboutRoute,
+  MainCareersRoute: MainCareersRoute,
+  MainContactRoute: MainContactRoute,
   MainExploreRoute: MainExploreRoute,
+  MainPrivacyRoute: MainPrivacyRoute,
   MainSearchRoute: MainSearchRoute,
+  MainSecurityRoute: MainSecurityRoute,
   MainSettingsRoute: MainSettingsRoute,
+  MainTermsRoute: MainTermsRoute,
   MainIndexRoute: MainIndexRoute,
 }
 

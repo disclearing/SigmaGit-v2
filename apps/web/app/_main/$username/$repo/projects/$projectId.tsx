@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Loader2, ArrowLeft02, Plus, Trash2, AlertCircle, GitPullRequest, StickyNote01 } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Trash2, AlertCircle, GitPullRequest, StickyNote } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -61,13 +61,13 @@ function SortableCard({ item, onDelete }: { item: ProjectItem; onDelete: () => v
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-2 min-w-0">
           {item.type === "issue" && (
-            <AlertCircleIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+            <AlertCircle className="size-4 text-green-500 mt-0.5 shrink-0" />
           )}
           {item.type === "pull_request" && (
-            <GitPullRequestIcon className="size-4 text-purple-500 mt-0.5 shrink-0" />
+            <GitPullRequest className="size-4 text-purple-500 mt-0.5 shrink-0" />
           )}
           {item.type === "note" && (
-            <StickyNote01Icon className="size-4 text-yellow-500 mt-0.5 shrink-0" />
+            <StickyNote01 className="size-4 text-yellow-500 mt-0.5 shrink-0" />
           )}
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">
@@ -92,7 +92,7 @@ function SortableCard({ item, onDelete }: { item: ProjectItem; onDelete: () => v
           }}
           className="shrink-0 opacity-0 group-hover:opacity-100"
         >
-          <Delete02Icon className="size-3" />
+          <Trash2 className="size-3" />
         </Button>
       </div>
     </div>
@@ -162,7 +162,7 @@ function Column({
           className="w-full mt-3 justify-start text-muted-foreground"
           onClick={() => setIsAddingNote(true)}
         >
-          <Add01Icon className="size-4 mr-2" />
+          <Plus className="size-4 mr-2" />
           Add a note
         </Button>
       )}
@@ -286,17 +286,20 @@ function ProjectBoardPage() {
   }
 
   return (
-    <div className="h-full">
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
         <Link
           to="/$username/$repo/projects"
           params={{ username, repo }}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft02Icon className="size-4" />
+          <ArrowLeft className="size-4" />
           Projects
         </Link>
-        <h1 className="text-xl font-semibold">{project.name}</h1>
+        <div>
+          <h1 className="text-3xl font-semibold mb-2">{project.name}</h1>
+          {project.description && <p className="text-muted-foreground">{project.description}</p>}
+        </div>
       </div>
 
       <DndContext

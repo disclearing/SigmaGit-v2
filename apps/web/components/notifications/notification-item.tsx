@@ -6,15 +6,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const typeIcons: Record<string, any> = {
-  issue_comment: Comment01Icon,
-  issue_assigned: AlertCircleIcon,
+  issue_comment: MessageSquare,
+  issue_assigned: AlertCircle,
   issue_closed: CheckCircle2,
-  pr_comment: Comment01Icon,
-  pr_review: GitPullRequestIcon,
-  pr_merged: GitPullRequestIcon,
-  pr_assigned: GitPullRequestIcon,
-  mention: UserIcon,
-  discussion_reply: Comment01Icon,
+  pr_comment: MessageSquare,
+  pr_review: GitPullRequest,
+  pr_merged: GitPullRequest,
+  pr_assigned: GitPullRequest,
+  mention: User,
+  discussion_reply: MessageSquare,
 };
 
 function getNotificationUrl(notification: Notification): string {
@@ -43,7 +43,7 @@ export function NotificationItem({
   notification: Notification;
   onMarkRead?: () => void;
 }) {
-  const Icon = typeIcons[notification.type] || Comment01Icon;
+  const Icon = typeIcons[notification.type] || MessageSquare;
   const url = getNotificationUrl(notification);
 
   function handleClick() {

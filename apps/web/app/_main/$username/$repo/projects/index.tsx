@@ -44,63 +44,70 @@ function ProjectsListPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Projects</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Add01Icon className="size-4 mr-2" />
-              New project
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create a new project</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateProject} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Project name</Label>
-                <Input
-                  id="name"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  placeholder="My Project"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createProject.isPending || !newProjectName.trim()}>
-                  {createProject.isPending ? (
-                    <>
-                      <Loader2 className="size-4 mr-2 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create project"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-semibold mb-2">Projects</h1>
+            <p className="text-muted-foreground">Organize your work with project boards</p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="size-4 mr-2" />
+                New project
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create a new project</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateProject} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Project name</Label>
+                  <Input
+                    id="name"
+                    value={newProjectName}
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    placeholder="My Project"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createProject.isPending || !newProjectName.trim()}>
+                    {createProject.isPending ? (
+                      <>
+                        <Loader2 className="size-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create project"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
 
       {isLoading ? (
         <div className="text-center py-16">
           <Loader2 className="size-8 mx-auto animate-spin text-muted-foreground" />
         </div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-16 border border-border">
-          <LayoutGrid className="size-12 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-lg font-medium mb-2">No projects yet</h2>
-          <p className="text-muted-foreground text-sm mb-6">
+        <div className="text-center py-20 border border-dashed border-border rounded-lg bg-card/30">
+          <LayoutGrid className="size-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <h2 className="text-lg font-semibold mb-2">No projects yet</h2>
+          <p className="text-muted-foreground mb-6">
             Create a project board to organize your work.
           </p>
-          <Button onClick={() => setIsDialogOpen(true)}>Create a project</Button>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="size-4 mr-2" />
+            Create a project
+          </Button>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -109,7 +116,7 @@ function ProjectsListPage() {
               key={project.id}
               to="/$username/$repo/projects/$projectId"
               params={{ username, repo, projectId: project.id }}
-              className="block p-4 border border-border hover:bg-muted/50 transition-colors"
+              className="block p-6 border border-border rounded-lg bg-card hover:border-primary/30 hover:shadow-sm transition-all"
             >
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-muted">
@@ -131,6 +138,7 @@ function ProjectsListPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

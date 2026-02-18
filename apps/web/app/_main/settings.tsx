@@ -793,6 +793,7 @@ function SettingsPage() {
           <TokensTab />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

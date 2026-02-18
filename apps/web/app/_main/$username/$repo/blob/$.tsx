@@ -64,16 +64,16 @@ function BlobPage() {
   const { theme } = useTheme();
 
   return (
-    <div className="container max-w-6xl px-4">
-      <div className="border border-border overflow-hidden">
+    <div className="container max-w-[1280px] mx-auto px-4 py-6">
+      <div className="border border-border rounded-lg bg-card overflow-hidden">
         <nav className="flex items-center gap-1 px-4 py-2 bg-muted/30 border-b border-border text-sm">
           <Link to="/$username/$repo" params={{ username, repo: repoName }} className="text-primary hover:underline flex items-center gap-1">
-            <HomeIcon className="size-4" />
+            <Home className="size-4" />
             {repoName}
           </Link>
           {pathParts.map((part, i) => (
             <span key={i} className="flex items-center gap-1">
-              <ArrowRight01Icon className="size-4 text-muted-foreground" />
+              <ChevronRight className="size-4 text-muted-foreground" />
               {i === pathParts.length - 1 ? (
                 <span className="font-medium">{part}</span>
               ) : (

@@ -29,6 +29,9 @@ export const docsNav: NavSection[] = [
       { title: 'Discussions', href: '/docs/features/discussions' },
       { title: 'Projects', href: '/docs/features/projects' },
       { title: 'Labels', href: '/docs/features/labels' },
+      { title: 'Discord Bot', href: '/docs/features/discord-bot' },
+      { title: 'Webhooks', href: '/docs/features/webhooks' },
+      { title: 'Account Linking', href: '/docs/features/account-linking' },
     ],
   },
   {
@@ -38,6 +41,7 @@ export const docsNav: NavSection[] = [
       { title: 'Authentication', href: '/docs/api/authentication' },
       { title: 'Repositories', href: '/docs/api/repositories' },
       { title: 'Issues', href: '/docs/api/issues' },
+      { title: 'Discord', href: '/docs/api/discord' },
     ],
   },
   {

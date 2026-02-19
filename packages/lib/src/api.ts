@@ -1,8 +1,12 @@
 import type {
   ApiClient,
+  BranchProtectionRule,
+  Collaborator,
+  CollaboratorPermission,
   Commit,
   CommitDiff,
   FileLastCommit,
+  GitTag,
   Issue,
   IssueComment,
   IssueFilters,
@@ -17,12 +21,14 @@ import type {
   RepoInfo,
   RepoPageData,
   Repository,
+  RepositoryWebhook,
   RepositoryWithOwner,
   RepositoryWithStars,
   TreeResponse,
   UserPreferences,
   UserProfile,
   UserSummary,
+  WebhookEvent,
 } from "@sigmagit/hooks";
 
 export interface ApiClientConfig {
@@ -146,6 +152,119 @@ export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "setti
 
       getReadmeOid: (owner: string, name: string, branch: string) =>
         apiFetch<{ readmeOid: string | null }>(`/api/repositories/${owner}/${name}/readme-oid?branch=${branch}`),
+
+      createBranch: (owner: string, name: string, data: { branch: string; fromRef: string }) =>
+        apiFetch<{ branch: string; oid: string }>(`/api/repositories/${owner}/${name}/branches`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      deleteBranch: (owner: string, name: string, branch: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/branches/${encodeURIComponent(branch)}`, {
+          method: "DELETE",
+        }),
+
+      commitFile: (
+        owner: string,
+        name: string,
+        data: { branch: string; path: string; content?: string; message: string; delete?: boolean }
+      ) =>
+        apiFetch<{ success: boolean; commitOid: string }>(`/api/repositories/${owner}/${name}/file`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      getTags: (owner: string, name: string) =>
+        apiFetch<{ tags: GitTag[] }>(`/api/repositories/${owner}/${name}/tags`),
+
+      createTag: (owner: string, name: string, data: { name: string; ref: string; message?: string }) =>
+        apiFetch<{ tag: string; oid: string }>(`/api/repositories/${owner}/${name}/tags`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      deleteTag: (owner: string, name: string, tag: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/tags/${encodeURIComponent(tag)}`, {
+          method: "DELETE",
+        }),
+
+      getCollaborators: (owner: string, name: string) =>
+        apiFetch<{ collaborators: Collaborator[] }>(`/api/repositories/${owner}/${name}/collaborators`),
+
+      addCollaborator: (owner: string, name: string, data: { username: string; permission?: CollaboratorPermission }) =>
+        apiFetch<{ collaborator: Collaborator }>(`/api/repositories/${owner}/${name}/collaborators`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      updateCollaborator: (owner: string, name: string, userId: string, permission: CollaboratorPermission) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/collaborators/${userId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ permission }),
+        }),
+
+      removeCollaborator: (owner: string, name: string, userId: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/collaborators/${userId}`, {
+          method: "DELETE",
+        }),
+
+      getBranchProtectionRules: (owner: string, name: string) =>
+        apiFetch<{ rules: BranchProtectionRule[] }>(`/api/repositories/${owner}/${name}/branch-protection`),
+
+      createBranchProtectionRule: (
+        owner: string,
+        name: string,
+        data: Omit<BranchProtectionRule, "id" | "repositoryId" | "createdAt" | "updatedAt">
+      ) =>
+        apiFetch<{ rule: BranchProtectionRule }>(`/api/repositories/${owner}/${name}/branch-protection`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      updateBranchProtectionRule: (
+        owner: string,
+        name: string,
+        ruleId: string,
+        data: Partial<Omit<BranchProtectionRule, "id" | "repositoryId" | "createdAt" | "updatedAt">>
+      ) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/branch-protection/${ruleId}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+
+      deleteBranchProtectionRule: (owner: string, name: string, ruleId: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/branch-protection/${ruleId}`, {
+          method: "DELETE",
+        }),
+
+      getWebhooks: (owner: string, name: string) =>
+        apiFetch<{ webhooks: RepositoryWebhook[] }>(`/api/repositories/${owner}/${name}/webhooks`),
+
+      createWebhook: (
+        owner: string,
+        name: string,
+        data: { url: string; secret?: string; events: WebhookEvent[]; active?: boolean; contentType?: "json" | "form" }
+      ) =>
+        apiFetch<{ webhook: RepositoryWebhook }>(`/api/repositories/${owner}/${name}/webhooks`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      updateWebhook: (
+        owner: string,
+        name: string,
+        hookId: string,
+        data: Partial<{ url: string; secret: string | null; events: WebhookEvent[]; active: boolean; contentType: "json" | "form" }>
+      ) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/webhooks/${hookId}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+
+      deleteWebhook: (owner: string, name: string, hookId: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${name}/webhooks/${hookId}`, {
+          method: "DELETE",
+        }),
     },
 
     users: {
@@ -387,7 +506,7 @@ export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "setti
       getCommits: (id: string, limit = 30, skip = 0) =>
         apiFetch<{ commits: Commit[]; hasMore: boolean }>(`/api/pulls/${id}/commits?limit=${limit}&skip=${skip}`),
 
-      merge: (id: string, data?: { commitMessage?: string }) =>
+      merge: (id: string, data?: { commitMessage?: string; mergeStrategy?: "merge" | "squash" | "rebase" }) =>
         apiFetch<{ success: boolean; mergeCommitOid: string }>(`/api/pulls/${id}/merge`, {
           method: "POST",
           body: JSON.stringify(data || {}),

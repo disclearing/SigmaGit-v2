@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "./context";
+import type { CollaboratorPermission, WebhookEvent } from "./types";
 
 export function useRepoPageData(owner: string, name: string) {
   const api = useApi();
@@ -264,4 +265,205 @@ export function useStarRepository(repoId: string, initialStarCount?: number) {
     toggleStar: mutation.mutate,
     isMutating: mutation.isPending,
   };
+}
+
+// ─── Branch management ───────────────────────────────────────────────────────
+
+export function useCreateBranch(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branch: string; fromRef: string }) => api.repositories.createBranch(owner, name, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branches"] });
+    },
+  });
+}
+
+export function useDeleteBranch(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (branch: string) => api.repositories.deleteBranch(owner, name, branch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branches"] });
+    },
+  });
+}
+
+// ─── Web-based file editing ──────────────────────────────────────────────────
+
+export function useCommitFile(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branch: string; path: string; content?: string; message: string; delete?: boolean }) =>
+      api.repositories.commitFile(owner, name, data),
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "tree", vars.branch] });
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "commits", vars.branch] });
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "file"] });
+    },
+  });
+}
+
+// ─── Tags ────────────────────────────────────────────────────────────────────
+
+export function useRepoTags(owner: string, name: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["repository", owner, name, "tags"],
+    queryFn: () => api.repositories.getTags(owner, name),
+    enabled: !!owner && !!name,
+  });
+}
+
+export function useCreateTag(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; ref: string; message?: string }) =>
+      api.repositories.createTag(owner, name, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "tags"] });
+    },
+  });
+}
+
+export function useDeleteTag(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tag: string) => api.repositories.deleteTag(owner, name, tag),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "tags"] });
+    },
+  });
+}
+
+// ─── Collaborators ───────────────────────────────────────────────────────────
+
+export function useCollaborators(owner: string, name: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["repository", owner, name, "collaborators"],
+    queryFn: () => api.repositories.getCollaborators(owner, name),
+    enabled: !!owner && !!name,
+  });
+}
+
+export function useAddCollaborator(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { username: string; permission?: CollaboratorPermission }) =>
+      api.repositories.addCollaborator(owner, name, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "collaborators"] });
+    },
+  });
+}
+
+export function useUpdateCollaborator(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, permission }: { userId: string; permission: CollaboratorPermission }) =>
+      api.repositories.updateCollaborator(owner, name, userId, permission),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "collaborators"] });
+    },
+  });
+}
+
+export function useRemoveCollaborator(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => api.repositories.removeCollaborator(owner, name, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "collaborators"] });
+    },
+  });
+}
+
+// ─── Branch Protection ───────────────────────────────────────────────────────
+
+export function useBranchProtectionRules(owner: string, name: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["repository", owner, name, "branch-protection"],
+    queryFn: () => api.repositories.getBranchProtectionRules(owner, name),
+    enabled: !!owner && !!name,
+  });
+}
+
+export function useCreateBranchProtectionRule(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      pattern: string;
+      requirePullRequest?: boolean;
+      requireApprovals?: number;
+      dismissStaleReviews?: boolean;
+      requireStatusChecks?: boolean;
+      requiredStatusChecks?: string[];
+      allowForcePush?: boolean;
+      allowDeletion?: boolean;
+    }) => api.repositories.createBranchProtectionRule(owner, name, data as any),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branch-protection"] });
+    },
+  });
+}
+
+export function useDeleteBranchProtectionRule(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ruleId: string) => api.repositories.deleteBranchProtectionRule(owner, name, ruleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branch-protection"] });
+    },
+  });
+}
+
+// ─── Repository Webhooks ─────────────────────────────────────────────────────
+
+export function useRepoWebhooks(owner: string, name: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["repository", owner, name, "webhooks"],
+    queryFn: () => api.repositories.getWebhooks(owner, name),
+    enabled: !!owner && !!name,
+  });
+}
+
+export function useCreateRepoWebhook(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      url: string;
+      secret?: string;
+      events: WebhookEvent[];
+      active?: boolean;
+      contentType?: "json" | "form";
+    }) => api.repositories.createWebhook(owner, name, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "webhooks"] });
+    },
+  });
+}
+
+export function useDeleteRepoWebhook(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (hookId: string) => api.repositories.deleteWebhook(owner, name, hookId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "webhooks"] });
+    },
+  });
 }

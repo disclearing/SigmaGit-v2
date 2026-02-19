@@ -54,7 +54,7 @@ function createPREmbed(data: any, repo: any): any {
     .setDescription(data.title)
     .setURL(`${getWebUrl()}/${repo.ownerUsername}/${repo.name}/pulls/${data.number}`)
     .addFields(
-      { name: 'State', value: data.state, inline: bot: true },
+      { name: 'State', value: data.state, inline: true },
       { name: 'Author', value: data.author?.username || 'Unknown', inline: true },
     )
     .setColor(getColorForState(data.state))

@@ -14,7 +14,8 @@ import {
 } from "@sigmagit/db";
 import { eq, sql, and, desc, or } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
-import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, repoCache } from "../git";
+import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, squashMerge, rebaseMerge, repoCache } from "../git";
+import { deliverWebhookEvent } from "./repo-webhooks";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -680,6 +681,7 @@ app.post("/api/pulls/:id/merge", requireAuth, async (c) => {
   const user = c.get("user")!;
   const body = await c.req.json<{
     commitMessage?: string;
+    mergeStrategy?: "merge" | "squash" | "rebase";
   }>();
 
   const pr = await db.query.pullRequests.findFirst({
@@ -725,17 +727,25 @@ app.post("/api/pulls/:id/merge", requireAuth, async (c) => {
   const baseStore = createGitStore(baseRepo.ownerId, baseRepo.name);
   const headStore = createGitStore(headRepo.ownerId, headRepo.name);
 
+  const mergeStrategy = body.mergeStrategy ?? "merge";
   const mergeMessage = body.commitMessage || `Merge pull request #${pr.number} from ${pr.headBranch}\n\n${pr.title}`;
+  const gitEmail = user.gitEmail || user.email;
 
-  const mergeResult = await performMerge(
-    baseStore,
-    pr.baseBranch,
-    headStore,
-    pr.headBranch,
-    mergeMessage,
-    user.name,
-    user.email
-  );
+  let mergeResult: { mergeCommitOid: string } | null = null;
+
+  if (mergeStrategy === "squash") {
+    mergeResult = await squashMerge(
+      baseStore, pr.baseBranch, headStore, pr.headBranch, mergeMessage, user.name, gitEmail
+    );
+  } else if (mergeStrategy === "rebase") {
+    mergeResult = await rebaseMerge(
+      baseStore, pr.baseBranch, headStore, pr.headBranch, user.name, gitEmail
+    );
+  } else {
+    mergeResult = await performMerge(
+      baseStore, pr.baseBranch, headStore, pr.headBranch, mergeMessage, user.name, gitEmail
+    );
+  }
 
   if (!mergeResult) {
     return c.json({ error: "Failed to perform merge" }, 500);
@@ -754,6 +764,18 @@ app.post("/api/pulls/:id/merge", requireAuth, async (c) => {
     .where(eq(pullRequests.id, id));
 
   await repoCache.invalidateBranch(baseRepo.ownerId, baseRepo.name, pr.baseBranch);
+
+  // Fire webhook
+  deliverWebhookEvent(pr.repositoryId, "pull_request", {
+    action: "merged",
+    number: pr.number,
+    title: pr.title,
+    mergeStrategy: mergeStrategy,
+    mergeCommitOid: mergeResult.mergeCommitOid,
+    baseBranch: pr.baseBranch,
+    headBranch: pr.headBranch,
+    sender: { id: user.id, username: user.username },
+  }).catch(() => {});
 
   return c.json({ success: true, mergeCommitOid: mergeResult.mergeCommitOid });
 });

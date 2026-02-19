@@ -1400,4 +1400,348 @@ export async function performMerge(
   }
 }
 
+// ─── Branch management ───────────────────────────────────────────────────────
+
+export async function createBranch(
+  fs: S3Fs,
+  dir: string,
+  newBranch: string,
+  fromRef: string
+): Promise<{ oid: string } | null> {
+  try {
+    const fromOid = await git.resolveRef({ fs, dir, ref: normalizeRef(fromRef) });
+    const refPath = `refs/heads/${newBranch}`;
+    await fs.promises.writeFile(refPath, fromOid + "\n");
+    return { oid: fromOid };
+  } catch (error) {
+    console.error("[Git] createBranch error:", error);
+    return null;
+  }
+}
+
+export async function deleteBranch(fs: S3Fs, dir: string, branch: string): Promise<boolean> {
+  try {
+    const refPath = `refs/heads/${branch}`;
+    await fs.promises.unlink(refPath);
+    return true;
+  } catch (error) {
+    console.error("[Git] deleteBranch error:", error);
+    return false;
+  }
+}
+
+// ─── Web-based file editing ──────────────────────────────────────────────────
+
+export async function commitFile(
+  store: GitStore,
+  branch: string,
+  filePath: string,
+  content: string,
+  message: string,
+  authorName: string,
+  authorEmail: string,
+  deleteFile = false
+): Promise<{ commitOid: string } | null> {
+  try {
+    const { fs, dir } = store;
+    const headOid = await git.resolveRef({ fs, dir, ref: normalizeRef(branch) });
+    const { commit: headCommit } = await git.readCommit({ fs, dir, oid: headOid });
+
+    // Traverse the existing tree, building a mutable map at each directory level
+    const parts = filePath.split("/").filter(Boolean);
+    const filename = parts[parts.length - 1];
+    const dirParts = parts.slice(0, -1);
+
+    // Read trees from root to parent directory
+    type TreeMap = Map<string, { mode: string; type: string; oid: string }>;
+    const treeMaps: TreeMap[] = [];
+    let currentTreeOid = headCommit.tree;
+
+    for (const part of dirParts) {
+      const rawTree = await git.readTree({ fs, dir, oid: currentTreeOid });
+      const treeMap: TreeMap = new Map(rawTree.tree.map((e) => [e.path, { mode: e.mode, type: e.type, oid: e.oid }]));
+      treeMaps.push(treeMap);
+      const entry = treeMap.get(part);
+      if (!entry || entry.type !== "tree") {
+        if (deleteFile) return null; // Nothing to delete
+        // Create empty tree for new directory
+        currentTreeOid = await git.writeTree({ fs, dir, tree: [] });
+        treeMap.set(part, { mode: "040000", type: "tree", oid: currentTreeOid });
+      } else {
+        currentTreeOid = entry.oid;
+      }
+    }
+
+    // Write leaf tree (with or without the file)
+    const leafRawTree = await git.readTree({ fs, dir, oid: currentTreeOid }).catch(() => ({ tree: [] }));
+    const leafMap: TreeMap = new Map(leafRawTree.tree.map((e) => [e.path, { mode: e.mode, type: e.type, oid: e.oid }]));
+
+    if (deleteFile) {
+      if (!leafMap.has(filename)) return null;
+      leafMap.delete(filename);
+    } else {
+      const encoder = new TextEncoder();
+      const blobOid = await git.writeBlob({ fs, dir, blob: encoder.encode(content) });
+      leafMap.set(filename, { mode: "100644", type: "blob", oid: blobOid });
+    }
+
+    // Write tree objects from leaf to root
+    let newTreeOid = await git.writeTree({
+      fs,
+      dir,
+      tree: Array.from(leafMap.entries()).map(([path, e]) => ({ path, mode: e.mode as any, oid: e.oid, type: e.type as any })),
+    });
+
+    for (let i = dirParts.length - 1; i >= 0; i--) {
+      const parentMap = i === 0
+        ? new Map<string, { mode: string; type: string; oid: string }>(
+            (await git.readTree({ fs, dir, oid: headCommit.tree }).catch(() => ({ tree: [] }))).tree.map((e) => [
+              e.path,
+              { mode: e.mode, type: e.type, oid: e.oid },
+            ])
+          )
+        : treeMaps[i - 1]!;
+      parentMap.set(dirParts[i]!, { mode: "040000", type: "tree", oid: newTreeOid });
+      newTreeOid = await git.writeTree({
+        fs,
+        dir,
+        tree: Array.from(parentMap.entries()).map(([path, e]) => ({ path, mode: e.mode as any, oid: e.oid, type: e.type as any })),
+      });
+    }
+
+    // If depth is 0 we need to re-read root tree when building root
+    if (dirParts.length === 0) {
+      newTreeOid = await git.writeTree({
+        fs,
+        dir,
+        tree: Array.from(leafMap.entries()).map(([path, e]) => ({ path, mode: e.mode as any, oid: e.oid, type: e.type as any })),
+      });
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const timezoneOffset = new Date().getTimezoneOffset();
+
+    const commitOid = await git.writeCommit({
+      fs,
+      dir,
+      commit: {
+        message,
+        tree: newTreeOid,
+        parent: [headOid],
+        author: { name: authorName, email: authorEmail, timestamp, timezoneOffset },
+        committer: { name: authorName, email: authorEmail, timestamp, timezoneOffset },
+      },
+    });
+
+    await fs.promises.writeFile(`refs/heads/${branch}`, commitOid + "\n");
+    return { commitOid };
+  } catch (error) {
+    console.error("[Git] commitFile error:", error);
+    return null;
+  }
+}
+
+// ─── Squash & Rebase merge ───────────────────────────────────────────────────
+
+export async function squashMerge(
+  baseStore: GitStore,
+  baseBranch: string,
+  headStore: GitStore,
+  headBranch: string,
+  commitMessage: string,
+  authorName: string,
+  authorEmail: string
+): Promise<{ mergeCommitOid: string } | null> {
+  try {
+    const { fs: bFs, dir: bDir } = baseStore;
+    const { fs: hFs, dir: hDir } = headStore;
+
+    const baseOid = await git.resolveRef({ fs: bFs, dir: bDir, ref: normalizeRef(baseBranch) });
+    const headOid = await git.resolveRef({ fs: hFs, dir: hDir, ref: normalizeRef(headBranch) });
+
+    const isCrossRepo = baseStore.ownerId !== headStore.ownerId || baseStore.repoName !== headStore.repoName;
+    if (isCrossRepo) {
+      const mergeBase = await findMergeBase(hFs, hDir, headOid, baseOid);
+      const copied = await copyCommitAndAncestors(headStore, baseStore, headOid, mergeBase);
+      if (!copied) return null;
+    }
+
+    const { commit: headCommit } = await git.readCommit({
+      fs: isCrossRepo ? bFs : hFs,
+      dir: isCrossRepo ? bDir : hDir,
+      oid: headOid,
+    });
+
+    // Squash: single commit with the head tree, single parent = base
+    const timestamp = Math.floor(Date.now() / 1000);
+    const timezoneOffset = new Date().getTimezoneOffset();
+
+    const squashCommitOid = await git.writeCommit({
+      fs: bFs,
+      dir: bDir,
+      commit: {
+        message: commitMessage,
+        tree: headCommit.tree,
+        parent: [baseOid],
+        author: { name: authorName, email: authorEmail, timestamp, timezoneOffset },
+        committer: { name: authorName, email: authorEmail, timestamp, timezoneOffset },
+      },
+    });
+
+    await bFs.promises.writeFile(`refs/heads/${baseBranch}`, squashCommitOid + "\n");
+    return { mergeCommitOid: squashCommitOid };
+  } catch (error) {
+    console.error("[Git] squashMerge error:", error);
+    return null;
+  }
+}
+
+export async function rebaseMerge(
+  baseStore: GitStore,
+  baseBranch: string,
+  headStore: GitStore,
+  headBranch: string,
+  authorName: string,
+  authorEmail: string
+): Promise<{ mergeCommitOid: string } | null> {
+  try {
+    const { fs: bFs, dir: bDir } = baseStore;
+    const { fs: hFs, dir: hDir } = headStore;
+
+    const baseOid = await git.resolveRef({ fs: bFs, dir: bDir, ref: normalizeRef(baseBranch) });
+    const headOid = await git.resolveRef({ fs: hFs, dir: hDir, ref: normalizeRef(headBranch) });
+
+    const isCrossRepo = baseStore.ownerId !== headStore.ownerId || baseStore.repoName !== headStore.repoName;
+    if (isCrossRepo) {
+      const mergeBase = await findMergeBase(hFs, hDir, headOid, baseOid);
+      const copied = await copyCommitAndAncestors(headStore, baseStore, headOid, mergeBase);
+      if (!copied) return null;
+    }
+
+    // Fast-forward rebase: move base branch tip to head's tip
+    const { commit: headCommit } = await git.readCommit({
+      fs: isCrossRepo ? bFs : hFs,
+      dir: isCrossRepo ? bDir : hDir,
+      oid: headOid,
+    });
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const timezoneOffset = new Date().getTimezoneOffset();
+
+    // Create a new commit on top of base
+    const rebaseCommitOid = await git.writeCommit({
+      fs: bFs,
+      dir: bDir,
+      commit: {
+        message: headCommit.message,
+        tree: headCommit.tree,
+        parent: [baseOid],
+        author: headCommit.author,
+        committer: { name: authorName, email: authorEmail, timestamp, timezoneOffset },
+      },
+    });
+
+    await bFs.promises.writeFile(`refs/heads/${baseBranch}`, rebaseCommitOid + "\n");
+    return { mergeCommitOid: rebaseCommitOid };
+  } catch (error) {
+    console.error("[Git] rebaseMerge error:", error);
+    return null;
+  }
+}
+
+// ─── Tag management ──────────────────────────────────────────────────────────
+
+export interface TagInfo {
+  name: string;
+  oid: string;
+  message?: string;
+  taggerName?: string;
+  taggerEmail?: string;
+  timestamp?: number;
+  targetOid: string;
+}
+
+export async function listTags(fs: S3Fs, dir: string): Promise<TagInfo[]> {
+  try {
+    const tags = await git.listTags({ fs, dir });
+    const result: TagInfo[] = [];
+    for (const name of tags) {
+      try {
+        const tagOid = await git.resolveRef({ fs, dir, ref: `refs/tags/${name}` });
+        const object = await git.readObject({ fs, dir, oid: tagOid });
+        if (object.type === "tag") {
+          const tag = object.object as any;
+          result.push({
+            name,
+            oid: tagOid,
+            message: tag.message,
+            taggerName: tag.tagger?.name,
+            taggerEmail: tag.tagger?.email,
+            timestamp: tag.tagger?.timestamp ? tag.tagger.timestamp * 1000 : undefined,
+            targetOid: tag.object,
+          });
+        } else {
+          result.push({ name, oid: tagOid, targetOid: tagOid });
+        }
+      } catch {
+        // skip malformed tags
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error("[Git] listTags error:", error);
+    return [];
+  }
+}
+
+export async function createTag(
+  fs: S3Fs,
+  dir: string,
+  name: string,
+  targetRef: string,
+  message?: string,
+  taggerName?: string,
+  taggerEmail?: string
+): Promise<{ oid: string } | null> {
+  try {
+    const targetOid = await git.resolveRef({ fs, dir, ref: normalizeRef(targetRef) });
+
+    if (message && taggerName && taggerEmail) {
+      // Annotated tag
+      const timestamp = Math.floor(Date.now() / 1000);
+      const timezoneOffset = new Date().getTimezoneOffset();
+      const tagOid = await git.writeTag({
+        fs,
+        dir,
+        tag: {
+          object: targetOid,
+          type: "commit",
+          tag: name,
+          tagger: { name: taggerName, email: taggerEmail, timestamp, timezoneOffset },
+          message,
+        },
+      });
+      await fs.promises.writeFile(`refs/tags/${name}`, tagOid + "\n");
+      return { oid: tagOid };
+    } else {
+      // Lightweight tag
+      await fs.promises.writeFile(`refs/tags/${name}`, targetOid + "\n");
+      return { oid: targetOid };
+    }
+  } catch (error) {
+    console.error("[Git] createTag error:", error);
+    return null;
+  }
+}
+
+export async function deleteTag(fs: S3Fs, dir: string, name: string): Promise<boolean> {
+  try {
+    await fs.promises.unlink(`refs/tags/${name}`);
+    return true;
+  } catch (error) {
+    console.error("[Git] deleteTag error:", error);
+    return false;
+  }
+}
+
 export { repoCache };

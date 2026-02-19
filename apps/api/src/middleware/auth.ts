@@ -7,6 +7,7 @@ export type AuthUser = {
   email: string;
   username: string;
   avatarUrl?: string | null;
+  gitEmail?: string | null;
 };
 
 export type AuthVariables = {

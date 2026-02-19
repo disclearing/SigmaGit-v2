@@ -320,6 +320,60 @@ export type PRCount = {
   merged: number;
 };
 
+// ─── Collaborator ────────────────────────────────────────────────────────────
+
+export type CollaboratorPermission = "read" | "write" | "admin";
+
+export type Collaborator = {
+  user: Owner;
+  permission: CollaboratorPermission;
+  addedAt: string;
+};
+
+// ─── Branch Protection ───────────────────────────────────────────────────────
+
+export type BranchProtectionRule = {
+  id: string;
+  repositoryId: string;
+  pattern: string;
+  requirePullRequest: boolean;
+  requireApprovals: number;
+  dismissStaleReviews: boolean;
+  requireStatusChecks: boolean;
+  requiredStatusChecks: string[];
+  allowForcePush: boolean;
+  allowDeletion: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// ─── Git Tag ─────────────────────────────────────────────────────────────────
+
+export type GitTag = {
+  name: string;
+  oid: string;
+  targetOid: string;
+  message?: string;
+  taggerName?: string;
+  taggerEmail?: string;
+  timestamp?: number;
+};
+
+// ─── Repository Webhook ──────────────────────────────────────────────────────
+
+export type WebhookEvent = "push" | "pull_request" | "issues" | "tag" | "branch";
+
+export type RepositoryWebhook = {
+  id: string;
+  url: string;
+  secret: string | null;
+  events: WebhookEvent[];
+  active: boolean;
+  contentType: "json" | "form";
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ApiClient = {
   repositories: {
     create: (data: { name: string; description?: string; visibility: "public" | "private" }) => Promise<Repository>;
@@ -336,14 +390,32 @@ export type ApiClient = {
     toggleStar: (id: string) => Promise<{ starred: boolean }>;
     isStarred: (id: string) => Promise<{ starred: boolean }>;
     getBranches: (owner: string, name: string) => Promise<{ branches: string[] }>;
+    createBranch: (owner: string, name: string, data: { branch: string; fromRef: string }) => Promise<{ branch: string; oid: string }>;
+    deleteBranch: (owner: string, name: string, branch: string) => Promise<{ success: boolean }>;
     getTree: (owner: string, name: string, branch: string, path?: string) => Promise<TreeResponse>;
     getTreeCommits: (owner: string, name: string, branch: string, path?: string) => Promise<{ files: FileLastCommit[] }>;
     getFile: (owner: string, name: string, branch: string, path: string) => Promise<{ content: string; oid: string; path: string }>;
+    commitFile: (owner: string, name: string, data: { branch: string; path: string; content?: string; message: string; delete?: boolean }) => Promise<{ success: boolean; commitOid: string }>;
     getCommits: (owner: string, name: string, branch: string, limit?: number, skip?: number) => Promise<{ commits: Commit[]; hasMore: boolean }>;
     getCommitCount: (owner: string, name: string, branch: string) => Promise<{ count: number }>;
     getCommitDiff: (owner: string, name: string, oid: string) => Promise<CommitDiff>;
     getReadme: (owner: string, name: string, oid: string) => Promise<{ content: string }>;
     getReadmeOid: (owner: string, name: string, branch: string) => Promise<{ readmeOid: string | null }>;
+    getTags: (owner: string, name: string) => Promise<{ tags: GitTag[] }>;
+    createTag: (owner: string, name: string, data: { name: string; ref: string; message?: string }) => Promise<{ tag: string; oid: string }>;
+    deleteTag: (owner: string, name: string, tag: string) => Promise<{ success: boolean }>;
+    getCollaborators: (owner: string, name: string) => Promise<{ collaborators: Collaborator[] }>;
+    addCollaborator: (owner: string, name: string, data: { username: string; permission?: CollaboratorPermission }) => Promise<{ collaborator: Collaborator }>;
+    updateCollaborator: (owner: string, name: string, userId: string, permission: CollaboratorPermission) => Promise<{ success: boolean }>;
+    removeCollaborator: (owner: string, name: string, userId: string) => Promise<{ success: boolean }>;
+    getBranchProtectionRules: (owner: string, name: string) => Promise<{ rules: BranchProtectionRule[] }>;
+    createBranchProtectionRule: (owner: string, name: string, data: Omit<BranchProtectionRule, "id" | "repositoryId" | "createdAt" | "updatedAt">) => Promise<{ rule: BranchProtectionRule }>;
+    updateBranchProtectionRule: (owner: string, name: string, ruleId: string, data: Partial<Omit<BranchProtectionRule, "id" | "repositoryId" | "createdAt" | "updatedAt">>) => Promise<{ success: boolean }>;
+    deleteBranchProtectionRule: (owner: string, name: string, ruleId: string) => Promise<{ success: boolean }>;
+    getWebhooks: (owner: string, name: string) => Promise<{ webhooks: RepositoryWebhook[] }>;
+    createWebhook: (owner: string, name: string, data: { url: string; secret?: string; events: WebhookEvent[]; active?: boolean; contentType?: "json" | "form" }) => Promise<{ webhook: RepositoryWebhook }>;
+    updateWebhook: (owner: string, name: string, hookId: string, data: Partial<{ url: string; secret: string | null; events: WebhookEvent[]; active: boolean; contentType: "json" | "form" }>) => Promise<{ success: boolean }>;
+    deleteWebhook: (owner: string, name: string, hookId: string) => Promise<{ success: boolean }>;
   };
   users: {
     getProfile: (username: string) => Promise<UserProfile>;
@@ -416,7 +488,7 @@ export type ApiClient = {
     getCount: (owner: string, repo: string) => Promise<PRCount>;
     getDiff: (id: string) => Promise<PRDiff>;
     getCommits: (id: string, limit?: number, skip?: number) => Promise<{ commits: Commit[]; hasMore: boolean }>;
-    merge: (id: string, data?: { commitMessage?: string }) => Promise<{ success: boolean; mergeCommitOid: string }>;
+    merge: (id: string, data?: { commitMessage?: string; mergeStrategy?: "merge" | "squash" | "rebase" }) => Promise<{ success: boolean; mergeCommitOid: string }>;
     listReviews: (id: string) => Promise<{ reviews: PRReview[] }>;
     submitReview: (id: string, data: { body?: string; state: "approved" | "changes_requested" | "commented" }) => Promise<PRReview>;
     listComments: (id: string, options?: { groupByFile?: boolean; filePath?: string }) => Promise<{ comments: PRComment[] } | GroupedPRComments>;

@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, boolean, uuid, jsonb, primaryKey, integer, index, bigint, customType } from "drizzle-orm/pg-core";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
 const tsvector = customType<{ data: string }>({
@@ -92,7 +93,7 @@ export const repositories = pgTable(
     ownerId: text("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    forkedFromId: uuid("forked_from_id").references(() => repositories.id, { onDelete: "set null" }),
+    forkedFromId: uuid("forked_from_id").references((): AnyPgColumn => repositories.id, { onDelete: "set null" }),
     visibility: text("visibility", { enum: ["public", "private"] })
       .notNull()
       .default("public"),
@@ -688,6 +689,125 @@ export const notificationRelations = relations(notifications, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// ─── Repository Collaborators ────────────────────────────────────────────────
+
+export const repositoryCollaborators = pgTable(
+  "repository_collaborators",
+  {
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    permission: text("permission", { enum: ["read", "write", "admin"] })
+      .notNull()
+      .default("read"),
+    invitedById: text("invited_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.repositoryId, table.userId] }),
+    index("repo_collaborators_repo_id_idx").on(table.repositoryId),
+    index("repo_collaborators_user_id_idx").on(table.userId),
+  ]
+);
+
+export const repositoryCollaboratorRelations = relations(repositoryCollaborators, ({ one }) => ({
+  repository: one(repositories, {
+    fields: [repositoryCollaborators.repositoryId],
+    references: [repositories.id],
+  }),
+  user: one(users, {
+    fields: [repositoryCollaborators.userId],
+    references: [users.id],
+  }),
+  invitedBy: one(users, {
+    fields: [repositoryCollaborators.invitedById],
+    references: [users.id],
+    relationName: "collaboratorInvitedBy",
+  }),
+}));
+
+// ─── Branch Protection Rules ─────────────────────────────────────────────────
+
+export const branchProtectionRules = pgTable(
+  "branch_protection_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    pattern: text("pattern").notNull(),
+    requirePullRequest: boolean("require_pull_request").notNull().default(false),
+    requireApprovals: integer("require_approvals").notNull().default(0),
+    dismissStaleReviews: boolean("dismiss_stale_reviews").notNull().default(false),
+    requireStatusChecks: boolean("require_status_checks").notNull().default(false),
+    requiredStatusChecks: jsonb("required_status_checks").$type<string[]>().default([]),
+    allowForcePush: boolean("allow_force_push").notNull().default(false),
+    allowDeletion: boolean("allow_deletion").notNull().default(false),
+    createdById: text("created_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("branch_protection_rules_repo_id_idx").on(table.repositoryId)]
+);
+
+export const branchProtectionRuleRelations = relations(branchProtectionRules, ({ one }) => ({
+  repository: one(repositories, {
+    fields: [branchProtectionRules.repositoryId],
+    references: [repositories.id],
+  }),
+  createdBy: one(users, {
+    fields: [branchProtectionRules.createdById],
+    references: [users.id],
+  }),
+}));
+
+// ─── Repository Webhooks ─────────────────────────────────────────────────────
+
+export const repositoryWebhooks = pgTable(
+  "repository_webhooks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    secret: text("secret"),
+    events: jsonb("events")
+      .$type<Array<"push" | "pull_request" | "issues" | "tag" | "branch">>()
+      .notNull()
+      .default([]),
+    active: boolean("active").notNull().default(true),
+    contentType: text("content_type", { enum: ["json", "form"] })
+      .notNull()
+      .default("json"),
+    createdById: text("created_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("repo_webhooks_repo_id_idx").on(table.repositoryId)]
+);
+
+export const repositoryWebhookRelations = relations(repositoryWebhooks, ({ one }) => ({
+  repository: one(repositories, {
+    fields: [repositoryWebhooks.repositoryId],
+    references: [repositories.id],
+  }),
+  createdBy: one(users, {
+    fields: [repositoryWebhooks.createdById],
+    references: [users.id],
+  }),
+}))
 
 export const passkeys = pgTable(
   "passkey",

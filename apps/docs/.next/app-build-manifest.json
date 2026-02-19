@@ -6,6 +6,11 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
+    "/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
+    ],
     "/docs/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -16,10 +21,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/docs/page.js"
     ],
-    "/page": [
+    "/docs/features/repositories/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/docs/features/repositories/page.js"
+    ],
+    "/docs/features/labels/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/features/labels/page.js"
+    ],
+    "/docs/features/discord-bot/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/features/discord-bot/page.js"
+    ],
+    "/docs/self-hosting/database/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/self-hosting/database/page.js"
     ]
   }
 }

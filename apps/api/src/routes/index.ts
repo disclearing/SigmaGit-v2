@@ -15,6 +15,9 @@ import discussions from "./discussions";
 import projects from "./projects";
 import webhooks from "./webhooks";
 import discord from "./discord";
+import collaborators from "./collaborators";
+import branchProtection from "./branch-protection";
+import repoWebhooks from "./repo-webhooks";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
@@ -33,4 +36,7 @@ export function mountRoutes(app: Hono) {
   app.route("/", projects);
   app.route("/", webhooks);
   app.route("/", discord);
+  app.route("/", collaborators);
+  app.route("/", branchProtection);
+  app.route("/", repoWebhooks);
 }

@@ -7,8 +7,7 @@ node_modules
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-apps/docs/node_modules
-apps/docs/.next
+.next
 
 # testing
 coverage

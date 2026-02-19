@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db, users, repositories, stars, repoBranchMetadata } from "@sigmagit/db";
 import { eq, sql, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { deliverWebhookEvent } from "./repo-webhooks";
 import {
   createGitStore,
   listBranchesCached,
@@ -12,6 +13,12 @@ import {
   getBlobByOid,
   getCommitByOid,
   getCommitDiff,
+  createBranch,
+  deleteBranch,
+  commitFile,
+  listTags,
+  createTag,
+  deleteTag,
   type CommitInfo,
 } from "../git";
 
@@ -143,6 +150,231 @@ app.get("/api/repositories/:owner/:name/branches", async (c) => {
 
   const branches = await listBranchesCached(store);
   return c.json({ branches });
+});
+
+app.post("/api/repositories/:owner/:name/branches", requireAuth, async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const currentUser = c.get("user")!;
+  const body = await c.req.json<{ branch: string; fromRef: string }>();
+
+  if (!body.branch || !body.fromRef) {
+    return c.json({ error: "branch and fromRef are required" }, 400);
+  }
+  if (!/^[a-zA-Z0-9_.\-/]+$/.test(body.branch)) {
+    return c.json({ error: "Invalid branch name" }, 400);
+  }
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (repo.visibility === "private" && currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Repository not found" }, 404);
+  }
+  if (currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Not authorized" }, 403);
+  }
+
+  const branches = await listBranchesCached(store);
+  if (branches.includes(body.branch)) {
+    return c.json({ error: "Branch already exists" }, 400);
+  }
+
+  const created = await createBranch(store.fs, store.dir, body.branch, body.fromRef);
+  if (!created) return c.json({ error: "Failed to create branch" }, 500);
+
+  // Fire webhook
+  deliverWebhookEvent(repo.id, "branch", {
+    action: "created",
+    ref: body.branch,
+    oid: created.oid,
+    repository: { owner, name: repo.name },
+    sender: { id: currentUser.id, username: currentUser.username },
+  }).catch(() => {});
+
+  return c.json({ branch: body.branch, oid: created.oid });
+});
+
+app.delete("/api/repositories/:owner/:name/branches/:branch", requireAuth, async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const branch = c.req.param("branch");
+  const currentUser = c.get("user")!;
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Not authorized" }, 403);
+  }
+  if (branch === repo.defaultBranch) {
+    return c.json({ error: "Cannot delete the default branch" }, 400);
+  }
+
+  const deleted = await deleteBranch(store.fs, store.dir, branch);
+  if (!deleted) return c.json({ error: "Failed to delete branch" }, 500);
+
+  // Invalidate metadata cache
+  await db.delete(repoBranchMetadata).where(
+    and(eq(repoBranchMetadata.repoId, repo.id), eq(repoBranchMetadata.branch, branch))
+  );
+
+  // Fire webhook
+  deliverWebhookEvent(repo.id, "branch", {
+    action: "deleted",
+    ref: branch,
+    repository: { owner, name: repo.name },
+    sender: { id: currentUser.id, username: currentUser.username },
+  }).catch(() => {});
+
+  return c.json({ success: true });
+});
+
+// ─── Web-based file editing ──────────────────────────────────────────────────
+
+app.post("/api/repositories/:owner/:name/file", requireAuth, async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const currentUser = c.get("user")!;
+  const body = await c.req.json<{
+    branch: string;
+    path: string;
+    content?: string;
+    message: string;
+    delete?: boolean;
+  }>();
+
+  if (!body.branch || !body.path || !body.message) {
+    return c.json({ error: "branch, path, and message are required" }, 400);
+  }
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Not authorized" }, 403);
+  }
+
+  const gitEmail = currentUser.gitEmail || currentUser.email;
+
+  const committed = await commitFile(
+    store,
+    body.branch,
+    body.path,
+    body.content ?? "",
+    body.message,
+    currentUser.name,
+    gitEmail,
+    body.delete ?? false
+  );
+
+  if (!committed) return c.json({ error: "Failed to commit file" }, 500);
+
+  await db.update(repoBranchMetadata).set({ updatedAt: new Date() }).where(
+    and(eq(repoBranchMetadata.repoId, repo.id), eq(repoBranchMetadata.branch, body.branch))
+  );
+
+  return c.json({ success: true, commitOid: committed.commitOid });
+});
+
+// ─── Tag management ──────────────────────────────────────────────────────────
+
+app.get("/api/repositories/:owner/:name/tags", async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const currentUser = c.get("user");
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+    return c.json({ error: "Repository not found" }, 404);
+  }
+
+  const tags = await listTags(store.fs, store.dir);
+  return c.json({ tags });
+});
+
+app.post("/api/repositories/:owner/:name/tags", requireAuth, async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const currentUser = c.get("user")!;
+  const body = await c.req.json<{
+    name: string;
+    ref: string;
+    message?: string;
+  }>();
+
+  if (!body.name || !body.ref) {
+    return c.json({ error: "name and ref are required" }, 400);
+  }
+  if (!/^[a-zA-Z0-9_.\-/]+$/.test(body.name)) {
+    return c.json({ error: "Invalid tag name" }, 400);
+  }
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Not authorized" }, 403);
+  }
+
+  const gitEmail = currentUser.gitEmail || currentUser.email;
+  const created = await createTag(
+    store.fs,
+    store.dir,
+    body.name,
+    body.ref,
+    body.message,
+    body.message ? currentUser.name : undefined,
+    body.message ? gitEmail : undefined
+  );
+
+  if (!created) return c.json({ error: "Failed to create tag" }, 500);
+
+  // Fire webhook
+  deliverWebhookEvent(repo.id, "tag", {
+    action: "created",
+    tag: body.name,
+    oid: created.oid,
+    repository: { owner, name: repo.name },
+    sender: { id: currentUser.id, username: currentUser.username },
+  }).catch(() => {});
+
+  return c.json({ tag: body.name, oid: created.oid });
+});
+
+app.delete("/api/repositories/:owner/:name/tags/:tag", requireAuth, async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const tag = c.req.param("tag");
+  const currentUser = c.get("user")!;
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Not authorized" }, 403);
+  }
+
+  const deleted = await deleteTag(store.fs, store.dir, tag);
+  if (!deleted) return c.json({ error: "Failed to delete tag" }, 500);
+
+  // Fire webhook
+  deliverWebhookEvent(repo.id, "tag", {
+    action: "deleted",
+    tag,
+    repository: { owner, name: repo.name },
+    sender: { id: currentUser.id, username: currentUser.username },
+  }).catch(() => {});
+
+  return c.json({ success: true });
 });
 
 app.get("/api/repositories/:owner/:name/commits", async (c) => {

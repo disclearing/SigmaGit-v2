@@ -100,6 +100,23 @@ REDIS_URL=redis://:password@localhost:6379
 | `DISCORD_BOT_TOKEN` | ❌ | — | Discord bot token |
 | `DISCORD_CLIENT_ID` | ❌ | — | Discord application client ID |
 | `DISCORD_GUILD_ID` | ❌ | — | Guild ID for slash command registration |
+| `DISCORD_WEBHOOK_URL` | ❌ | — | Discord webhook URL for notifications |
+| `WEBHOOK_SECRET` | ❌ | — | Secret key for webhook signature verification |
+| `PUBLIC_WEBHOOK_URL` | ❌ | — | Public URL for webhook endpoints |
+
+### Discord Webhook Setup
+
+1. Go to your Discord server settings
+2. Navigate to Integrations → Webhooks
+3. Create a new webhook
+4. Copy the webhook URL
+5. Set `DISCORD_WEBHOOK_URL` in your environment
+
+```bash
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+WEBHOOK_SECRET=your-secret-key-for-signature-verification
+PUBLIC_WEBHOOK_URL=https://your-domain.com/api/webhooks/discord
+```
 
 ## SSH Server (Optional)
 

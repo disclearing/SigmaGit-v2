@@ -1,8 +1,12 @@
 import { Hono } from "hono";
 import { eq, and } from "drizzle-orm";
-import { discordLinks, linkTokens } from "@sigmagit/db";
+import { db, users, discordLinks, linkTokens } from "@sigmagit/db";
 import { randomBytes } from "crypto";
-import { calculateTokenExpiry } from "../../apps/discord-bot/src/linking";
+function calculateTokenExpiry(): Date {
+  const expiry = new Date();
+  expiry.setHours(expiry.getHours() + 24);
+  return expiry;
+}
 
 const app = new Hono();
 
@@ -14,6 +18,7 @@ interface LinkRequest {
 interface VerifyLinkRequest {
   token: string;
   sigmagitUserId: string;
+  discordId?: string;
 }
 
 async function generateLinkTokenForUser(discordId: string, userId: string): Promise<string> {
@@ -73,7 +78,7 @@ app.post('/api/discord/link/generate', async (c) => {
 
 app.post('/api/discord/link/verify', async (c) => {
   try {
-    const { token, sigmagitUserId } = await c.req.json() as VerifyLinkRequest;
+    const { token, sigmagitUserId, discordId } = await c.req.json() as VerifyLinkRequest;
 
     if (!token || !sigmagitUserId) {
       return c.json({ error: 'Token and user ID are required' }, 400);
@@ -112,13 +117,28 @@ app.post('/api/discord/link/verify', async (c) => {
       .set({ used: true })
       .where(eq(linkTokens.token, token));
 
-    const existingLink = await db.query.discordLinks.findFirst({
-      where: eq(discordLinks.discordId, linkToken.userId),
+    // Look up existing link by sigmagitUserId first, then by discordId if provided
+    let existingLink = await db.query.discordLinks.findFirst({
+      where: eq(discordLinks.sigmagitUserId, sigmagitUserId),
     });
+
+    if (!existingLink && discordId) {
+      existingLink = await db.query.discordLinks.findFirst({
+        where: eq(discordLinks.discordId, discordId),
+      });
+    }
+
+    // Use provided discordId or try to get it from existing link
+    const finalDiscordId = discordId || existingLink?.discordId;
+
+    if (!finalDiscordId) {
+      return c.json({ error: 'Discord ID is required for linking' }, 400);
+    }
 
     if (existingLink) {
       await db.update(discordLinks)
         .set({
+          discordId: finalDiscordId,
           sigmagitUserId: user.id,
           sigmagitUsername: user.username,
           sigmagitEmail: user.email,
@@ -130,7 +150,7 @@ app.post('/api/discord/link/verify', async (c) => {
       return c.json({ success: true, linked: true, user: user });
     } else {
       await db.insert(discordLinks).values({
-        discordId: linkToken.userId,
+        discordId: finalDiscordId,
         sigmagitUserId: user.id,
         sigmagitUsername: user.username,
         sigmagitEmail: user.email,

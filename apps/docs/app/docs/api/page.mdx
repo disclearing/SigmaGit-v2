@@ -133,5 +133,9 @@ Response includes pagination metadata:
 | `POST` | `/api/repos/:owner/:repo/issues` | Create issue |
 | `GET` | `/api/repos/:owner/:repo/pulls` | List pull requests |
 | `GET` | `/api/repos/:owner/:repo/commits` | List commits |
+| `POST` | `/api/discord/link/generate` | Generate Discord link token |
+| `POST` | `/api/discord/link/verify` | Verify Discord link token |
+| `GET` | `/api/discord/link/status/:discordId` | Get Discord link status |
+| `POST` | `/api/webhooks/discord` | Send Discord webhook |
 
-See the detailed endpoint references for [Repositories](/docs/api/repositories), [Issues](/docs/api/issues), and [Authentication](/docs/api/authentication).
+See the detailed endpoint references for [Repositories](/docs/api/repositories), [Issues](/docs/api/issues), [Authentication](/docs/api/authentication), and [Discord](/docs/api/discord).

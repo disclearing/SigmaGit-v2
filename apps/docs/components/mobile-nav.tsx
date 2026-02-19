@@ -20,7 +20,7 @@ export function MobileNav() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex size-9 items-center justify-center rounded-md hover:bg-accent md:hidden"
+        className="flex size-9 items-center justify-center rounded-lg hover:bg-muted/50 md:hidden transition-colors"
         aria-label="Open navigation"
       >
         <Menu className="size-5" />
@@ -30,16 +30,16 @@ export function MobileNav() {
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-[280px] bg-background shadow-2xl">
-            <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
               <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-                <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">
+                <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-sm shadow-sm">
                   σ
                 </div>
                 <span className="font-semibold">Docs</span>
               </Link>
               <button
                 onClick={() => setOpen(false)}
-                className="flex size-8 items-center justify-center rounded-md hover:bg-accent"
+                className="flex size-8 items-center justify-center rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <X className="size-4" />
               </button>
@@ -60,10 +60,10 @@ export function MobileNav() {
                             key={item.href}
                             href={item.disabled ? '#' : item.href}
                             className={cn(
-                              'flex w-full items-center rounded-md px-4 py-2 text-sm transition-colors',
+                              'flex w-full items-center rounded-lg px-4 py-2 text-sm transition-all duration-200',
                               isActive
-                                ? 'bg-primary/10 font-medium text-primary'
-                                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                                ? 'bg-primary/10 font-medium text-primary shadow-sm'
+                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
                             )}
                           >
                             {item.title}

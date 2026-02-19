@@ -1,0 +1,453 @@
+export const metadata = {
+  title: 'Discord Bot',
+  description: 'Manage repositories, receive notifications, and link accounts via Discord.',
+};
+
+# Discord Bot
+
+Sigmagit includes a powerful Discord bot that lets you manage repositories, receive notifications, and link your Discord account to your Sigmagit account.
+
+## Features
+
+### Repository Management
+
+- **View Repository Info** — Get detailed information about any repository
+- **Search Repositories** — Search for repositories across Sigmagit
+- **List Issues** — View and filter issues (open/closed)
+- **List Pull Requests** — View PRs with state filters (open/closed/merged)
+- **View Commits** — Browse recent commits for any repository and branch
+- **Fork Repositories** — Fork repositories directly from Discord
+
+### Account Linking
+
+- **Link Account** — Connect your Discord account to Sigmagit
+- **Email Verification** — Link using email verification tokens
+- **Check Status** — View your account link status
+- **Unlink Account** — Disconnect Discord from Sigmagit
+
+### Ticket Management
+
+- **Create Tickets** — Create support tickets with categories
+- **Close Tickets** — Staff can close tickets with reasons
+- **Private Channels** — Tickets create private channels for support
+
+### Moderation Tools
+
+- **Kick Members** — Remove members from the server
+- **Ban Members** — Permanently ban members with message deletion
+- **Timeout Members** — Temporarily mute members
+- **Warn Members** — Issue warnings to members
+
+### Server Management
+
+- **Purge Messages** — Bulk delete messages (1-100)
+- **Slowmode** — Set channel slowmode (0-21600 seconds)
+- **Lock/Unlock Channels** — Lock or unlock channels
+- **User Info** — View detailed user information
+- **Server Info** — View server statistics and details
+
+## Commands
+
+### Repository Commands
+
+#### `/repo [owner] [repo]`
+
+Get detailed information about a repository.
+
+**Parameters:**
+- `owner` (required) — Repository owner username
+- `repo` (required) — Repository name
+
+**Example:**
+```
+/repo owner torvalds repo linux
+```
+
+**Response includes:**
+- Repository name, description, visibility
+- Stars, forks, watchers count
+- Owner information
+- Created and updated dates
+
+#### `/search [query]`
+
+Search for repositories on Sigmagit.
+
+**Parameters:**
+- `query` (required) — Search query
+
+**Example:**
+```
+/search query javascript framework
+```
+
+#### `/issues [owner] [repo] [state]`
+
+List issues for a repository.
+
+**Parameters:**
+- `owner` (required) — Repository owner username
+- `repo` (required) — Repository name
+- `state` (optional) — Filter by state: `open` or `closed` (default: `open`)
+
+**Example:**
+```
+/issues owner torvalds repo linux state closed
+```
+
+#### `/prs [owner] [repo] [state]`
+
+List pull requests for a repository.
+
+**Parameters:**
+- `owner` (required) — Repository owner username
+- `repo` (required) — Repository name
+- `state` (optional) — Filter by state: `open`, `closed`, or `merged` (default: `open`)
+
+**Example:**
+```
+/prs owner torvalds repo linux state open
+```
+
+#### `/commits [owner] [repo] [branch]`
+
+View recent commits for a repository.
+
+**Parameters:**
+- `owner` (required) — Repository owner username
+- `repo` (required) — Repository name
+- `branch` (optional) — Branch name (default: `main`)
+
+**Example:**
+```
+/commits owner torvalds repo linux branch main
+```
+
+#### `/fork [owner] [repo] [name]`
+
+Fork a repository to your account.
+
+**Parameters:**
+- `owner` (required) — Repository owner username
+- `repo` (required) — Repository name
+- `name` (optional) — Name for the fork
+
+**Example:**
+```
+/fork owner torvalds repo linux name my-linux
+```
+
+### Account Linking Commands
+
+#### `/link`
+
+Start the Discord account linking process. Generates a verification token that you can use on the Sigmagit website.
+
+**Example:**
+```
+/link
+```
+
+#### `/link-email [email]`
+
+Link your account using email verification.
+
+**Parameters:**
+- `email` (required) — Your Sigmagit email address
+
+**Example:**
+```
+/link-email email user@example.com
+```
+
+#### `/link-status`
+
+Check your account link status and verification state.
+
+**Example:**
+```
+/link-status
+```
+
+#### `/unlink`
+
+Unlink your Discord account from Sigmagit.
+
+**Example:**
+```
+/unlink
+```
+
+### Ticket Commands
+
+#### `/ticket [category] [description]`
+
+Create a support ticket. Creates a private channel visible only to you and staff.
+
+**Parameters:**
+- `category` (optional) — Ticket category (e.g., `general`, `bug`, `feature`)
+- `description` (optional) — Description of your issue
+
+**Example:**
+```
+/ticket category bug description "I found a bug in the API"
+```
+
+#### `/ticket-close [reason]`
+
+Close a ticket (Staff only).
+
+**Parameters:**
+- `reason` (optional) — Reason for closing
+
+**Example:**
+```
+/ticket-close reason "Issue resolved"
+```
+
+### Moderation Commands
+
+<Callout type="warning">
+All moderation commands require staff permissions (Manage Guild, Administrator, or Manage Channels).
+</Callout>
+
+#### `/kick [user] [reason]`
+
+Kick a member from the server.
+
+**Parameters:**
+- `user` (required) — User to kick
+- `reason` (optional) — Reason for kick
+
+**Example:**
+```
+/kick user @username reason "Violation of rules"
+```
+
+#### `/ban [user] [reason] [delete_days]`
+
+Ban a member from the server.
+
+**Parameters:**
+- `user` (required) — User to ban
+- `reason` (optional) — Reason for ban
+- `delete_days` (optional) — Days of messages to delete (0-7)
+
+**Example:**
+```
+/ban user @username reason "Spam" delete_days 1
+```
+
+#### `/timeout [user] [duration] [reason]`
+
+Timeout (mute) a member temporarily.
+
+**Parameters:**
+- `user` (required) — User to timeout
+- `duration` (optional) — Duration in minutes (default: 60)
+- `reason` (optional) — Reason for timeout
+
+**Example:**
+```
+/timeout user @username duration 30 reason "Inappropriate behavior"
+```
+
+#### `/warn [user] [reason]`
+
+Issue a warning to a member.
+
+**Parameters:**
+- `user` (required) — User to warn
+- `reason` (optional) — Reason for warning
+
+**Example:**
+```
+/warn user @username reason "Please follow the rules"
+```
+
+### Server Management Commands
+
+<Callout type="warning">
+All server management commands require staff permissions.
+</Callout>
+
+#### `/purge [amount] [user]`
+
+Delete multiple messages from a channel.
+
+**Parameters:**
+- `amount` (optional) — Number of messages to delete (1-100, default: 10)
+- `user` (optional) — User to purge messages from
+
+**Example:**
+```
+/purge amount 50 user @username
+```
+
+#### `/slowmode [seconds]`
+
+Set slowmode for a channel.
+
+**Parameters:**
+- `seconds` (optional) — Slowmode duration in seconds (0-21600, default: 0)
+
+**Example:**
+```
+/slowmode seconds 10
+```
+
+#### `/lock [channel]`
+
+Lock a channel (prevent sending messages).
+
+**Parameters:**
+- `channel` (optional) — Channel to lock (default: current channel)
+
+**Example:**
+```
+/lock channel #general
+```
+
+#### `/unlock [channel]`
+
+Unlock a channel.
+
+**Parameters:**
+- `channel` (optional) — Channel to unlock (default: current channel)
+
+**Example:**
+```
+/unlock channel #general
+```
+
+### Info Commands
+
+#### `/userinfo [user]`
+
+Get detailed information about a user.
+
+**Parameters:**
+- `user` (optional) — User to get info about (default: yourself)
+
+**Example:**
+```
+/userinfo user @username
+```
+
+**Response includes:**
+- User ID, username, discriminator
+- Account creation date
+- Server join date (if in server)
+- Roles and highest role
+- Bot status
+
+#### `/serverinfo`
+
+Get information about the server.
+
+**Example:**
+```
+/serverinfo
+```
+
+**Response includes:**
+- Server owner
+- Member count
+- Channel count
+- Role count
+- Creation date
+- Boost level
+
+## Notifications
+
+The Discord bot can receive webhook notifications from Sigmagit for:
+
+- **Issue Events** — Opened, closed, edited, commented
+- **Pull Request Events** — Opened, closed, merged, reviewed
+- **Push Events** — New commits pushed to repositories
+- **Star Events** — Repository starred/unstarred
+- **Fork Events** — Repository forked
+
+Notifications are sent to configured Discord webhooks. See [Webhooks](/docs/features/webhooks) for setup instructions.
+
+## Setup
+
+### Prerequisites
+
+- Discord bot token
+- Discord application client ID
+- Sigmagit API server running
+
+### Installation
+
+1. **Create Discord Application**
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create a new application
+   - Go to "Bot" section and create a bot user
+   - Enable "Server Members Intent" and "Message Content Intent"
+   - Copy the bot token
+
+2. **Invite Bot to Server**
+   - Go to "OAuth2" > "URL Generator"
+   - Select scopes: `bot`, `applications.commands`
+   - Select bot permissions: Send Messages, Embed Links, Read Messages, Manage Channels, Kick Members, Ban Members, Manage Messages
+   - Use the generated URL to invite the bot
+
+3. **Configure Environment**
+   ```bash
+   DISCORD_BOT_TOKEN=your-bot-token
+   DISCORD_CLIENT_ID=your-client-id
+   DISCORD_GUILD_ID=your-server-id
+   API_URL=http://localhost:3001
+   ```
+
+4. **Register Commands**
+   ```bash
+   cd apps/discord-bot
+   bun run register
+   ```
+
+5. **Start Bot**
+   ```bash
+   bun run dev:discord
+   ```
+
+## Permissions
+
+The bot requires the following permissions:
+
+- **View Channels** — Read channel content
+- **Send Messages** — Send command responses
+- **Embed Links** — Send rich embeds
+- **Read Message History** — Access message history
+- **Manage Channels** — Create ticket channels
+- **Kick Members** — Kick command
+- **Ban Members** — Ban command
+- **Manage Messages** — Purge command
+
+## Troubleshooting
+
+### Bot Not Responding
+
+- Check that the bot is online in Discord
+- Verify the bot token is correct
+- Ensure the bot has necessary permissions
+- Check API server is running and accessible
+
+### Commands Not Appearing
+
+- Run `bun run register` to register commands
+- Wait a few minutes for Discord to update
+- Try restarting Discord client
+
+### Link Not Working
+
+- Verify your Sigmagit account email matches
+- Check token hasn't expired (tokens expire after 1 hour)
+- Ensure API server is accessible from bot
+
+## Next Steps
+
+- Learn about [Account Linking](/docs/features/account-linking)
+- Set up [Webhooks](/docs/features/webhooks) for notifications
+- Check the [API Reference](/docs/api/discord) for Discord endpoints

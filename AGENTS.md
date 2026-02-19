@@ -38,63 +38,49 @@ This file contains guidelines for agentic coding assistants working in this repo
 ## Code Style Guidelines
 
 ### Formatting
-- Use Prettier (configured with `bunx prettier --write .`)
-- Line width: 100 characters
-- Indentation: 2 spaces (no tabs)
-- Semicolons: required
-- Quotes: single quotes
+- Prettier config: 100 char width, 2 spaces, semicolons, single quotes
 - Imports auto-sorted via `prettier-plugin-sort-imports`
 - Tailwind classes sorted via `prettier-plugin-tailwindcss`
 
 ### TypeScript
-- Strict mode enabled in tsconfig.json
-- Type inference preferred where clear
+- Strict mode enabled
 - Use `interface` for object shapes, `type` for unions/primitives
 - Export types with `export type` where appropriate
 - Avoid `any`; use `unknown` or proper types
 - Type exports for React Query hooks
 
-### Import Style
-Imports are automatically sorted and grouped:
+### Import Order
 1. External libraries (React, TanStack, Lucide, etc.)
 2. Workspace packages (@sigmagit/*)
-3. Relative imports using `@/` alias (for web)
+3. Relative imports using `@/` alias (web)
 4. Type imports grouped together
 
 ```typescript
-// External libraries
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Star } from "lucide-react";
-
-// Workspace packages
 import { timeAgo } from "@sigmagit/lib";
 import { useRepositoryInfo } from "@sigmagit/hooks";
-
-// Local modules
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Repository } from "@/types";
 ```
 
 ### Naming Conventions
-- Components: PascalCase (e.g., `RepositoryCard`, `StarButton`)
-- Functions/variables: camelCase (e.g., `getRepositoryInfo`, `toggleStar`)
-- Types/interfaces: PascalCase (e.g., `Repository`, `UserPreferences`)
-- Constants: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`)
-- Files: kebab-case for components/utilities (e.g., `repo-card.tsx`, `star-button.tsx`)
+- Components: PascalCase (`RepositoryCard`, `StarButton`)
+- Functions/variables: camelCase (`getRepositoryInfo`, `toggleStar`)
+- Types/interfaces: PascalCase (`Repository`, `UserPreferences`)
+- Constants: UPPER_SNAKE_CASE (`API_BASE_URL`)
+- Files: kebab-case (`repo-card.tsx`, `star-button.tsx`)
 
 ### Component Patterns
 - Functional components with TypeScript props interfaces
-- Add `"use client";` directive for client components
-- Extract props to interface at top of file
-- Use `cn()` utility for conditional className merging
+- Add `"use client";` for client components
+- Extract props to interface, use `cn()` for className merging
 - Destructure props in function signature
-- Keep components focused and composable
 
 ```typescript
 "use client";
-
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -110,12 +96,11 @@ export function StarButton({ repository, className }: StarButtonProps) {
 ```
 
 ### API Routes (Hono)
-- Use typed route handlers with `Hono<{ Variables: AuthVariables }>`
+- Use typed handlers: `Hono<{ Variables: AuthVariables }>`
 - Apply middleware at route level with `app.use("*", middleware)`
 - Return proper HTTP status codes with JSON responses
 - Use `c.req.param()`, `c.req.json()`, `c.req.query()` for input
-- Validate inputs before processing
-- Return error objects: `{ error: "message" }`
+- Validate inputs, return errors as `{ error: "message" }`
 
 ```typescript
 import { Hono } from "hono";
@@ -127,22 +112,17 @@ app.use("*", authMiddleware);
 app.get("/api/repositories/:id", requireAuth, async (c) => {
   const user = c.get("user")!;
   const id = c.req.param("id");
-  
-  if (!user) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-  
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
   return c.json({ data: result });
 });
 ```
 
 ### React Query Hooks
-- Place in `packages/hooks/src` following feature domain
+- Place in `packages/hooks/src` by feature domain
 - Use `useApi()` context for API calls
-- Query keys follow pattern: `["resource", "id", "action"]`
-- Enable queries conditionally with `enabled`
+- Query keys: `["resource", "id", "action"]`
+- Enable conditionally with `enabled`
 - Mutations invalidate related queries on success
-- Use `queryClient.invalidateQueries()` for cache updates
 
 ```typescript
 export function useRepositoryInfo(owner: string, name: string) {
@@ -156,43 +136,40 @@ export function useRepositoryInfo(owner: string, name: string) {
 ```
 
 ### Database (Drizzle ORM)
-- Schema defined in `packages/db/src/schema.ts`
+- Schema in `packages/db/src/schema.ts`
 - Use `pgTable` for table definitions
-- Export both tables and relations
-- Type columns properly with `.$type<>()` for complex types
+- Export tables and relations
+- Type columns with `.$type<>()` for complex types
 - Use indexes for frequently queried fields
-- Cascade deletions appropriately
 
 ### Error Handling
 - Use try-catch in async functions
 - Log errors with context for debugging
 - Return user-friendly error messages
-- Handle null/undefined explicitly with optional chaining
+- Handle null/undefined with optional chaining
 - Validate inputs before processing
 - Use proper HTTP status codes in API routes
 
 ### Tailwind CSS
 - Use utility classes exclusively
-- Prefer semantic colors (primary, secondary, muted, etc.)
-- Use `size-*` for width/height (e.g., `size-4`, `size-10`)
-- Use `gap-*` for spacing (e.g., `gap-2`, `gap-4`)
+- Prefer semantic colors (primary, secondary, muted)
+- Use `size-*` for width/height, `gap-*` for spacing
 - Responsive prefixes: `md:`, `lg:`
 - Use `@/lib/utils` `cn()` for conditional classes
 - Icons use `size-*` pattern from lucide-react
 
 ### File Organization
 - Components grouped by feature/domain
-- Shared UI components in `components/ui/`
+- Shared UI in `components/ui/`
 - Hooks in `packages/hooks/src/`
 - Utilities in `packages/lib/src/`
-- Types inline with usage or in separate types files
-- Keep related files in same directory
+- Types inline or in separate types files
 
 ## Architecture Notes
 
 - Monorepo managed by Turbo
-- Web app uses TanStack Start with file-based routing
-- API uses Hono with Bun runtime
-- Git operations via isomorphic-git with S3 storage
-- Auth via better-auth (email/password + passkeys)
-- Real-time updates via Redis + WebSocket (optional)
+- Web app: TanStack Start with file-based routing
+- API: Hono with Bun runtime
+- Git operations: isomorphic-git with S3 storage
+- Auth: better-auth (email/password + passkeys)
+- Real-time: Redis + WebSocket (optional)

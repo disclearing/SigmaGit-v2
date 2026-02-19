@@ -58,18 +58,18 @@ export function SearchDialog() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex h-9 items-center gap-2 rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground md:w-52 lg:w-64"
+        className="flex h-9 items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground shadow-sm transition-all hover:bg-muted/50 hover:text-foreground md:w-52 lg:w-64"
       >
         <Search className="size-4 shrink-0" />
         <span className="hidden md:inline">Search docs...</span>
-        <kbd className="ml-auto hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-xs md:flex">
+        <kbd className="ml-auto hidden rounded border border-border/50 bg-background px-1.5 py-0.5 font-mono text-xs md:flex shadow-sm">
           ⌘K
         </kbd>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-hidden p-0 shadow-2xl sm:max-w-[560px]">
-          <div className="flex items-center border-b px-4">
+        <DialogContent className="overflow-hidden p-0 shadow-2xl sm:max-w-[560px] glass-card">
+          <div className="flex items-center border-b border-border/50 px-4">
             <Search className="mr-3 size-4 shrink-0 text-muted-foreground" />
             <input
               autoFocus
@@ -86,7 +86,7 @@ export function SearchDialog() {
                 <button
                   key={result.href}
                   onClick={() => handleSelect(result.href)}
-                  className="flex w-full cursor-pointer flex-col items-start px-4 py-2.5 text-left hover:bg-accent"
+                  className="flex w-full cursor-pointer flex-col items-start px-4 py-2.5 text-left transition-colors hover:bg-muted/50"
                 >
                   <span className="text-xs text-muted-foreground">{result.section}</span>
                   <span className="text-sm font-medium">{result.title}</span>
@@ -97,15 +97,15 @@ export function SearchDialog() {
             <div className="py-12 text-center text-sm text-muted-foreground">No results found.</div>
           )}
 
-          <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between border-t border-border/50 px-4 py-2 text-xs text-muted-foreground">
             <span>
-              <kbd className="rounded border border-border bg-muted px-1">↑↓</kbd> navigate
+              <kbd className="rounded border border-border/50 bg-muted/30 px-1">↑↓</kbd> navigate
             </span>
             <span>
-              <kbd className="rounded border border-border bg-muted px-1">↵</kbd> open
+              <kbd className="rounded border border-border/50 bg-muted/30 px-1">↵</kbd> open
             </span>
             <span>
-              <kbd className="rounded border border-border bg-muted px-1">esc</kbd> close
+              <kbd className="rounded border border-border/50 bg-muted/30 px-1">esc</kbd> close
             </span>
           </div>
         </DialogContent>
@@ -121,7 +121,7 @@ export function SearchTrigger({ className }: { className?: string }) {
     <button
       onClick={() => setOpen(true)}
       className={cn(
-        'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground',
+        'flex h-9 w-full items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground transition-all hover:bg-muted/50',
         className,
       )}
     >

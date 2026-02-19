@@ -8,7 +8,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 md:pl-[var(--sidebar-width)]">
-          <div className="mx-auto max-w-4xl px-6 py-10">{children}</div>
+          <div className="mx-auto max-w-5xl px-6 py-12">{children}</div>
         </main>
       </div>
     </div>

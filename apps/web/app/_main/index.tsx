@@ -44,7 +44,7 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
         <aside className="lg:w-64 shrink-0">
           {userLoading ? (
             <div className="flex items-center gap-3 p-4 bg-card border border-border rounded-lg animate-pulse">
-              <div className="h-12 w-12 bg-secondary/50 shrink-0 rounded-full" />
+              <div className="size-12 bg-secondary/50 shrink-0 rounded-full" />
               <div className="min-w-0 flex-1">
                 <div className="h-4 w-24 bg-secondary/50 mb-1.5" />
                 <div className="h-3 w-20 bg-secondary/50" />
@@ -109,10 +109,10 @@ function RepositoryCardSkeleton() {
   return (
     <div className="border-b border-border py-4 animate-pulse first:pt-0">
       <div className="flex items-start gap-3">
-        <div className="h-12 w-12 bg-secondary/50 shrink-0" />
+        <div className="size-12 bg-secondary/50 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center justify-between gap-2">
-            <div className="h-4 w-48 bg-secondary/50" />
+            <div className="h-4 w-56 bg-secondary/50" />
             <div className="h-6 w-16 bg-secondary/50 border border-border" />
           </div>
           <div className="space-y-1.5 mt-2">
@@ -121,11 +121,11 @@ function RepositoryCardSkeleton() {
           </div>
           <div className="flex items-center gap-3 mt-3">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-secondary/50" />
+              <div className="size-3 bg-secondary/50" />
               <div className="h-3 w-6 bg-secondary/50" />
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-secondary/50" />
+              <div className="size-3 bg-secondary/50" />
               <div className="h-3 w-20 bg-secondary/50" />
             </div>
           </div>

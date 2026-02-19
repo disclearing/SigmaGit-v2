@@ -111,7 +111,7 @@ function UserGrid({ sortBy, page, perPage, setPage }: { sortBy: "newest" | "olde
             className="border border-border p-4 bg-card hover:border-primary/30 transition-colors block"
           >
             <div className="flex items-start gap-3">
-              <Avatar className="h-10 w-10 shrink-0 rounded-full border border-border">
+              <Avatar className="size-10 shrink-0 rounded-full border border-border">
                 <AvatarImage src={user.avatarUrl || undefined} />
                 <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
                   {user.name?.charAt(0).toUpperCase() || "U"}
@@ -164,7 +164,7 @@ function RepositoryCardSkeleton() {
   return (
     <div className="border-b border-border py-4 animate-pulse first:pt-0">
       <div className="flex items-start gap-3">
-        <div className="h-12 w-12 bg-secondary/50 shrink-0" />
+        <div className="size-12 bg-secondary/50 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center justify-between gap-2">
             <div className="h-4 w-56 bg-secondary/50" />
@@ -176,11 +176,11 @@ function RepositoryCardSkeleton() {
           </div>
           <div className="flex items-center gap-3 mt-3">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-secondary/50" />
+              <div className="size-3 bg-secondary/50" />
               <div className="h-3 w-6 bg-secondary/50" />
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-secondary/50" />
+              <div className="size-3 bg-secondary/50" />
               <div className="h-3 w-20 bg-secondary/50" />
             </div>
           </div>
@@ -196,7 +196,7 @@ function UserGridSkeleton() {
       {[...Array(6)].map((_, i) => (
         <div key={i} className="border border-border p-4 bg-card animate-pulse">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 bg-secondary/50 shrink-0" />
+            <div className="size-10 bg-secondary/50 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="h-4 w-32 bg-secondary/50 mb-1" />
               <div className="h-3 w-24 bg-secondary/50 mb-3" />
@@ -205,7 +205,7 @@ function UserGridSkeleton() {
                 <div className="h-3 w-3/4 bg-secondary/50" />
               </div>
               <div className="flex items-center gap-1 mt-2">
-                <div className="h-3.5 w-3.5 bg-secondary/50" />
+                <div className="size-3.5 bg-secondary/50" />
                 <div className="h-3 w-12 bg-secondary/50" />
               </div>
             </div>
@@ -225,7 +225,7 @@ function ExploreContent() {
   const perPage = 20;
 
   return (
-    <div className="container max-w-[1280px] mx-auto py-8 px-4">
+    <div className="container max-w-[1280px] mx-auto py-6 px-4">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Compass className="size-7 text-primary" />

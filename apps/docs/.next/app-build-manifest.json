@@ -21,25 +21,40 @@
       "static/chunks/main-app.js",
       "static/chunks/app/docs/page.js"
     ],
-    "/docs/features/repositories/page": [
+    "/docs/self-hosting/storage/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/docs/features/repositories/page.js"
-    ],
-    "/docs/features/labels/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/docs/features/labels/page.js"
-    ],
-    "/docs/features/discord-bot/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/docs/features/discord-bot/page.js"
+      "static/chunks/app/docs/self-hosting/storage/page.js"
     ],
     "/docs/self-hosting/database/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/docs/self-hosting/database/page.js"
+    ],
+    "/docs/self-hosting/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/self-hosting/page.js"
+    ],
+    "/docs/self-hosting/docker/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/self-hosting/docker/page.js"
+    ],
+    "/docs/contributing/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/contributing/page.js"
+    ],
+    "/docs/contributing/code-style/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/contributing/code-style/page.js"
+    ],
+    "/docs/configuration/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/docs/configuration/page.js"
     ]
   }
 }

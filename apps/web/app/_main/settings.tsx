@@ -287,13 +287,13 @@ function PreferencesForm({ user }: { user: NonNullable<ReturnType<typeof useCurr
             <Label htmlFor="emailNotifications">Email Notifications</Label>
             <p className="text-xs text-muted-foreground">Receive email notifications for important updates</p>
           </div>
-          <input
-            id="emailNotifications"
-            type="checkbox"
-            checked={emailNotifications}
-            onChange={(e) => setEmailNotifications(e.target.checked)}
-            className="h-4 w-4 border-gray-300"
-          />
+            <input
+              id="emailNotifications"
+              type="checkbox"
+              checked={emailNotifications}
+              onChange={(e) => setEmailNotifications(e.target.checked)}
+              className="size-4 border-border"
+            />
         </div>
       </div>
 
@@ -322,13 +322,13 @@ function PreferencesForm({ user }: { user: NonNullable<ReturnType<typeof useCurr
             <Label htmlFor="showEmail">Show Email</Label>
             <p className="text-xs text-muted-foreground">Display your email address on your public profile</p>
           </div>
-          <input
-            id="showEmail"
-            type="checkbox"
-            checked={showEmail}
-            onChange={(e) => setShowEmail(e.target.checked)}
-            className="h-4 w-4 border-gray-300"
-          />
+            <input
+              id="showEmail"
+              type="checkbox"
+              checked={showEmail}
+              onChange={(e) => setShowEmail(e.target.checked)}
+              className="size-4 border-border"
+            />
         </div>
       </div>
 
@@ -338,7 +338,7 @@ function PreferencesForm({ user }: { user: NonNullable<ReturnType<typeof useCurr
             <Label htmlFor="wordWrap">Word Wrap</Label>
             <p className="text-xs text-muted-foreground">Wrap long lines when viewing files</p>
           </div>
-          <input id="wordWrap" type="checkbox" checked={wordWrap} onChange={(e) => setWordWrap(e.target.checked)} className="h-4 w-4 border-gray-300" />
+            <input id="wordWrap" type="checkbox" checked={wordWrap} onChange={(e) => setWordWrap(e.target.checked)} className="size-4 border-border" />
         </div>
       </div>
 
@@ -755,7 +755,7 @@ function SettingsPage() {
 
   return (
     <div className="container max-w-[1280px] mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-[896px] mx-auto">
         <h1 className="text-3xl font-semibold mb-8">Settings</h1>
         <Tabs value={tab} onValueChange={(value) => setTab(value === "profile" ? null : (value as "account" | "security" | "tokens"))}>
           <TabsList variant="line" className="w-full mb-8 h-auto bg-transparent p-0">

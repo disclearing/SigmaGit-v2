@@ -81,7 +81,7 @@ function RepoPage() {
 function LastCommitBarSkeleton() {
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-secondary/30 border border-border animate-pulse">
-      <div className="h-6 w-6 bg-secondary/50 shrink-0" />
+      <div className="size-6 bg-secondary/50 shrink-0" />
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <div className="h-4 w-24 bg-secondary/50 shrink-0" />
         <div className="h-4 w-64 bg-secondary/50 truncate" />
@@ -113,7 +113,7 @@ function LastCommitBar({ lastCommit }: { lastCommit: any }) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-secondary/30 border border-border">
-      <Avatar className="h-6 w-6 shrink-0 rounded-full border border-border">
+      <Avatar className="size-6 shrink-0 rounded-full border border-border">
         <AvatarImage src={lastCommit.author.avatarUrl || undefined} />
         <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xs">{lastCommit.author.name.charAt(0)}</AvatarFallback>
       </Avatar>

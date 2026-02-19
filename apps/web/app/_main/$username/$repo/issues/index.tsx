@@ -36,7 +36,7 @@ function IssuesContent() {
   const closedCount = countData?.closed || 0;
 
   return (
-    <div className="container max-w-6xl px-4">
+    <div className="container max-w-[1280px] px-4 py-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <Tabs value={state} onValueChange={(value) => setState(value as "open" | "closed")}>
@@ -116,12 +116,12 @@ function IssuesContent() {
         {isLoading && !issues.length ? (
           <IssueListSkeleton />
         ) : (
-          <div className="border border-border rounded-lg bg-card overflow-hidden divide-y divide-border">
+           <div className="border border-border rounded-lg bg-card overflow-hidden divide-y divide-border">
             {issues.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground">
-                <Circle className="size-12 mx-auto mb-4 opacity-50" />
-                <p className="text-base font-medium">No issues found</p>
-                <p className="text-sm mt-1">Get started by creating a new issue</p>
+              <div className="p-12 text-center">
+                <Circle className="size-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <p className="text-base font-medium text-muted-foreground">No issues found</p>
+                <p className="text-sm text-muted-foreground mt-1">Get started by creating a new issue</p>
               </div>
             ) : (
               issues.map((issue) => (

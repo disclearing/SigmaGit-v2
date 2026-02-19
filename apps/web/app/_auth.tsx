@@ -13,7 +13,7 @@ function AuthLayout() {
           <div className="relative">
             <GitBranch className="size-10 text-foreground transition-transform group-hover:scale-110" />
           </div>
-          <span className="text-2xl font-bold tracking-tight">sigmagit</span>
+          <span className="text-2xl font-semibold tracking-tight">sigmagit</span>
         </Link>
         <Outlet />
       </div>

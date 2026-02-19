@@ -92,7 +92,7 @@ export function FileTree({ files, username, repoName, branch, basePath, commits,
             params={{ username, repo: repoName, _splat: splat }}
             className="flex items-center gap-3 px-5 py-3 hover:bg-muted/50 transition-colors group"
           >
-            <Icon className={cn("h-4 w-4 shrink-0 text-muted-foreground")} />
+            <Icon className={cn("size-4 shrink-0 text-muted-foreground")} />
             <span className={cn("text-sm min-w-0 truncate", "w-[180px] sm:w-[200px] shrink-0")}>{file.name}</span>
 
             <div className="hidden md:flex flex-1 items-center gap-3 min-w-0">

@@ -1,7 +1,8 @@
 {
-  "/docs/page": "app/docs/page.js",
-  "/docs/features/repositories/page": "app/docs/features/repositories/page.js",
-  "/docs/features/labels/page": "app/docs/features/labels/page.js",
-  "/docs/features/discord-bot/page": "app/docs/features/discord-bot/page.js",
-  "/docs/self-hosting/database/page": "app/docs/self-hosting/database/page.js"
+  "/docs/self-hosting/database/page": "app/docs/self-hosting/database/page.js",
+  "/docs/self-hosting/page": "app/docs/self-hosting/page.js",
+  "/docs/self-hosting/docker/page": "app/docs/self-hosting/docker/page.js",
+  "/docs/contributing/page": "app/docs/contributing/page.js",
+  "/docs/contributing/code-style/page": "app/docs/contributing/code-style/page.js",
+  "/docs/configuration/page": "app/docs/configuration/page.js"
 }

@@ -3,7 +3,7 @@
 import { useTheme } from "tanstack-theme-kit";
 import { useCallback, useRef, useState } from "react";
 import { PatchDiff } from "@pierre/diffs/react";
-import { Plus, ChevronDown, ChevronUp, Maximize2, Minimize2, File, FileAdd, FileEdit, FileRemove, FileSync, Minus } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, Maximize2, Minimize2, File, FilePlus, FileEdit, FileX, Minus } from "lucide-react";
 
 import type { FileDiff } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
@@ -220,10 +220,10 @@ export function DiffViewer({
 }
 
 const statusIcons: Record<string, typeof File> = {
-  added: FileAdd,
+  added: FilePlus,
   modified: FileEdit,
-  deleted: FileRemove,
-  renamed: FileSync,
+  deleted: FileX,
+  renamed: File,
 };
 
 const statusColors: Record<string, string> = {

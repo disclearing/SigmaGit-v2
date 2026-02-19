@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, LockPassword, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getApiUrl } from "@/lib/utils";
@@ -135,7 +135,7 @@ function ResetPasswordPage() {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-muted">
-              <LockPassword className="size-6 text-muted-foreground" />
+              <Lock className="size-6 text-muted-foreground" />
             </div>
           </div>
           <h1 className="text-xl font-semibold">Create new password</h1>

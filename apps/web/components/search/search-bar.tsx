@@ -70,7 +70,7 @@ export function SearchBar({ className }: { className?: string }) {
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Search or jump to... (/ or ⌘K)"
-            className="pl-9 pr-8 h-8 w-full max-w-xl bg-muted/50 border-border focus-visible:ring-2"
+            className="pl-9 pr-8 py-1.5 w-full max-w-xl bg-muted/50 border-border focus-visible:ring-2"
           />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground animate-spin" />

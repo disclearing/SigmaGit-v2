@@ -40,7 +40,7 @@ export default function HomeScreen() {
           <View className="overflow-hidden bg-[rgba(30,30,50,0.5)] border border-blue-500/30 mb-3">
             <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
             <View className="p-5 relative z-10">
-              <Text className="text-white text-xl font-bold mb-1">Welcome to GitBruv</Text>
+              <Text className="text-white text-xl font-bold mb-1">Welcome to SigmaGit</Text>
               <Text className="text-white/60 text-sm">Sign in to start exploring and creating repositories</Text>
               <Link href="/(auth)/login" asChild>
                 <Pressable className="mt-4 py-3 px-6 self-start overflow-hidden bg-blue-600/30">

@@ -45,7 +45,8 @@ SECTION 1 — DEFINITIONS
       (a) is intended to generate revenue, profit, or other commercial
           advantage for You or any third party;
       (b) involves operating the Software or any Derivative Work as a service
-          accessible to third parties, regardless of whether a fee is charged;
+          accessible to third parties for a fee, subscription, or any form of
+          monetary or non-monetary consideration;
       (c) involves incorporating the Software or any Derivative Work into any
           product, platform, or service that is sold, licensed, subscribed to,
           or otherwise monetized;
@@ -58,6 +59,10 @@ SECTION 1 — DEFINITIONS
           competitive advantage.
     The word "primarily" does not limit this definition. Any commercial nexus,
     however incidental, brings a use within this definition.
+    For the avoidance of doubt, operating a publicly accessible instance of the
+    Software at no charge to users, with no advertising, no monetization, no
+    commercial affiliation, and full compliance with Section 2.1(f), does NOT
+    constitute Commercial Use.
 
 1.6 "Competing Product or Service" means any software product, application,
     platform, website, API, service, or tool — whether free or paid, hosted or
@@ -155,6 +160,37 @@ SECTION 2 — GRANT OF RIGHTS
                 Product or Service; and
           (v)   no more than one (1) private instance is operated at any time.
 
+    (f) FREE PUBLIC NON-COMMERCIAL HOSTING: Deploy and operate a publicly
+        accessible instance of the Software, provided that ALL of the
+        following conditions are met without exception:
+          (i)   No fee, subscription, donation solicitation, paid tier,
+                premium feature, or any other form of monetary or non-monetary
+                consideration is charged to or collected from any user in
+                connection with the instance;
+          (ii)  No advertising, sponsorship, affiliate links, tracking pixels,
+                or any other mechanism for generating revenue or commercial
+                benefit is present on or associated with the instance;
+          (iii) The instance is not operated by, affiliated with, funded by,
+                or for the benefit of any for-profit entity, commercial
+                organization, or venture-backed project;
+          (iv)  The instance retains all SigmaGit branding, copyright notices,
+                "Powered by SigmaGit" attributions, and license notices exactly
+                as they appear in the Software, unmodified and unobscured, in
+                all user-facing interfaces and in the source code;
+          (v)   The instance is not presented as a distinct or independent
+                product — it must be clearly identified to all users as running
+                SigmaGit with a visible link to the official SigmaGit repository;
+          (vi)  The instance does not offer functionality, integrations, or
+                modifications that are designed to or have the effect of
+                commercially differentiating it from the official SigmaGit
+                platform;
+          (vii) You provide the Licensor with written notice of the public
+                instance (including the URL) prior to launch, via the official
+                SigmaGit repository; and
+          (viii) You immediately comply with any written request by the Licensor
+                 to modify, restrict, or take down the instance if it is found
+                 to be in breach of any condition of this Section 2.1(f).
+
 2.2 RESERVATION OF RIGHTS. All rights not expressly and unambiguously granted
     in Section 2.1 are reserved by the Licensor. No rights are granted by
     implication, estoppel, course of dealing, or otherwise.
@@ -178,8 +214,12 @@ material breach of this License, infringement of copyright, and potentially
 misappropriation of trade secrets.
 
 3.1 COMMERCIAL USE. You may not use the Software or any Derivative Work for any
-    Commercial Use as defined in Section 1.5, including operating it as any
-    kind of hosted service open to more than one natural person.
+    Commercial Use as defined in Section 1.5. For the avoidance of doubt,
+    operating a free public instance that satisfies all conditions of
+    Section 2.1(f) is not Commercial Use and is not prohibited by this Section.
+    Any public instance that fails to satisfy even one condition of
+    Section 2.1(f) is Commercial Use and is prohibited without a separate
+    written commercial license from the Licensor.
 
 3.2 COMPETING PRODUCTS AND SERVICES. You may not develop, operate, distribute,
     or contribute to any Competing Product or Service as defined in Section 1.6,
@@ -624,15 +664,21 @@ This summary does not create any rights or modify any obligations.
   ✓ ALLOWED:  Local evaluation before obtaining a commercial license
   ✓ ALLOWED:  Contributing back to the official SigmaGit repository
   ✓ ALLOWED:  Reading and studying the source code
+  ✓ ALLOWED:  Operating a free public instance with full SigmaGit branding,
+              no monetization, no commercial affiliation, prior written notice
+              to the Licensor, and compliance with all conditions of §2.1(f)
 
   ✗ PROHIBITED: Any commercial use of any kind — direct or indirect
+  ✗ PROHIBITED: Charging fees, running ads, or monetizing a public instance
+               in any way — failure to meet any condition of §2.1(f) makes
+               the instance prohibited without a commercial license
   ✗ PROHIBITED: Rebranding, renaming, or presenting as a different product
-  ✗ PROHIBITED: Operating any public or semi-public hosted service (free or paid)
+  ✗ PROHIBITED: Removing SigmaGit branding, attribution, or license notices
+  ✗ PROHIBITED: Operating a paid hosted service or SaaS
   ✗ PROHIBITED: Distributing the software or any fork/modification
   ✗ PROHIBITED: Creating a competing product (even via clean-room re-implementation)
   ✗ PROHIBITED: Selling, sublicensing, or transferring any rights
   ✗ PROHIBITED: Using the codebase to train AI/ML models
-  ✗ PROHIBITED: Removing copyright notices, attribution, or license text
   ✗ PROHIBITED: Evasion via corporate shells, subsidiaries, or intermediaries
   ✗ PROHIBITED: Reverse engineering compiled or obfuscated components
 

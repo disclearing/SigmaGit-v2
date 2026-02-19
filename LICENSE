@@ -1,0 +1,644 @@
+SIGMAGIT PROPRIETARY SOURCE-AVAILABLE LICENSE
+Version 1.1, February 2026
+
+Copyright (c) 2026 SigmaGit and its contributors. All rights reserved.
+
+NOTICE: THIS IS NOT AN OPEN-SOURCE LICENSE. ACCESS TO THIS SOURCE CODE DOES
+NOT GRANT ANY RIGHTS BEYOND THOSE EXPLICITLY AND NARROWLY STATED HEREIN. ALL
+OTHER RIGHTS ARE EXPRESSLY RESERVED BY THE LICENSOR.
+
+READ THIS LICENSE IN FULL BEFORE ACCESSING, CLONING, FORKING, RUNNING, OR IN
+ANY WAY USING THIS SOFTWARE. BY DOING ANY OF THE FOREGOING YOU AGREE TO BE
+LEGALLY BOUND BY EVERY TERM AND CONDITION OF THIS LICENSE. IF YOU DO NOT AGREE,
+YOU MUST NOT ACCESS OR USE THE SOFTWARE IN ANY WAY.
+
+"SigmaGit" refers to the software, platform, brand identity, and all associated
+source code, compiled output, assets, schemas, documentation, and tooling
+contained in or derived from this repository, including but not limited to the
+web application, API server, mobile application, Discord bot, shared packages,
+database schema, and deployment configuration.
+
+================================================================================
+SECTION 1 — DEFINITIONS
+================================================================================
+
+1.1 "License" means this SigmaGit Proprietary Source-Available License,
+    Version 1.1, in its entirety without modification.
+
+1.2 "Licensor" means the individual(s) or entity that owns the copyright in the
+    Software, currently operating under the project name SigmaGit.
+
+1.3 "Software" means the entirety of the SigmaGit codebase and project,
+    including all source code, object code, compiled binaries, configuration
+    files, database schemas, API specifications, user interface designs,
+    documentation, assets, branding materials, and all other materials made
+    available in this repository, in any current or prior version.
+
+1.4 "You" (or "Your") means any natural person, corporation, partnership, LLC,
+    trust, joint venture, government entity, or any other legal entity that
+    accesses, views, clones, forks, downloads, installs, runs, deploys,
+    modifies, copies, or otherwise uses the Software in any way, and includes
+    any employees, contractors, or agents acting on such entity's behalf.
+
+1.5 "Commercial Use" means any use of the Software, in whole or in part,
+    directly or indirectly, that:
+      (a) is intended to generate revenue, profit, or other commercial
+          advantage for You or any third party;
+      (b) involves operating the Software or any Derivative Work as a service
+          accessible to third parties, regardless of whether a fee is charged;
+      (c) involves incorporating the Software or any Derivative Work into any
+          product, platform, or service that is sold, licensed, subscribed to,
+          or otherwise monetized;
+      (d) involves using the Software to support or facilitate any commercial
+          operation, enterprise, or business activity;
+      (e) involves using the Software in a for-profit organization's internal
+          operations, even if end users are not charged directly; or
+      (f) provides any form of indirect commercial benefit, including but not
+          limited to attracting users, investment, advertising revenue, or
+          competitive advantage.
+    The word "primarily" does not limit this definition. Any commercial nexus,
+    however incidental, brings a use within this definition.
+
+1.6 "Competing Product or Service" means any software product, application,
+    platform, website, API, service, or tool — whether free or paid, hosted or
+    self-hosted, open or closed, publicly or privately accessible — that:
+      (a) provides functionality substantially similar to the Software,
+          including but not limited to Git hosting, repository management,
+          code review, issue tracking, or team collaboration built around
+          version control; or
+      (b) is derived from, inspired by, or functionally equivalent to the
+          Software in its core features, architecture, data model, or user
+          experience.
+
+1.7 "Derivative Work" means any work, regardless of form or medium, that:
+      (a) incorporates, is based on, or is derived from all or any portion of
+          the Software's source code, compiled output, structure, architecture,
+          sequence, or organization;
+      (b) constitutes a functional clone, port, translation, adaptation, or
+          rewrite of the Software or any substantial part thereof, even if no
+          original source code is copied verbatim;
+      (c) replicates the look, feel, user interface design, data model,
+          database schema, or API design of the Software in substantial part;
+      (d) is produced by automated transformation, compilation, decompilation,
+          reverse engineering, or code generation from the Software; or
+      (e) is trained upon, summarized from, or materially assisted in creation
+          by any AI system, language model, or automated tool that was itself
+          trained on or given access to the Software's source code.
+    For the avoidance of doubt, "substantial similarity" under copyright law
+    is the operative standard; verbatim copying is not required.
+
+1.8 "Rebranding" means presenting the Software or any Derivative Work under
+    any name, logo, domain, trademark, or brand identity other than "SigmaGit"
+    — or stripping the SigmaGit identity — while retaining substantially the
+    same functionality, design, architecture, codebase, data model, or user
+    experience. This includes but is not limited to:
+      (a) changing the project name to any other name;
+      (b) substituting a different logo or visual identity;
+      (c) hosting the Software at a different domain without attribution;
+      (d) distributing the Software as part of another product under a
+          different brand.
+
+1.9 "Distribute" means to reproduce, publish, transmit, convey, make available,
+    or otherwise transfer copies of the Software or any Derivative Work to any
+    third party by any means, including but not limited to: uploading to any
+    public or private repository (e.g., GitHub, GitLab, Bitbucket, npm, PyPI);
+    distributing as a Docker image, binary, package, or archive; embedding in
+    another software product; or delivering over any network or API.
+
+1.10 "Contributions" means any source code, documentation, configuration,
+     suggestions, bug reports, feature requests, or other materials that You
+     intentionally submit to the Licensor for inclusion in the Software.
+
+1.11 "Access" means any act of cloning, forking, downloading, viewing,
+     reading, or otherwise obtaining possession of or the ability to read the
+     Software's source code or any part of it, whether via git, HTTP, SSH,
+     archive download, API, or any other mechanism.
+
+================================================================================
+SECTION 2 — GRANT OF RIGHTS
+================================================================================
+
+2.1 SCOPE. Subject strictly to compliance with every term and condition of this
+    License, the Licensor grants You a limited, personal, non-exclusive,
+    non-transferable, non-sublicensable, revocable, royalty-free license solely
+    to:
+
+    (a) PERSONAL USE: View, run, and use the Software solely for Your own
+        personal, non-commercial purposes on Your own hardware, where no third
+        party is served, no revenue is generated, and no competing service is
+        operated.
+
+    (b) EDUCATIONAL USE: Use the Software for individual learning, academic
+        research, or non-commercial classroom instruction, provided:
+          (i)  the use occurs within a non-commercial educational institution
+               or entirely individually;
+          (ii) no users beyond the student or researcher are served by any
+               running instance.
+
+    (c) LOCAL EVALUATION: Run and test the Software locally on a private
+        machine for the sole purpose of evaluating whether the Software meets
+        Your needs before obtaining a commercial license. Evaluation instances
+        must not be accessible to any external users and must not be used in
+        any production environment.
+
+    (d) CONTRIBUTION: Submit Contributions to the official SigmaGit repository.
+        See Section 5 for contribution terms.
+
+    (e) PRIVATE NON-COMMERCIAL SELF-HOSTING: Deploy and operate the Software
+        internally within a single natural person's private household, strictly
+        for personal use, provided:
+          (i)   the instance is inaccessible to any person other than that
+                natural person;
+          (ii)  no fee or consideration of any kind is charged to any user;
+          (iii) no commercial activity whatsoever is supported by the instance;
+          (iv)  the instance does not constitute or operate as a Competing
+                Product or Service; and
+          (v)   no more than one (1) private instance is operated at any time.
+
+2.2 RESERVATION OF RIGHTS. All rights not expressly and unambiguously granted
+    in Section 2.1 are reserved by the Licensor. No rights are granted by
+    implication, estoppel, course of dealing, or otherwise.
+
+2.3 NO SUBLICENSING. You may not sublicense any rights granted under this
+    License to any third party under any circumstances.
+
+2.4 NO TRANSFER. The rights granted under this License are personal to You and
+    may not be assigned, transferred, or conveyed to any successor entity,
+    acquirer, parent, subsidiary, or affiliate, including in connection with any
+    merger, acquisition, asset sale, restructuring, or change of control. Any
+    purported transfer is void ab initio.
+
+================================================================================
+SECTION 3 — RESTRICTIONS AND PROHIBITED USES
+================================================================================
+
+The following are expressly prohibited without prior written authorization
+signed by the Licensor. Any unauthorized conduct described below constitutes a
+material breach of this License, infringement of copyright, and potentially
+misappropriation of trade secrets.
+
+3.1 COMMERCIAL USE. You may not use the Software or any Derivative Work for any
+    Commercial Use as defined in Section 1.5, including operating it as any
+    kind of hosted service open to more than one natural person.
+
+3.2 COMPETING PRODUCTS AND SERVICES. You may not develop, operate, distribute,
+    or contribute to any Competing Product or Service as defined in Section 1.6,
+    whether or not it incorporates any portion of the Software's actual source
+    code. Creating a functional clone — even through independent development
+    informed by exposure to the Software's code, architecture, or design — is
+    prohibited.
+
+3.3 REBRANDING AND IDENTITY MISREPRESENTATION. You may not:
+      (a) Rename, rebrand, or alter the identity of the Software or any
+          Derivative Work as described in Section 1.8;
+      (b) Remove, obscure, overwrite, or alter any copyright notice, license
+          notice, trademark, "Powered by SigmaGit" attribution, or any other
+          notice present in the Software's source code, UI, documentation, or
+          compiled output;
+      (c) Represent the Software or any Derivative Work as Your own original
+          creation or as a distinct, independent product;
+      (d) Register any trademark, domain name, or trade name that is identical
+          to, confusingly similar to, or likely to be associated with
+          "SigmaGit" or any of the Licensor's marks.
+
+3.4 DISTRIBUTION. You may not Distribute the Software or any Derivative Work
+    to any third party by any means, including publishing it in any public or
+    private repository, package registry, container registry, app store, or
+    marketplace, without express prior written consent from the Licensor.
+
+3.5 MODIFICATION AND DERIVATIVE WORKS. You may not create, develop, publish,
+    host, distribute, or use any Derivative Work except solely for the
+    permitted personal and educational purposes in Section 2.1, which do not
+    include distribution. Any Derivative Work created under this License
+    remains fully subject to this License and may not be relicensed.
+
+3.6 SUBLICENSING, SALE, AND TRANSFER. You may not sell, offer for sale, rent,
+    lease, lend, loan, sublicense, pledge, assign, or otherwise transfer or
+    encumber any rights in the Software or any Derivative Work to any third
+    party, for any consideration or for free, directly or indirectly.
+
+3.7 AI AND MACHINE LEARNING. You may not use the Software's source code,
+    architecture, data models, schemas, or documentation as training data,
+    fine-tuning data, prompt material, or evaluation data for any artificial
+    intelligence system, machine learning model, large language model, code
+    generation tool, or similar automated system. You may not use any such
+    system, if trained on this Software, to produce code intended to replicate
+    or compete with the Software.
+
+3.8 REVERSE ENGINEERING. You may not decompile, disassemble, reverse engineer,
+    or attempt to derive the source code or underlying algorithms of any
+    compiled or obfuscated portion of the Software, except to the limited
+    extent that applicable law expressly and irrevocably prohibits such
+    restriction, and only then for strict interoperability purposes.
+
+3.9 CIRCUMVENTION. You may not remove, disable, bypass, or circumvent any
+    technical protection measures, licensing verification mechanisms, access
+    controls, rate limits, or usage restrictions built into the Software.
+
+3.10 CORPORATE SHELL AND STRUCTURAL EVASION. You may not use any corporate
+     structure, subsidiary, affiliate, shell entity, contractor arrangement,
+     white-labeling scheme, or third-party intermediary to do indirectly what
+     this License prohibits You from doing directly. Any entity acting on Your
+     behalf or under Your direction is bound by this License as if it were You.
+
+3.11 MISREPRESENTATION OF ORIGIN. You may not represent that the Software or
+     any Derivative Work was developed independently of SigmaGit. You may not
+     make false or misleading statements about the origin, authorship, or
+     licensing of the Software.
+
+3.12 BRANDING USE. You may not use the name "SigmaGit," the SigmaGit logo,
+     or any associated trademarks, service marks, or trade dress in connection
+     with any product, service, company name, domain name, social media handle,
+     or promotional material without the Licensor's express prior written
+     consent, except solely for truthful, nominative attribution as required by
+     this License.
+
+================================================================================
+SECTION 4 — ATTRIBUTION REQUIREMENTS
+================================================================================
+
+4.1 Any permitted use of the Software that involves displaying a user interface,
+    distributing documentation, or operating any running instance must include
+    all of the following in a clear, conspicuous, and unobscured location:
+
+    (a) The copyright notice: "Copyright (c) 2026 SigmaGit and its
+        contributors. All rights reserved."
+    (b) A statement reading: "This software is based on SigmaGit and is subject
+        to the SigmaGit Proprietary Source-Available License."
+    (c) A hyperlink or URL to the official SigmaGit repository.
+    (d) An unmodified copy of this License.
+
+4.2 You may not imply, suggest, or represent in any manner that the Licensor
+    endorses, sponsors, certifies, or approves of Your use, product, company,
+    organization, or any statement You make.
+
+4.3 You may not misrepresent Your relationship with the Licensor or with the
+    SigmaGit project.
+
+================================================================================
+SECTION 5 — CONTRIBUTIONS
+================================================================================
+
+5.1 GRANT. By submitting any Contribution to the official SigmaGit repository,
+    You irrevocably grant the Licensor a perpetual, worldwide, royalty-free,
+    fully paid-up, irrevocable, sublicensable, transferable license under all
+    of Your intellectual property rights (including copyright and patent rights)
+    to reproduce, prepare Derivative Works of, publicly display, publicly
+    perform, sublicense, distribute, modify, and otherwise exploit the
+    Contribution in any form and for any purpose, including commercial purposes,
+    without restriction and without any obligation of compensation to You.
+
+5.2 COPYRIGHT ASSIGNMENT. To the maximum extent permitted by applicable law,
+    You assign to the Licensor all copyright and other intellectual property
+    rights in and to any Contribution You submit. Where assignment is not
+    permitted by law, You grant the broadest license possible as described in
+    Section 5.1.
+
+5.3 REPRESENTATIONS. By submitting a Contribution, You represent and warrant
+    that:
+      (a) You are the sole author of the Contribution and own all rights in it,
+          or have the lawful authority to grant the rights in Section 5.1;
+      (b) the Contribution does not infringe any third party's intellectual
+          property rights, privacy rights, or other rights;
+      (c) the Contribution is not subject to any license, agreement, or
+          obligation that conflicts with this License; and
+      (d) if You are employed, any necessary employer consent has been obtained.
+
+5.4 NO OBLIGATION. The Licensor is under no obligation to accept, review, use,
+    or include any Contribution.
+
+================================================================================
+SECTION 6 — SOURCE CODE AVAILABILITY
+================================================================================
+
+6.1 The availability of the Software's source code in a public or accessible
+    repository is provided solely as a convenience and does not constitute a
+    grant of open-source rights, a waiver of any proprietary rights, or any
+    permission beyond those explicitly stated in Section 2.
+
+6.2 "Source available" is expressly not "open source." The Open Source
+    Definition (as published by the Open Source Initiative) does not apply to
+    this License. The Software is proprietary software made partially visible
+    for limited purposes only.
+
+6.3 The Licensor may, at any time and in its sole discretion, remove public
+    access to the source code, change access restrictions, or change the
+    licensing terms for future versions, without any obligation to You.
+
+================================================================================
+SECTION 7 — INTELLECTUAL PROPERTY AND OWNERSHIP
+================================================================================
+
+7.1 OWNERSHIP. The Software — including its source code, object code,
+    architecture, design patterns, user interface design, database schema, API
+    design, trade secrets, and all associated materials — is and remains the
+    exclusive proprietary intellectual property of the Licensor. No title,
+    ownership interest, or any form of intellectual property right in the
+    Software or any portion thereof is transferred to You under this License or
+    otherwise.
+
+7.2 TRADE SECRETS. The Software and its source code may contain trade secrets
+    of the Licensor. You agree to maintain the confidentiality of any non-public
+    aspects of the Software and not to disclose such information to any third
+    party. This obligation survives termination of this License.
+
+7.3 NO IMPLIED LICENSE. No license, right, or immunity is granted by
+    implication, estoppel, exhaustion, or otherwise. Any license not explicitly
+    set forth in Section 2.1 is hereby expressly withheld.
+
+7.4 NO PATENT RIGHTS. This License does not grant any rights under any patent
+    or patent application, whether now existing or hereafter filed, owned or
+    controlled by the Licensor. All patent rights are expressly reserved.
+
+7.5 NO TRADEMARK RIGHTS. Except for the truthful attribution required by
+    Section 4, this License does not grant any rights to use any trademark,
+    service mark, trade name, logo, or trade dress of the Licensor.
+
+7.6 FEEDBACK. If You provide the Licensor with any feedback, suggestions,
+    ideas, or comments regarding the Software (collectively, "Feedback"), You
+    grant the Licensor an unrestricted, perpetual, irrevocable, worldwide,
+    royalty-free license to use, disclose, reproduce, and otherwise exploit
+    such Feedback for any purpose without restriction and without compensation.
+
+================================================================================
+SECTION 8 — AUDIT RIGHTS
+================================================================================
+
+8.1 Upon reasonable written notice (no less than ten (10) business days), the
+    Licensor or its authorized representative may audit Your use of the Software
+    to verify compliance with this License. You agree to cooperate fully with
+    any such audit, including by providing access to relevant systems, records,
+    and personnel.
+
+8.2 If an audit reveals that You have used the Software in any manner that
+    requires a commercial license and You have not obtained such a license, You
+    shall:
+      (a) immediately cease all non-compliant use;
+      (b) pay the Licensor all applicable commercial licensing fees, calculated
+          from the date the non-compliant use began; and
+      (c) reimburse the Licensor for the reasonable costs of the audit.
+
+================================================================================
+SECTION 9 — DISCLAIMER OF WARRANTIES
+================================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY
+KIND, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE. THE LICENSOR EXPRESSLY
+DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO:
+  (a) ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+      PURPOSE, TITLE, ACCURACY, OR NON-INFRINGEMENT;
+  (b) ANY WARRANTY THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS OR OPERATE
+      UNINTERRUPTED, ERROR-FREE, OR SECURELY;
+  (c) ANY WARRANTY ARISING FROM COURSE OF DEALING, COURSE OF PERFORMANCE,
+      USAGE OF TRADE, OR INDUSTRY PRACTICE.
+
+THE ENTIRE RISK AS TO THE QUALITY, SECURITY, AND PERFORMANCE OF THE SOFTWARE
+IS WITH YOU. THE LICENSOR DOES NOT WARRANT THAT THE SOFTWARE IS FREE OF
+VULNERABILITIES, MALWARE, DATA LOSS RISKS, OR OTHER HARMFUL COMPONENTS. YOU
+ASSUME ALL RISK OF USE.
+
+================================================================================
+SECTION 10 — LIMITATION OF LIABILITY
+================================================================================
+
+10.1 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE
+     LICENSOR, ITS CONTRIBUTORS, OFFICERS, DIRECTORS, EMPLOYEES, AGENTS,
+     SUCCESSORS, OR AFFILIATES BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY:
+       (a) INDIRECT, INCIDENTAL, CONSEQUENTIAL, SPECIAL, EXEMPLARY, OR
+           PUNITIVE DAMAGES;
+       (b) LOSS OF PROFITS, REVENUE, DATA, BUSINESS, GOODWILL, OR ANTICIPATED
+           SAVINGS;
+       (c) COST OF SUBSTITUTE GOODS OR SERVICES; OR
+       (d) ANY OTHER ECONOMIC LOSS
+     ARISING OUT OF OR RELATED TO THIS LICENSE OR THE USE OF OR INABILITY TO
+     USE THE SOFTWARE, HOWEVER CAUSED AND UNDER ANY THEORY OF LIABILITY
+     (CONTRACT, TORT, STRICT LIABILITY, OR OTHERWISE), EVEN IF ADVISED OF THE
+     POSSIBILITY OF SUCH DAMAGES.
+
+10.2 THE LICENSOR'S TOTAL AGGREGATE LIABILITY TO YOU FOR ALL CLAIMS ARISING
+     OUT OF OR RELATING TO THIS LICENSE OR THE SOFTWARE SHALL NOT EXCEED ONE
+     HUNDRED UNITED STATES DOLLARS (USD $100.00), REGARDLESS OF THE BASIS OF
+     THE CLAIM.
+
+10.3 SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF CERTAIN WARRANTIES OR
+     THE LIMITATION OF CERTAIN DAMAGES. TO THE EXTENT SUCH JURISDICTION'S LAWS
+     APPLY, THE RELEVANT EXCLUSIONS AND LIMITATIONS SHALL APPLY TO THE MAXIMUM
+     EXTENT PERMITTED.
+
+================================================================================
+SECTION 11 — INDEMNIFICATION
+================================================================================
+
+11.1 You agree to indemnify, defend (at the Licensor's option), and hold
+     harmless the Licensor, and each of its contributors, officers, directors,
+     employees, agents, successors, and assigns (collectively, "Indemnified
+     Parties") from and against any and all third-party claims, actions,
+     proceedings, losses, liabilities, damages, judgments, fines, penalties,
+     costs, and expenses (including reasonable attorneys' fees and litigation
+     costs) arising out of or relating to:
+
+     (a) Your use of the Software in any manner that breaches this License;
+     (b) Any Derivative Work You create, use, distribute, or operate;
+     (c) Your violation of any applicable law, regulation, or third-party right
+         in connection with Your use of the Software;
+     (d) Any claim that Your use of the Software infringes any third party's
+         intellectual property, privacy, or other rights;
+     (e) Any misrepresentation You make regarding the Software's origin,
+         authorship, or licensing.
+
+11.2 The Licensor reserves the right to assume exclusive control of the defense
+     of any matter subject to indemnification by You, at Your expense. You
+     agree not to settle any such matter without the Licensor's prior written
+     consent.
+
+================================================================================
+SECTION 12 — TERMINATION
+================================================================================
+
+12.1 AUTOMATIC TERMINATION. This License and all rights granted hereunder
+     terminate automatically, immediately, and without notice upon any breach
+     by You of any term or condition of this License.
+
+12.2 TERMINATION FOR CAUSE. The Licensor may also terminate this License at any
+     time, with or without cause, by providing written notice to You.
+
+12.3 EFFECT OF TERMINATION. Upon termination for any reason:
+       (a) All rights and licenses granted to You under this License immediately
+           cease and are revoked;
+       (b) You must immediately and permanently cease all Access to and use of
+           the Software;
+       (c) You must immediately destroy or delete all copies, instances,
+           forks, and Derivative Works of the Software in Your possession or
+           under Your control, on any medium and in any form;
+       (d) You must immediately shut down and decommission any running
+           deployments of the Software;
+       (e) Upon request, You must certify in writing to the Licensor that You
+           have complied with (a) through (d) above.
+
+12.4 SURVIVAL. Sections 1, 4, 5, 6, 7, 8, 9, 10, 11, 12.3, 12.4, 13, 14,
+     and 15 survive termination of this License indefinitely.
+
+12.5 NO REINSTATEMENT. Termination of this License for breach does not
+     automatically entitle You to a new license upon cessation of the
+     infringing activity. Reinstatement requires a new written agreement signed
+     by the Licensor.
+
+================================================================================
+SECTION 13 — ENFORCEMENT AND REMEDIES
+================================================================================
+
+13.1 RESERVATION OF RIGHTS. The Licensor reserves all rights to enforce this
+     License to the fullest extent permitted by applicable law, including rights
+     under copyright law, trade secret law, trademark law, and any other
+     applicable legal theory.
+
+13.2 INJUNCTIVE RELIEF. YOU ACKNOWLEDGE AND AGREE THAT ANY BREACH OR
+     THREATENED BREACH OF THIS LICENSE WILL CAUSE THE LICENSOR IRREPARABLE
+     HARM FOR WHICH MONETARY DAMAGES WOULD BE AN INADEQUATE REMEDY, AND THAT
+     THE LICENSOR SHALL BE ENTITLED TO SEEK INJUNCTIVE OR OTHER EQUITABLE
+     RELIEF WITHOUT THE REQUIREMENT OF POSTING BOND OR PROVING ACTUAL DAMAGES.
+     This acknowledgment is a material inducement to the Licensor's decision
+     to make the Software available.
+
+13.3 STATUTORY DAMAGES. Where applicable law permits, the Licensor elects to
+     seek statutory damages for copyright infringement in lieu of actual
+     damages, including enhanced statutory damages where the infringement is
+     found to be willful.
+
+13.4 ATTORNEYS' FEES. In any action, arbitration, or proceeding to enforce this
+     License or arising out of any breach hereof, the prevailing party shall be
+     entitled to recover its reasonable attorneys' fees, court costs, and other
+     legal expenses from the non-prevailing party.
+
+13.5 DMCA AND OTHER TAKEDOWN RIGHTS. The Licensor reserves all rights under the
+     Digital Millennium Copyright Act (17 U.S.C. § 512), the EU Copyright
+     Directive, and any equivalent legislation in other jurisdictions, to issue
+     takedown notices and pursue all available remedies against any party that
+     hosts, distributes, or makes available the Software or any Derivative Work
+     in violation of this License.
+
+13.6 REPORTING VIOLATIONS. Suspected violations of this License may be reported
+     to the Licensor via the official SigmaGit repository. The Licensor
+     encourages good-faith reports and reserves the right to investigate and
+     act on any report.
+
+================================================================================
+SECTION 14 — GOVERNING LAW, JURISDICTION, AND DISPUTE RESOLUTION
+================================================================================
+
+14.1 GOVERNING LAW. This License shall be governed by and construed in
+     accordance with the laws of the jurisdiction in which the Licensor is
+     domiciled at the time of the alleged breach or dispute, without regard to
+     conflict of law principles, choice of law rules, or the United Nations
+     Convention on Contracts for the International Sale of Goods.
+
+14.2 JURISDICTION AND VENUE. Any legal action, suit, or proceeding arising out
+     of or relating to this License or the Software shall be brought exclusively
+     in the courts of competent jurisdiction located in the Licensor's domicile.
+     You irrevocably submit to the personal jurisdiction of such courts and
+     waive any objection to the laying of venue in such courts, including any
+     objection that such courts are an inconvenient forum.
+
+14.3 INJUNCTIVE RELIEF EXCEPTION. Notwithstanding Section 14.2, the Licensor
+     may seek injunctive or other equitable relief in any court of competent
+     jurisdiction worldwide to protect its intellectual property rights or
+     confidential information.
+
+14.4 CLASS ACTION WAIVER. To the maximum extent permitted by law, You waive any
+     right to bring any claim against the Licensor as a class action, collective
+     action, private attorney general action, or any other representative
+     proceeding.
+
+================================================================================
+SECTION 15 — GENERAL PROVISIONS
+================================================================================
+
+15.1 ENTIRE AGREEMENT. This License constitutes the entire agreement between
+     You and the Licensor with respect to the Software and supersedes all prior
+     and contemporaneous agreements, representations, warranties, and
+     understandings, whether written or oral, relating to the Software.
+
+15.2 SEVERABILITY. If any provision of this License is held by a court of
+     competent jurisdiction to be invalid, illegal, or unenforceable under
+     applicable law, such provision shall be modified to the minimum extent
+     necessary to make it valid and enforceable. The remaining provisions shall
+     remain in full force and effect, and the invalid provision shall be
+     enforced to the maximum extent permitted. If a provision cannot be modified
+     to be enforceable, it shall be severed, and all other provisions shall
+     remain effective.
+
+15.3 NO WAIVER. No failure or delay by the Licensor to exercise any right,
+     remedy, power, or privilege under this License shall operate as a waiver
+     thereof. No single or partial exercise of any right, remedy, power, or
+     privilege shall preclude any other or further exercise thereof or the
+     exercise of any other right, remedy, power, or privilege.
+
+15.4 AMENDMENTS. The Licensor reserves the right to release new versions of
+     this License at any time. Software in this repository is subject to the
+     version of the License in effect at the time of Your access. Prior
+     authorization granted under an earlier version of this License does not
+     extend to uses that would require authorization under a later version.
+
+15.5 COMMERCIAL LICENSING. Use of the Software for Commercial Use, the creation
+     of a publicly distributed Derivative Work, or the operation of any hosted
+     or accessible service requires a separate written commercial license
+     agreement signed by the Licensor. No commercial license is granted or
+     implied by this License. To inquire about commercial licensing terms,
+     contact the Licensor through the official SigmaGit repository.
+
+15.6 NO THIRD-PARTY BENEFICIARIES. This License is between You and the Licensor
+     only. No third party has any rights under this License or any right to
+     enforce its terms.
+
+15.7 CONSTRUCTION. This License shall be construed without regard to any
+     presumption or rule requiring construction against the party causing this
+     License to be drafted. Headings and section titles are for convenience
+     only and shall not affect interpretation.
+
+15.8 EXPORT COMPLIANCE. You represent and warrant that You are not located in,
+     under the control of, or a national or resident of any country subject to
+     applicable export control embargo, and that You are not on any list of
+     restricted parties. You agree to comply fully with all applicable export
+     control laws and regulations in Your use of the Software.
+
+15.9 COMPLIANCE WITH LAWS. Your use of the Software must comply with all
+     applicable laws and regulations, including but not limited to privacy laws,
+     data protection regulations (such as GDPR and CCPA), export control laws,
+     and intellectual property laws.
+
+15.10 FORCE OF LAW. Each restriction and prohibition in this License is intended
+      to be enforceable as an independent covenant and as a condition of the
+      license grant. Breach of any restriction or prohibition terminates Your
+      license and may give rise to a claim for damages, injunctive relief, and/or
+      other legal or equitable remedies.
+
+================================================================================
+SUMMARY (NON-BINDING — FOR REFERENCE ONLY)
+================================================================================
+
+IMPORTANT: Only the full text of Sections 1–15 above is legally binding.
+This summary does not create any rights or modify any obligations.
+
+  ✓ ALLOWED:  Personal, private, non-commercial use on your own machine
+  ✓ ALLOWED:  Educational and academic study (non-commercial, no public access)
+  ✓ ALLOWED:  Local evaluation before obtaining a commercial license
+  ✓ ALLOWED:  Contributing back to the official SigmaGit repository
+  ✓ ALLOWED:  Reading and studying the source code
+
+  ✗ PROHIBITED: Any commercial use of any kind — direct or indirect
+  ✗ PROHIBITED: Rebranding, renaming, or presenting as a different product
+  ✗ PROHIBITED: Operating any public or semi-public hosted service (free or paid)
+  ✗ PROHIBITED: Distributing the software or any fork/modification
+  ✗ PROHIBITED: Creating a competing product (even via clean-room re-implementation)
+  ✗ PROHIBITED: Selling, sublicensing, or transferring any rights
+  ✗ PROHIBITED: Using the codebase to train AI/ML models
+  ✗ PROHIBITED: Removing copyright notices, attribution, or license text
+  ✗ PROHIBITED: Evasion via corporate shells, subsidiaries, or intermediaries
+  ✗ PROHIBITED: Reverse engineering compiled or obfuscated components
+
+For commercial licensing inquiries, contact the SigmaGit maintainers through
+the official repository.
+
+================================================================================
+END OF SIGMAGIT PROPRIETARY SOURCE-AVAILABLE LICENSE, VERSION 1.1
+================================================================================

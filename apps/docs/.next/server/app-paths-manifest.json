@@ -1,8 +1,0 @@
-{
-  "/docs/self-hosting/database/page": "app/docs/self-hosting/database/page.js",
-  "/docs/self-hosting/page": "app/docs/self-hosting/page.js",
-  "/docs/self-hosting/docker/page": "app/docs/self-hosting/docker/page.js",
-  "/docs/contributing/page": "app/docs/contributing/page.js",
-  "/docs/contributing/code-style/page": "app/docs/contributing/code-style/page.js",
-  "/docs/configuration/page": "app/docs/configuration/page.js"
-}

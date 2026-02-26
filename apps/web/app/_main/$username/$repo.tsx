@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useLocation, useNavigate, useParams } from "@tanstack/react-router";
-import { Code, GitFork, GitPullRequest, Loader2, Circle, Settings, History, LayoutGrid, Clock } from "lucide-react";
+import { Code, GitFork, GitPullRequest, Loader2, Circle, Settings, History, LayoutGrid, Clock, Package } from "lucide-react";
 import { useForkRepository, useIssueCount, usePullRequestCount, useRepoBranches, useRepoCommitCount, useRepositoryInfo } from "@sigmagit/hooks";
 import { BranchSelector } from "@/components/branch-selector";
 import { CloneUrl } from "@/components/clone-url";
@@ -64,9 +64,10 @@ function RepoLayoutContent() {
   const isIssues = pathname.includes("/issues") || pathname.includes("/labels");
   const isPulls = pathname.includes("/pulls");
   const isCommits = pathname.includes("/commits");
+  const isReleases = pathname.includes("/releases");
   const isSettings = pathname.includes("/settings");
 
-  const currentTab = isSettings ? "settings" : isCommits ? "commits" : isPulls ? "pulls" : isIssues ? "issues" : "code";
+  const currentTab = isSettings ? "settings" : isReleases ? "releases" : isCommits ? "commits" : isPulls ? "pulls" : isIssues ? "issues" : "code";
   const forkCount = repo?.forkCount ?? 0;
   const [isForkDialogOpen, setIsForkDialogOpen] = useState(false);
   const [forkName, setForkName] = useState("");
@@ -190,6 +191,12 @@ function RepoLayoutContent() {
                 <TabsTrigger value="projects" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
                   <LayoutGrid className="size-4" />
                   <span>Projects</span>
+                </TabsTrigger>
+              </Link>
+              <Link to="/$username/$repo/releases" params={{ username, repo: repoName }}>
+                <TabsTrigger value="releases" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                  <Package className="size-4" />
+                  <span>Releases</span>
                 </TabsTrigger>
               </Link>
               {isOwner && (

@@ -145,6 +145,7 @@ export type UserProfile = {
   lastActiveAt?: string | null;
   gitEmail?: string | null;
   defaultRepositoryVisibility?: "public" | "private";
+  role?: "user" | "admin" | "moderator";
   preferences?: UserPreferences | null;
   socialLinks?: {
     github?: string;
@@ -374,6 +375,162 @@ export type RepositoryWebhook = {
   updatedAt: string;
 };
 
+export type Release = {
+  id: string;
+  repositoryId: string;
+  authorId: string;
+  tagName: string;
+  name: string;
+  body: string | null;
+  isDraft: boolean;
+  isPrerelease: boolean;
+  targetCommitish: string;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReleaseAsset = {
+  id: string;
+  releaseId: string;
+  name: string;
+  label: string | null;
+  contentType: string;
+  size: number;
+  downloadCount: number;
+  storageKey: string;
+  uploaderId: string;
+  createdAt: string;
+};
+
+export type Gist = {
+  id: string;
+  ownerId: string;
+  description: string | null;
+  visibility: "public" | "secret";
+  createdAt: string;
+  updatedAt: string;
+  owner?: { id: string; name: string; username: string; avatarUrl: string | null };
+  files?: GistFile[];
+  stars?: number;
+};
+
+export type GistFile = {
+  id: string;
+  gistId: string;
+  filename: string;
+  content: string;
+  language: string | null;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type GistComment = {
+  id: string;
+  gistId: string;
+  authorId: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  author?: { id: string; name: string; username: string; avatarUrl: string | null };
+};
+
+export type GistFork = {
+  id: string;
+  gistId: string;
+  forkedFromId: string;
+  ownerId: string;
+  createdAt: string;
+  gist?: Gist;
+  owner?: { id: string; name: string; username: string; avatarUrl: string | null };
+  forkedFrom?: Gist;
+};
+
+export type RepositoryMigration = {
+  id: string;
+  repositoryId: string | null;
+  userId: string;
+  source: "github" | "gitlab" | "bitbucket" | "url";
+  sourceUrl: string;
+  sourceOwner: string | null;
+  sourceRepo: string | null;
+  status: "pending" | "cloning" | "importing" | "completed" | "failed";
+  progress: number;
+  errorMessage: string | null;
+  options: {
+    importIssues?: boolean;
+    importPRs?: boolean;
+    importWiki?: boolean;
+    importLabels?: boolean;
+    mirror?: boolean;
+  };
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Organization = {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string | null;
+  avatarUrl: string | null;
+  website: string | null;
+  location: string | null;
+  email: string | null;
+  isVerified: boolean;
+  billingEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrganizationMember = {
+  organizationId: string;
+  userId: string;
+  role: "owner" | "admin" | "member";
+  createdAt: string;
+};
+
+export type Team = {
+  id: string;
+  organizationId: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  permission: "read" | "write" | "admin";
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TeamMember = {
+  teamId: string;
+  userId: string;
+  createdAt: string;
+};
+
+export type TeamRepository = {
+  teamId: string;
+  repositoryId: string;
+  permission: "read" | "write" | "admin";
+  createdAt: string;
+};
+
+export type OrganizationInvitation = {
+  id: string;
+  organizationId: string;
+  email: string | null;
+  userId: string | null;
+  invitedById: string;
+  role: "owner" | "admin" | "member";
+  teamIds: string[];
+  token: string;
+  expiresAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+};
+
 export type ApiClient = {
   repositories: {
     create: (data: { name: string; description?: string; visibility: "public" | "private" }) => Promise<Repository>;
@@ -542,6 +699,159 @@ export type ApiClient = {
     updateItem: (itemId: string, data: { columnId?: string; position?: number; noteContent?: string }) => Promise<{ success: boolean }>;
     reorderItems: (items: { id: string; columnId: string; position: number }[]) => Promise<{ success: boolean }>;
     deleteItem: (itemId: string) => Promise<{ success: boolean }>;
+  };
+  releases: {
+    list: (owner: string, repo: string, includeDrafts?: boolean) => Promise<{ releases: Release[]; hasMore?: boolean }>;
+    getLatest: (owner: string, repo: string) => Promise<Release & { assets: ReleaseAsset[] }>;
+    getByTag: (owner: string, repo: string, tag: string) => Promise<Release & { assets?: ReleaseAsset[] }>;
+    get: (owner: string, repo: string, id: string) => Promise<Release>;
+    create: (owner: string, repo: string, tagName: string, name: string, body: string, isDraft?: boolean, isPrerelease?: boolean, targetCommitish?: string) => Promise<Release>;
+    update: (owner: string, repo: string, id: string, data: { name?: string; body?: string; isDraft?: boolean }) => Promise<{ success: boolean }>;
+    delete: (owner: string, repo: string, id: string) => Promise<{ success: boolean }>;
+    publish: (owner: string, repo: string, id: string) => Promise<{ success: boolean }>;
+    getAssets: (owner: string, repo: string, id: string) => Promise<{ assets: ReleaseAsset[] }>;
+    deleteAsset: (owner: string, repo: string, id: string, assetId: string) => Promise<{ success: boolean }>;
+  };
+  gists: {
+    list: () => Promise<{ gists: Gist[]; hasMore: boolean }>;
+    getPublic: (limit?: number, offset?: number) => Promise<{ gists: Gist[]; hasMore: boolean }>;
+    get: (id: string) => Promise<Gist>;
+    create: (data: unknown) => Promise<Gist>;
+    update: (id: string, data: unknown) => Promise<Gist>;
+    delete: (id: string) => Promise<{ success: boolean }>;
+    getRevisions: (id: string) => Promise<{ revisions: unknown[] }>;
+    toggleStar: (id: string) => Promise<{ starred: boolean }>;
+    isStarred: (id: string) => Promise<{ starred: boolean }>;
+    fork: (id: string) => Promise<{ id: string }>;
+    getForks: (id: string, limit?: number, offset?: number) => Promise<{ forks: GistFork[]; hasMore: boolean }>;
+    getComments: (id: string) => Promise<{ comments: GistComment[] }>;
+    createComment: (id: string, body: string) => Promise<GistComment>;
+    updateComment: (commentId: string, body: string) => Promise<{ success: boolean }>;
+      deleteComment: (commentId: string) => Promise<{ success: boolean }>;
+      getUserGists: (username: string, limit?: number, offset?: number) => Promise<{ gists: Gist[]; hasMore: boolean }>;
+  };
+  migrations: {
+    list: () => Promise<{ migrations: RepositoryMigration[]; hasMore?: boolean }>;
+    get: (id: string) => Promise<RepositoryMigration>;
+    create: (data: unknown) => Promise<RepositoryMigration>;
+    cancel: (id: string) => Promise<{ success: boolean }>;
+    delete: (id: string) => Promise<{ success: boolean }>;
+  };
+  organizations: {
+    list: () => Promise<{ organizations: Organization[]; hasMore?: boolean }>;
+    get: (org: string) => Promise<Organization>;
+    getMembers: (org: string) => Promise<{ members: OrganizationMember[] }>;
+    getTeams: (org: string) => Promise<{ teams: Team[] }>;
+    getRepositories: (org: string) => Promise<{ repositories: Repository[] }>;
+    getInvitations: (org: string) => Promise<{ invitations: OrganizationInvitation[] }>;
+    create: (data: unknown) => Promise<Organization>;
+    update: (org: string, data: unknown) => Promise<{ success: boolean }>;
+    delete: (org: string) => Promise<{ success: boolean }>;
+    updateMember: (org: string, username: string, data: unknown) => Promise<{ success: boolean }>;
+    removeMember: (org: string, username: string) => Promise<{ success: boolean }>;
+    createTeam: (org: string, data: unknown) => Promise<Team>;
+    deleteTeam: (org: string, team: string) => Promise<{ success: boolean }>;
+    getTeam: (org: string, team: string) => Promise<Team>;
+    addTeamMember: (org: string, team: string, data: unknown) => Promise<{ success: boolean }>;
+    removeTeamMember: (org: string, team: string, username: string) => Promise<{ success: boolean }>;
+    addTeamRepo: (org: string, team: string, repo: string, data: unknown) => Promise<{ success: boolean }>;
+    removeTeamRepo: (org: string, team: string, repo: string) => Promise<{ success: boolean }>;
+    deleteTeamRepo: (org: string, team: string, repo: string) => Promise<{ success: boolean }>;
+    sendInvitation: (org: string, data: unknown) => Promise<OrganizationInvitation>;
+    deleteInvitation: (org: string, id: string) => Promise<{ success: boolean }>;
+    acceptInvitation: (token: string) => Promise<{ success: boolean }>;
+  };
+  admin: {
+    getStats: () => Promise<{
+      userCount: number;
+      repoCount: number;
+      publicRepoCount: number;
+      privateRepoCount: number;
+      adminCount: number;
+      moderatorCount: number;
+    }>;
+    getUsers: (search?: string, role?: string, limit?: number, offset?: number) => Promise<{ users: UserProfile[]; hasMore: boolean }>;
+    getUser: (id: string) => Promise<UserProfile & { repoCount: number }>;
+    updateUser: (id: string, data: { role?: string }) => Promise<{ success: boolean }>;
+    deleteUser: (id: string) => Promise<{ success: boolean }>;
+    getRepositories: (search?: string, visibility?: string, limit?: number, offset?: number) => Promise<{ repositories: Repository[]; hasMore: boolean }>;
+    deleteRepository: (id: string) => Promise<{ success: boolean }>;
+    transferRepository: (id: string, newOwnerId: string) => Promise<{ success: boolean }>;
+    getAuditLogs: (action?: string, targetType?: string, limit?: number, offset?: number) => Promise<{
+      logs: Array<{
+        id: string;
+        actorId: string | null;
+        action: string;
+        targetType: string;
+        targetId: string | null;
+        metadata: Record<string, unknown> | null;
+        ipAddress: string | null;
+        createdAt: string;
+        actor?: { id: string; username: string; name: string } | null;
+      }>;
+      hasMore: boolean;
+    }>;
+    getSettings: () => Promise<Record<string, unknown>>;
+    updateSettings: (settings: Record<string, unknown>) => Promise<{ success: boolean }>;
+    toggleMaintenance: (enabled: boolean) => Promise<{ success: boolean }>;
+    releases: {
+      list: (owner: string, repo: string, includeDrafts?: boolean) => Promise<{ releases: Release[] }>;
+      getLatest: (owner: string, repo: string) => Promise<Release & { assets: ReleaseAsset[] }>;
+      getByTag: (owner: string, repo: string, tag: string) => Promise<Release & { assets?: ReleaseAsset[] }>;
+      get: (owner: string, repo: string, id: string) => Promise<Release>;
+      create: (owner: string, repo: string, data: unknown) => Promise<{ data: Release }>;
+      update: (owner: string, repo: string, id: string, data: unknown) => Promise<{ data: Release }>;
+      delete: (owner: string, repo: string, id: string) => Promise<{ success: boolean }>;
+      publish: (owner: string, repo: string, id: string) => Promise<{ data: Release }>;
+      getAssets: (owner: string, repo: string, id: string) => Promise<{ assets: ReleaseAsset[] }>;
+      deleteAsset: (owner: string, repo: string, id: string, assetId: string) => Promise<{ success: boolean }>;
+    };
+    gists: {
+      list: () => Promise<{ gists: Gist[] }>;
+      getPublic: (limit?: number, offset?: number) => Promise<{ gists: Gist[]; hasMore: boolean }>;
+      get: (id: string) => Promise<Gist>;
+      update: (id: string, data: unknown) => Promise<{ data: Gist }>;
+      delete: (id: string) => Promise<{ success: boolean }>;
+      getRevisions: (id: string) => Promise<{ revisions: unknown[] }>;
+      toggleStar: (id: string) => Promise<{ starred: boolean }>;
+      isStarred: (id: string) => Promise<{ starred: boolean }>;
+      fork: (id: string) => Promise<{ id: string }>;
+      getForks: (id: string, limit?: number, offset?: number) => Promise<{ forks: GistFork[]; hasMore: boolean }>;
+      getComments: (id: string) => Promise<{ comments: GistComment[] }>;
+      createComment: (id: string, body: string) => Promise<GistComment>;
+      getUserGists: (username: string, limit?: number, offset?: number) => Promise<{ gists: Gist[]; hasMore: boolean }>;
+    };
+    migrations: {
+      list: () => Promise<{ migrations: RepositoryMigration[]; hasMore?: boolean }>;
+      get: (id: string) => Promise<RepositoryMigration>;
+      create: (data: unknown) => Promise<{ data: RepositoryMigration }>;
+      cancel: (id: string) => Promise<{ success: boolean }>;
+      delete: (id: string) => Promise<{ success: boolean }>;
+    };
+    organizations: {
+      list: () => Promise<{ organizations: Organization[] }>;
+      get: (org: string) => Promise<Organization>;
+      getMembers: (org: string) => Promise<{ members: OrganizationMember[] }>;
+      getTeams: (org: string) => Promise<{ teams: Team[] }>;
+      getRepositories: (org: string) => Promise<{ repositories: Repository[] }>;
+      getInvitations: (org: string) => Promise<{ invitations: OrganizationInvitation[] }>;
+      create: (data: unknown) => Promise<{ data: Organization }>;
+      update: (org: string, data: unknown) => Promise<{ success: boolean }>;
+      delete: (org: string) => Promise<{ success: boolean }>;
+      updateMember: (org: string, username: string, data: unknown) => Promise<{ success: boolean }>;
+       removeMember: (org: string, username: string) => Promise<{ success: boolean }>;
+      createTeam: (org: string, data: unknown) => Promise<{ data: Team }>;
+      deleteTeam: (org: string, team: string) => Promise<{ success: boolean }>;
+      getTeam: (org: string, team: string) => Promise<Team>;
+      addTeamMember: (org: string, team: string, data: unknown) => Promise<{ success: boolean }>;
+      removeTeamMember: (org: string, team: string, username: string) => Promise<{ success: boolean }>;
+      addTeamRepo: (org: string, team: string, repo: string, data: unknown) => Promise<{ success: boolean }>;
+      removeTeamRepo: (org: string, team: string, repo: string) => Promise<{ success: boolean }>;
+      deleteTeamRepo: (org: string, team: string, repo: string) => Promise<{ success: boolean }>;
+      sendInvitation: (org: string, data: unknown) => Promise<{ data: OrganizationInvitation }>;
+      deleteInvitation: (org: string, id: string) => Promise<{ success: boolean }>;
+      acceptInvitation: (token: string) => Promise<{ success: boolean }>;
+    };
   };
 };
 

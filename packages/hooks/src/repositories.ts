@@ -142,7 +142,7 @@ export function useCreateRepository() {
   const api = useApi();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; visibility: "public" | "private" }) => api.repositories.create(data),
+    mutationFn: (data: { name: string; description?: string; visibility: "public" | "private"; organizationId?: string }) => api.repositories.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
     },

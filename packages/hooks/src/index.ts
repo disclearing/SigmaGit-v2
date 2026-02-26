@@ -9,3 +9,8 @@ export * from "./search";
 export * from "./notifications";
 export * from "./discussions";
 export * from "./projects";
+export * from "./admin";
+export * from "./releases";
+export * from "./gists";
+export * from "./organizations";
+export * from "./migrations";

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, users, repositories, stars, repoBranchMetadata } from "@sigmagit/db";
+import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers } from "@sigmagit/db";
 import { eq, sql, desc, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { putObject, deletePrefix, getRepoPrefix, copyPrefix, listObjects } from "../s3";
@@ -63,6 +63,7 @@ app.post("/api/repositories", requireAuth, async (c) => {
     name: string;
     description?: string;
     visibility: string;
+    organizationId?: string;
   }>();
 
   const normalizedName = body.name.toLowerCase().replace(/ /g, "-");
@@ -71,8 +72,32 @@ app.post("/api/repositories", requireAuth, async (c) => {
     return c.json({ error: "Invalid repository name" }, 400);
   }
 
+  // If organizationId is provided, verify user has permission
+  let ownerId = user.id;
+  if (body.organizationId) {
+    const [member] = await db
+      .select()
+      .from(organizationMembers)
+      .where(
+        and(
+          eq(organizationMembers.organizationId, body.organizationId),
+          eq(organizationMembers.userId, user.id)
+        )
+      );
+    
+    if (!member || (member.role !== "owner" && member.role !== "admin")) {
+      return c.json({ error: "You don't have permission to create repositories in this organization" }, 403);
+    }
+    ownerId = body.organizationId; // Use org ID as owner for storage prefix
+  }
+
   const existing = await db.query.repositories.findFirst({
-    where: and(eq(repositories.ownerId, user.id), eq(repositories.name, normalizedName)),
+    where: and(
+      body.organizationId 
+        ? eq(repositories.organizationId, body.organizationId)
+        : eq(repositories.ownerId, user.id),
+      eq(repositories.name, normalizedName)
+    ),
   });
 
   if (existing) {
@@ -85,11 +110,14 @@ app.post("/api/repositories", requireAuth, async (c) => {
       name: normalizedName,
       description: body.description,
       visibility: body.visibility as "public" | "private",
-      ownerId: user.id,
+      ownerId: user.id, // Always set to user ID for ownership tracking
+      organizationId: body.organizationId || null,
     })
     .returning();
 
-  const repoPrefix = getRepoPrefix(user.id, normalizedName);
+  // Use organization name for storage if org repo, otherwise user ID
+  const storageOwnerId = body.organizationId ? body.organizationId : user.id;
+  const repoPrefix = getRepoPrefix(storageOwnerId, normalizedName);
   await putObject(`${repoPrefix}/HEAD`, "ref: refs/heads/main\n");
   await putObject(`${repoPrefix}/config`, "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = true\n");
   await putObject(`${repoPrefix}/description`, "Unnamed repository; edit this file to name the repository.\n");

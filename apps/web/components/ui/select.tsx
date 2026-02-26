@@ -2,7 +2,7 @@ import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
 import { cn } from "@/lib/utils"
-import { UnfoldMore, Check, ArrowUp01, ChevronDown } from "lucide-react";
+import { ChevronDown, Check, ArrowUp, ArrowDown } from "lucide-react";
 
 const Select = SelectPrimitive.Root
 
@@ -47,7 +47,7 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <UnfoldMoreIcon className="text-muted-foreground size-4 pointer-events-none" />
+          <ChevronDown className="text-muted-foreground size-4 pointer-events-none" />
         }
       />
     </SelectPrimitive.Trigger>
@@ -125,7 +125,7 @@ function SelectItem({
       <SelectPrimitive.ItemIndicator
         render={<span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />}
       >
-        <Tick02Icon className="pointer-events-none" />
+        <Check className="pointer-events-none size-4" />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   )
@@ -154,7 +154,7 @@ function SelectScrollUpButton({
       className={cn("bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-4 top-0 w-full", className)}
       {...props}
     >
-      <ArrowUp01Icon />
+      <ArrowUp className="size-4" />
     </SelectPrimitive.ScrollUpArrow>
   )
 }
@@ -169,7 +169,7 @@ function SelectScrollDownButton({
       className={cn("bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-4 bottom-0 w-full", className)}
       {...props}
     >
-      <ArrowDown01Icon />
+      <ArrowDown className="size-4" />
     </SelectPrimitive.ScrollDownArrow>
   )
 }

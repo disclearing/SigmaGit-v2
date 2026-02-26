@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   defaultRepositoryVisibility: text("default_repository_visibility", { enum: ["public", "private"] })
     .notNull()
     .default("public"),
+  role: text("role", { enum: ["user", "admin", "moderator"] }).notNull().default("user"),
   preferences: jsonb("preferences").$type<UserPreferences>(),
   socialLinks: jsonb("social_links").$type<{
     github?: string;
@@ -84,6 +85,126 @@ export const verifications = pgTable("verifications", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const organizations = pgTable(
+  "organizations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull().unique(),
+    displayName: text("display_name").notNull(),
+    description: text("description"),
+    avatarUrl: text("avatar_url"),
+    website: text("website"),
+    location: text("location"),
+    email: text("email"),
+    isVerified: boolean("is_verified").notNull().default(false),
+    billingEmail: text("billing_email"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("organizations_name_idx").on(table.name)]
+);
+
+export const organizationMembers = pgTable(
+  "organization_members",
+  {
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["owner", "admin", "member"] }).notNull().default("member"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.organizationId, table.userId] }),
+    index("org_members_org_id_idx").on(table.organizationId),
+    index("org_members_user_id_idx").on(table.userId),
+  ]
+);
+
+export const teams = pgTable(
+  "teams",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    description: text("description"),
+    permission: text("permission", { enum: ["read", "write", "admin"] }).notNull().default("read"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("teams_org_id_idx").on(table.organizationId),
+    index("teams_org_slug_idx").on(table.organizationId, table.slug),
+  ]
+);
+
+export const teamMembers = pgTable(
+  "team_members",
+  {
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.teamId, table.userId] }),
+    index("team_members_team_id_idx").on(table.teamId),
+    index("team_members_user_id_idx").on(table.userId),
+  ]
+);
+
+export const teamRepositories = pgTable(
+  "team_repositories",
+  {
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    permission: text("permission", { enum: ["read", "write", "admin"] }).notNull().default("read"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.teamId, table.repositoryId] }),
+    index("team_repos_team_id_idx").on(table.teamId),
+    index("team_repos_repo_id_idx").on(table.repositoryId),
+  ]
+);
+
+export const organizationInvitations = pgTable(
+  "organization_invitations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    email: text("email"),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    invitedById: text("invited_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["owner", "admin", "member"] }).notNull().default("member"),
+    teamIds: jsonb("team_ids").$type<string[]>().default([]),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at").notNull(),
+    acceptedAt: timestamp("accepted_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("org_invitations_org_id_idx").on(table.organizationId),
+    index("org_invitations_token_idx").on(table.token),
+  ]
+);
+
 export const repositories = pgTable(
   "repositories",
   {
@@ -93,6 +214,7 @@ export const repositories = pgTable(
     ownerId: text("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
     forkedFromId: uuid("forked_from_id").references((): AnyPgColumn => repositories.id, { onDelete: "set null" }),
     visibility: text("visibility", { enum: ["public", "private"] })
       .notNull()
@@ -104,6 +226,7 @@ export const repositories = pgTable(
   },
   (table) => [
     index("repositories_forked_from_id_idx").on(table.forkedFromId),
+    index("repositories_organization_id_idx").on(table.organizationId),
     index("repositories_search_idx").using("gin", table.searchVector),
   ]
 );
@@ -809,6 +932,367 @@ export const repositoryWebhookRelations = relations(repositoryWebhooks, ({ one }
   }),
 }))
 
+export const releases = pgTable(
+  "releases",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tagName: text("tag_name").notNull(),
+    name: text("name").notNull(),
+    body: text("body"),
+    isDraft: boolean("is_draft").notNull().default(false),
+    isPrerelease: boolean("is_prerelease").notNull().default(false),
+    targetCommitish: text("target_commitish").notNull().default("main"),
+    publishedAt: timestamp("published_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("releases_repository_id_idx").on(table.repositoryId),
+    index("releases_repo_tag_idx").on(table.repositoryId, table.tagName),
+  ]
+);
+
+export const releaseAssets = pgTable(
+  "release_assets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    releaseId: uuid("release_id")
+      .notNull()
+      .references(() => releases.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    label: text("label"),
+    contentType: text("content_type").notNull(),
+    size: bigint("size", { mode: "number" }).notNull(),
+    downloadCount: integer("download_count").notNull().default(0),
+    storageKey: text("storage_key").notNull(),
+    uploaderId: text("uploader_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [index("release_assets_release_id_idx").on(table.releaseId)]
+);
+
+export const releaseComments = pgTable(
+  "release_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    releaseId: uuid("release_id")
+      .notNull()
+      .references(() => releases.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("release_comments_release_id_idx").on(table.releaseId)]
+);
+
+export const releaseReactions = pgTable(
+  "release_reactions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    releaseId: uuid("release_id").references(() => releases.id, { onDelete: "cascade" }),
+    commentId: uuid("comment_id").references(() => releaseComments.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("release_reactions_release_id_idx").on(table.releaseId),
+    index("release_reactions_comment_id_idx").on(table.commentId),
+  ]
+);
+
+export const releaseRelations = relations(releases, ({ one, many }) => ({
+  repository: one(repositories, {
+    fields: [releases.repositoryId],
+    references: [repositories.id],
+  }),
+  author: one(users, {
+    fields: [releases.authorId],
+    references: [users.id],
+  }),
+  assets: many(releaseAssets),
+  comments: many(releaseComments),
+  reactions: many(releaseReactions),
+}));
+
+export const releaseAssetRelations = relations(releaseAssets, ({ one }) => ({
+  release: one(releases, {
+    fields: [releaseAssets.releaseId],
+    references: [releases.id],
+  }),
+  uploader: one(users, {
+    fields: [releaseAssets.uploaderId],
+    references: [users.id],
+  }),
+}));
+
+export const releaseCommentRelations = relations(releaseComments, ({ one, many }) => ({
+  release: one(releases, {
+    fields: [releaseComments.releaseId],
+    references: [releases.id],
+  }),
+  author: one(users, {
+    fields: [releaseComments.authorId],
+    references: [users.id],
+  }),
+  reactions: many(releaseReactions),
+}));
+
+export const releaseReactionRelations = relations(releaseReactions, ({ one }) => ({
+  release: one(releases, {
+    fields: [releaseReactions.releaseId],
+    references: [releases.id],
+  }),
+  comment: one(releaseComments, {
+    fields: [releaseReactions.commentId],
+    references: [releaseComments.id],
+  }),
+  user: one(users, {
+    fields: [releaseReactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const gists = pgTable(
+  "gists",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    description: text("description"),
+    visibility: text("visibility", { enum: ["public", "secret"] }).notNull().default("public"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("gists_owner_id_idx").on(table.ownerId),
+    index("gists_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const gistFiles = pgTable(
+  "gist_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    gistId: uuid("gist_id")
+      .notNull()
+      .references(() => gists.id, { onDelete: "cascade" }),
+    filename: text("filename").notNull(),
+    content: text("content").notNull(),
+    language: text("language"),
+    size: integer("size").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("gist_files_gist_id_idx").on(table.gistId)]
+);
+
+export const gistComments = pgTable(
+  "gist_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    gistId: uuid("gist_id")
+      .notNull()
+      .references(() => gists.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("gist_comments_gist_id_idx").on(table.gistId)]
+);
+
+export const gistStars = pgTable(
+  "gist_stars",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gistId: uuid("gist_id")
+      .notNull()
+      .references(() => gists.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.gistId] })]
+);
+
+export const gistForks = pgTable(
+  "gist_forks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    gistId: uuid("gist_id")
+      .notNull()
+      .references(() => gists.id, { onDelete: "cascade" }),
+    forkedFromId: uuid("forked_from_id")
+      .notNull()
+      .references(() => gists.id, { onDelete: "cascade" }),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [index("gist_forks_gist_id_idx").on(table.gistId)]
+);
+
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    ipAddress: text("ip_address"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("audit_logs_actor_id_idx").on(table.actorId),
+    index("audit_logs_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const auditLogRelations = relations(auditLogs, ({ one }) => ({
+  actor: one(users, {
+    fields: [auditLogs.actorId],
+    references: [users.id],
+  }),
+}));
+
+export const systemSettings = pgTable("system_settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").$type<unknown>().notNull(),
+  updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const systemSettingsRelations = relations(systemSettings, ({ one }) => ({
+  updatedByUser: one(users, {
+    fields: [systemSettings.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const gistRelations = relations(gists, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [gists.ownerId],
+    references: [users.id],
+  }),
+  files: many(gistFiles),
+  comments: many(gistComments),
+  stars: many(gistStars),
+  // Forks where this gist is the original (forkedFromId points to this gist)
+  forks: many(gistForks, {
+    relationName: "forkedFrom",
+  }),
+}));
+
+export const gistFileRelations = relations(gistFiles, ({ one }) => ({
+  gist: one(gists, {
+    fields: [gistFiles.gistId],
+    references: [gists.id],
+  }),
+}));
+
+export const gistCommentRelations = relations(gistComments, ({ one }) => ({
+  gist: one(gists, {
+    fields: [gistComments.gistId],
+    references: [gists.id],
+  }),
+  author: one(users, {
+    fields: [gistComments.authorId],
+    references: [users.id],
+  }),
+}));
+
+export const gistStarRelations = relations(gistStars, ({ one }) => ({
+  gist: one(gists, {
+    fields: [gistStars.gistId],
+    references: [gists.id],
+  }),
+  user: one(users, {
+    fields: [gistStars.userId],
+    references: [users.id],
+  }),
+}));
+
+export const gistForkRelations = relations(gistForks, ({ one }) => ({
+  gist: one(gists, {
+    fields: [gistForks.gistId],
+    references: [gists.id],
+    relationName: "forkedGist",
+  }),
+  forkedFrom: one(gists, {
+    fields: [gistForks.forkedFromId],
+    references: [gists.id],
+    relationName: "forkedFrom",
+  }),
+  owner: one(users, {
+    fields: [gistForks.ownerId],
+    references: [users.id],
+  }),
+}));
+
+export const repositoryMigrations = pgTable(
+  "repository_migrations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    repositoryId: uuid("repository_id").references(() => repositories.id, { onDelete: "set null" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    source: text("source", { enum: ["github", "gitlab", "bitbucket", "url"] }).notNull(),
+    sourceUrl: text("source_url").notNull(),
+    sourceOwner: text("source_owner"),
+    sourceRepo: text("source_repo"),
+    status: text("status", { enum: ["pending", "cloning", "importing", "completed", "failed"] }).notNull().default("pending"),
+    progress: integer("progress").notNull().default(0),
+    errorMessage: text("error_message"),
+    options: jsonb("options").$type<{
+      importIssues?: boolean;
+      importPRs?: boolean;
+      importWiki?: boolean;
+      importLabels?: boolean;
+      mirror?: boolean;
+    }>().default({}),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("repo_migrations_user_id_idx").on(table.userId),
+    index("repo_migrations_status_idx").on(table.status),
+  ]
+);
+
+export const repositoryMigrationRelations = relations(repositoryMigrations, ({ one }) => ({
+  repository: one(repositories, {
+    fields: [repositoryMigrations.repositoryId],
+    references: [repositories.id],
+  }),
+  user: one(users, {
+    fields: [repositoryMigrations.userId],
+    references: [users.id],
+  }),
+}));
+
 export const passkeys = pgTable(
   "passkey",
   {
@@ -841,6 +1325,7 @@ export const userRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   apikeys: many(apiKeys),
   passkeys: many(passkeys),
+  auditLogs: many(auditLogs),
 }));
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
@@ -868,6 +1353,13 @@ export const repoBranchMetadataRelations = relations(repoBranchMetadata, ({ one 
   repo: one(repositories, {
     fields: [repoBranchMetadata.repoId],
     references: [repositories.id],
+  }),
+}));
+
+export const repositoryRelations = relations(repositories, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [repositories.organizationId],
+    references: [organizations.id],
   }),
 }));
 

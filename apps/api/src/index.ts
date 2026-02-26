@@ -6,6 +6,7 @@ import { initAuth } from "./auth";
 import { mountRoutes } from "./routes";
 import { handleWebSocketUpgrade, websocketHandlers } from "./websocket";
 import { memoryMiddleware, requestSizeMiddleware, gitLimitsMiddleware } from "./middleware/limits";
+import { startMigrationWorker } from "./workers/migration";
 import "./monitoring";
 
 const app = new Hono();
@@ -55,6 +56,11 @@ app.use("*", requestSizeMiddleware);
 app.use("*", gitLimitsMiddleware);
 
 mountRoutes(app);
+
+// Start migration worker
+if (config.enableMigrations) {
+  startMigrationWorker();
+}
 
 const port = config.port;
 

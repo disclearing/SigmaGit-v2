@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { signOut, useSession } from "@/lib/auth-client";
 import { useCurrentUserSummary } from "@sigmagit/hooks";
 import { Link, useNavigate, useLocation, useParams } from "@tanstack/react-router";
-import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User } from "lucide-react";
+import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User, FileText, Download, GitBranch } from "lucide-react";
 import { useTheme } from "tanstack-theme-kit";
 import { NewRepositoryModal } from "@/components/new-repository-modal";
 import { SearchBar } from "@/components/search";
@@ -20,6 +20,7 @@ export function Header() {
 
   const { data: session } = useSession();
   const { data: user } = useCurrentUserSummary(!!session?.user);
+  const isAdmin = (session?.user as any)?.role === "admin";
 
   const isRepoPage = location.pathname.match(/\/[^/]+\/[^/]+/);
   const username = params.username as string | undefined;
@@ -68,6 +69,20 @@ export function Header() {
                 >
                   Explore
                 </Link>
+                <Link 
+                  to="/gists" 
+                  className="px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  Gists
+                </Link>
+                {isAdmin && (
+                  <Link 
+                    to="/admin" 
+                    className="px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  >
+                    Admin
+                  </Link>
+                )}
               </>
             )}
           </nav>
@@ -80,15 +95,50 @@ export function Header() {
         <div className="flex items-center gap-2 shrink-0">
           {session?.user ? (
             <>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative"
-                onClick={() => setNewRepoModalOpen(true)}
-                title="New repository"
-              >
-                <Plus className="size-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative"
+                    title="Create new"
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 p-1.5">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setNewRepoModalOpen(true);
+                    }}
+                    className="cursor-pointer rounded-sm px-3 py-2.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="flex items-center justify-center size-8 rounded-md bg-primary/10 text-primary shrink-0">
+                        <GitBranch className="size-4" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium leading-none">New repository</span>
+                        <span className="text-xs text-muted-foreground mt-1">Create a new repository</span>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    asChild
+                    className="cursor-pointer rounded-sm px-3 py-2.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                  >
+                    <Link to="/new/import" className="flex items-center gap-3 w-full">
+                      <div className="flex items-center justify-center size-8 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+                        <Download className="size-4" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium leading-none">Import repository</span>
+                        <span className="text-xs text-muted-foreground mt-1">Import from GitHub, GitLab, etc.</span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <NotificationDropdown />
               <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Toggle theme">
                 {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}

@@ -21,6 +21,7 @@ import { Route as MainPrivacyRouteImport } from './app/_main/privacy'
 import { Route as MainExploreRouteImport } from './app/_main/explore'
 import { Route as MainContactRouteImport } from './app/_main/contact'
 import { Route as MainCareersRouteImport } from './app/_main/careers'
+import { Route as MainAdminRouteImport } from './app/_main/admin'
 import { Route as MainAboutRouteImport } from './app/_main/about'
 import { Route as MainUsernameRouteImport } from './app/_main/$username'
 import { Route as AuthVerifyEmailRouteImport } from './app/_auth/verify-email'
@@ -28,17 +29,32 @@ import { Route as AuthResetPasswordRouteImport } from './app/_auth/reset-passwor
 import { Route as AuthRegisterRouteImport } from './app/_auth/register'
 import { Route as AuthLoginRouteImport } from './app/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './app/_auth/forgot-password'
+import { Route as MainGistsIndexRouteImport } from './app/_main/gists/index'
+import { Route as MainAdminIndexRouteImport } from './app/_main/admin/index'
 import { Route as MainUsernameIndexRouteImport } from './app/_main/$username/index'
+import { Route as MainSettingsMigrationsRouteImport } from './app/_main/settings/migrations'
+import { Route as MainOrganizationsNewRouteImport } from './app/_main/organizations/new'
+import { Route as MainGistsNewRouteImport } from './app/_main/gists/new'
+import { Route as MainGistsIdRouteImport } from './app/_main/gists/$id'
+import { Route as MainUsernameIndexOrgRouteImport } from './app/_main/$username/index-org'
 import { Route as MainUsernameRepoRouteImport } from './app/_main/$username/$repo'
+import { Route as MainNewImportIndexRouteImport } from './app/_main/new/import/index'
+import { Route as MainAdminUsersIndexRouteImport } from './app/_main/admin/users/index'
+import { Route as MainAdminSettingsIndexRouteImport } from './app/_main/admin/settings/index'
+import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admin/repositories/index'
+import { Route as MainAdminAuditLogsIndexRouteImport } from './app/_main/admin/audit-logs/index'
 import { Route as MainUsernameRepoIndexRouteImport } from './app/_main/$username/$repo/index'
+import { Route as MainGistsIdEditRouteImport } from './app/_main/gists/$id/edit'
 import { Route as MainUsernameRepoSettingsRouteImport } from './app/_main/$username/$repo/settings'
 import { Route as MainUsernameRepoLabelsRouteImport } from './app/_main/$username/$repo/labels'
 import { Route as MainUsernameRepoCommitsRouteImport } from './app/_main/$username/$repo/commits'
+import { Route as MainUsernameRepoReleasesIndexRouteImport } from './app/_main/$username/$repo/releases/index'
 import { Route as MainUsernameRepoPullsIndexRouteImport } from './app/_main/$username/$repo/pulls/index'
 import { Route as MainUsernameRepoProjectsIndexRouteImport } from './app/_main/$username/$repo/projects/index'
 import { Route as MainUsernameRepoIssuesIndexRouteImport } from './app/_main/$username/$repo/issues/index'
 import { Route as MainUsernameRepoDiscussionsIndexRouteImport } from './app/_main/$username/$repo/discussions/index'
 import { Route as MainUsernameRepoTreeSplatRouteImport } from './app/_main/$username/$repo/tree/$'
+import { Route as MainUsernameRepoReleasesNewRouteImport } from './app/_main/$username/$repo/releases/new'
 import { Route as MainUsernameRepoPullsNewRouteImport } from './app/_main/$username/$repo/pulls/new'
 import { Route as MainUsernameRepoPullsNumberRouteImport } from './app/_main/$username/$repo/pulls/$number'
 import { Route as MainUsernameRepoProjectsProjectIdRouteImport } from './app/_main/$username/$repo/projects/$projectId'
@@ -49,6 +65,8 @@ import { Route as MainUsernameRepoDiscussionsNumberRouteImport } from './app/_ma
 import { Route as MainUsernameRepoCommitsBranchRouteImport } from './app/_main/$username/$repo/commits/$branch'
 import { Route as MainUsernameRepoBlobSplatRouteImport } from './app/_main/$username/$repo/blob/$'
 import { Route as MainUsernameRepoCommitsBranchIndexRouteImport } from './app/_main/$username/$repo/commits/$branch/index'
+import { Route as MainUsernameRepoReleasesTagTagRouteImport } from './app/_main/$username/$repo/releases/tag/$tag'
+import { Route as MainUsernameRepoReleasesIdEditRouteImport } from './app/_main/$username/$repo/releases/$id/edit'
 import { Route as MainUsernameRepoCommitsBranchOidRouteImport } from './app/_main/$username/$repo/commits/$branch/$oid'
 
 const MainRoute = MainRouteImport.update({
@@ -109,6 +127,11 @@ const MainCareersRoute = MainCareersRouteImport.update({
   path: '/careers',
   getParentRoute: () => MainRoute,
 } as any)
+const MainAdminRoute = MainAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainAboutRoute = MainAboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -144,9 +167,44 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => AuthRoute,
 } as any)
+const MainGistsIndexRoute = MainGistsIndexRouteImport.update({
+  id: '/gists/',
+  path: '/gists/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainAdminIndexRoute = MainAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const MainUsernameIndexRoute = MainUsernameIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainUsernameRoute,
+} as any)
+const MainSettingsMigrationsRoute = MainSettingsMigrationsRouteImport.update({
+  id: '/migrations',
+  path: '/migrations',
+  getParentRoute: () => MainSettingsRoute,
+} as any)
+const MainOrganizationsNewRoute = MainOrganizationsNewRouteImport.update({
+  id: '/organizations/new',
+  path: '/organizations/new',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainGistsNewRoute = MainGistsNewRouteImport.update({
+  id: '/gists/new',
+  path: '/gists/new',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainGistsIdRoute = MainGistsIdRouteImport.update({
+  id: '/gists/$id',
+  path: '/gists/$id',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainUsernameIndexOrgRoute = MainUsernameIndexOrgRouteImport.update({
+  id: '/index-org',
+  path: '/index-org',
   getParentRoute: () => MainUsernameRoute,
 } as any)
 const MainUsernameRepoRoute = MainUsernameRepoRouteImport.update({
@@ -154,10 +212,41 @@ const MainUsernameRepoRoute = MainUsernameRepoRouteImport.update({
   path: '/$repo',
   getParentRoute: () => MainUsernameRoute,
 } as any)
+const MainNewImportIndexRoute = MainNewImportIndexRouteImport.update({
+  id: '/new/import/',
+  path: '/new/import/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainAdminUsersIndexRoute = MainAdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminSettingsIndexRoute = MainAdminSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminRepositoriesIndexRoute =
+  MainAdminRepositoriesIndexRouteImport.update({
+    id: '/repositories/',
+    path: '/repositories/',
+    getParentRoute: () => MainAdminRoute,
+  } as any)
+const MainAdminAuditLogsIndexRoute = MainAdminAuditLogsIndexRouteImport.update({
+  id: '/audit-logs/',
+  path: '/audit-logs/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const MainUsernameRepoIndexRoute = MainUsernameRepoIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => MainUsernameRepoRoute,
+} as any)
+const MainGistsIdEditRoute = MainGistsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => MainGistsIdRoute,
 } as any)
 const MainUsernameRepoSettingsRoute =
   MainUsernameRepoSettingsRouteImport.update({
@@ -175,6 +264,12 @@ const MainUsernameRepoCommitsRoute = MainUsernameRepoCommitsRouteImport.update({
   path: '/commits',
   getParentRoute: () => MainUsernameRepoRoute,
 } as any)
+const MainUsernameRepoReleasesIndexRoute =
+  MainUsernameRepoReleasesIndexRouteImport.update({
+    id: '/releases/',
+    path: '/releases/',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
 const MainUsernameRepoPullsIndexRoute =
   MainUsernameRepoPullsIndexRouteImport.update({
     id: '/pulls/',
@@ -203,6 +298,12 @@ const MainUsernameRepoTreeSplatRoute =
   MainUsernameRepoTreeSplatRouteImport.update({
     id: '/tree/$',
     path: '/tree/$',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
+const MainUsernameRepoReleasesNewRoute =
+  MainUsernameRepoReleasesNewRouteImport.update({
+    id: '/releases/new',
+    path: '/releases/new',
     getParentRoute: () => MainUsernameRepoRoute,
   } as any)
 const MainUsernameRepoPullsNewRoute =
@@ -265,6 +366,18 @@ const MainUsernameRepoCommitsBranchIndexRoute =
     path: '/',
     getParentRoute: () => MainUsernameRepoCommitsBranchRoute,
   } as any)
+const MainUsernameRepoReleasesTagTagRoute =
+  MainUsernameRepoReleasesTagTagRouteImport.update({
+    id: '/releases/tag/$tag',
+    path: '/releases/tag/$tag',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
+const MainUsernameRepoReleasesIdEditRoute =
+  MainUsernameRepoReleasesIdEditRouteImport.update({
+    id: '/releases/$id/edit',
+    path: '/releases/$id/edit',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
 const MainUsernameRepoCommitsBranchOidRoute =
   MainUsernameRepoCommitsBranchOidRouteImport.update({
     id: '/$oid',
@@ -282,20 +395,34 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof AuthVerifyEmailRoute
   '/$username': typeof MainUsernameRouteWithChildren
   '/about': typeof MainAboutRoute
+  '/admin': typeof MainAdminRouteWithChildren
   '/careers': typeof MainCareersRoute
   '/contact': typeof MainContactRoute
   '/explore': typeof MainExploreRoute
   '/privacy': typeof MainPrivacyRoute
   '/search': typeof MainSearchRoute
   '/security': typeof MainSecurityRoute
-  '/settings': typeof MainSettingsRoute
+  '/settings': typeof MainSettingsRouteWithChildren
   '/terms': typeof MainTermsRoute
   '/$username/$repo': typeof MainUsernameRepoRouteWithChildren
+  '/$username/index-org': typeof MainUsernameIndexOrgRoute
+  '/gists/$id': typeof MainGistsIdRouteWithChildren
+  '/gists/new': typeof MainGistsNewRoute
+  '/organizations/new': typeof MainOrganizationsNewRoute
+  '/settings/migrations': typeof MainSettingsMigrationsRoute
   '/$username/': typeof MainUsernameIndexRoute
+  '/admin/': typeof MainAdminIndexRoute
+  '/gists/': typeof MainGistsIndexRoute
   '/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
   '/$username/$repo/settings': typeof MainUsernameRepoSettingsRoute
+  '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo/': typeof MainUsernameRepoIndexRoute
+  '/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
+  '/admin/settings/': typeof MainAdminSettingsIndexRoute
+  '/admin/users/': typeof MainAdminUsersIndexRoute
+  '/new/import/': typeof MainNewImportIndexRoute
   '/$username/$repo/blob/$': typeof MainUsernameRepoBlobSplatRoute
   '/$username/$repo/commits/$branch': typeof MainUsernameRepoCommitsBranchRouteWithChildren
   '/$username/$repo/discussions/$number': typeof MainUsernameRepoDiscussionsNumberRoute
@@ -305,12 +432,16 @@ export interface FileRoutesByFullPath {
   '/$username/$repo/projects/$projectId': typeof MainUsernameRepoProjectsProjectIdRoute
   '/$username/$repo/pulls/$number': typeof MainUsernameRepoPullsNumberRoute
   '/$username/$repo/pulls/new': typeof MainUsernameRepoPullsNewRoute
+  '/$username/$repo/releases/new': typeof MainUsernameRepoReleasesNewRoute
   '/$username/$repo/tree/$': typeof MainUsernameRepoTreeSplatRoute
   '/$username/$repo/discussions/': typeof MainUsernameRepoDiscussionsIndexRoute
   '/$username/$repo/issues/': typeof MainUsernameRepoIssuesIndexRoute
   '/$username/$repo/projects/': typeof MainUsernameRepoProjectsIndexRoute
   '/$username/$repo/pulls/': typeof MainUsernameRepoPullsIndexRoute
+  '/$username/$repo/releases/': typeof MainUsernameRepoReleasesIndexRoute
   '/$username/$repo/commits/$branch/$oid': typeof MainUsernameRepoCommitsBranchOidRoute
+  '/$username/$repo/releases/$id/edit': typeof MainUsernameRepoReleasesIdEditRoute
+  '/$username/$repo/releases/tag/$tag': typeof MainUsernameRepoReleasesTagTagRoute
   '/$username/$repo/commits/$branch/': typeof MainUsernameRepoCommitsBranchIndexRoute
 }
 export interface FileRoutesByTo {
@@ -328,13 +459,26 @@ export interface FileRoutesByTo {
   '/privacy': typeof MainPrivacyRoute
   '/search': typeof MainSearchRoute
   '/security': typeof MainSecurityRoute
-  '/settings': typeof MainSettingsRoute
+  '/settings': typeof MainSettingsRouteWithChildren
   '/terms': typeof MainTermsRoute
+  '/$username/index-org': typeof MainUsernameIndexOrgRoute
+  '/gists/$id': typeof MainGistsIdRouteWithChildren
+  '/gists/new': typeof MainGistsNewRoute
+  '/organizations/new': typeof MainOrganizationsNewRoute
+  '/settings/migrations': typeof MainSettingsMigrationsRoute
   '/$username': typeof MainUsernameIndexRoute
+  '/admin': typeof MainAdminIndexRoute
+  '/gists': typeof MainGistsIndexRoute
   '/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
   '/$username/$repo/settings': typeof MainUsernameRepoSettingsRoute
+  '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo': typeof MainUsernameRepoIndexRoute
+  '/admin/audit-logs': typeof MainAdminAuditLogsIndexRoute
+  '/admin/repositories': typeof MainAdminRepositoriesIndexRoute
+  '/admin/settings': typeof MainAdminSettingsIndexRoute
+  '/admin/users': typeof MainAdminUsersIndexRoute
+  '/new/import': typeof MainNewImportIndexRoute
   '/$username/$repo/blob/$': typeof MainUsernameRepoBlobSplatRoute
   '/$username/$repo/discussions/$number': typeof MainUsernameRepoDiscussionsNumberRoute
   '/$username/$repo/discussions/new': typeof MainUsernameRepoDiscussionsNewRoute
@@ -343,12 +487,16 @@ export interface FileRoutesByTo {
   '/$username/$repo/projects/$projectId': typeof MainUsernameRepoProjectsProjectIdRoute
   '/$username/$repo/pulls/$number': typeof MainUsernameRepoPullsNumberRoute
   '/$username/$repo/pulls/new': typeof MainUsernameRepoPullsNewRoute
+  '/$username/$repo/releases/new': typeof MainUsernameRepoReleasesNewRoute
   '/$username/$repo/tree/$': typeof MainUsernameRepoTreeSplatRoute
   '/$username/$repo/discussions': typeof MainUsernameRepoDiscussionsIndexRoute
   '/$username/$repo/issues': typeof MainUsernameRepoIssuesIndexRoute
   '/$username/$repo/projects': typeof MainUsernameRepoProjectsIndexRoute
   '/$username/$repo/pulls': typeof MainUsernameRepoPullsIndexRoute
+  '/$username/$repo/releases': typeof MainUsernameRepoReleasesIndexRoute
   '/$username/$repo/commits/$branch/$oid': typeof MainUsernameRepoCommitsBranchOidRoute
+  '/$username/$repo/releases/$id/edit': typeof MainUsernameRepoReleasesIdEditRoute
+  '/$username/$repo/releases/tag/$tag': typeof MainUsernameRepoReleasesTagTagRoute
   '/$username/$repo/commits/$branch': typeof MainUsernameRepoCommitsBranchIndexRoute
 }
 export interface FileRoutesById {
@@ -363,21 +511,35 @@ export interface FileRoutesById {
   '/_auth/verify-email': typeof AuthVerifyEmailRoute
   '/_main/$username': typeof MainUsernameRouteWithChildren
   '/_main/about': typeof MainAboutRoute
+  '/_main/admin': typeof MainAdminRouteWithChildren
   '/_main/careers': typeof MainCareersRoute
   '/_main/contact': typeof MainContactRoute
   '/_main/explore': typeof MainExploreRoute
   '/_main/privacy': typeof MainPrivacyRoute
   '/_main/search': typeof MainSearchRoute
   '/_main/security': typeof MainSecurityRoute
-  '/_main/settings': typeof MainSettingsRoute
+  '/_main/settings': typeof MainSettingsRouteWithChildren
   '/_main/terms': typeof MainTermsRoute
   '/_main/': typeof MainIndexRoute
   '/_main/$username/$repo': typeof MainUsernameRepoRouteWithChildren
+  '/_main/$username/index-org': typeof MainUsernameIndexOrgRoute
+  '/_main/gists/$id': typeof MainGistsIdRouteWithChildren
+  '/_main/gists/new': typeof MainGistsNewRoute
+  '/_main/organizations/new': typeof MainOrganizationsNewRoute
+  '/_main/settings/migrations': typeof MainSettingsMigrationsRoute
   '/_main/$username/': typeof MainUsernameIndexRoute
+  '/_main/admin/': typeof MainAdminIndexRoute
+  '/_main/gists/': typeof MainGistsIndexRoute
   '/_main/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/_main/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
   '/_main/$username/$repo/settings': typeof MainUsernameRepoSettingsRoute
+  '/_main/gists/$id/edit': typeof MainGistsIdEditRoute
   '/_main/$username/$repo/': typeof MainUsernameRepoIndexRoute
+  '/_main/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/_main/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
+  '/_main/admin/settings/': typeof MainAdminSettingsIndexRoute
+  '/_main/admin/users/': typeof MainAdminUsersIndexRoute
+  '/_main/new/import/': typeof MainNewImportIndexRoute
   '/_main/$username/$repo/blob/$': typeof MainUsernameRepoBlobSplatRoute
   '/_main/$username/$repo/commits/$branch': typeof MainUsernameRepoCommitsBranchRouteWithChildren
   '/_main/$username/$repo/discussions/$number': typeof MainUsernameRepoDiscussionsNumberRoute
@@ -387,12 +549,16 @@ export interface FileRoutesById {
   '/_main/$username/$repo/projects/$projectId': typeof MainUsernameRepoProjectsProjectIdRoute
   '/_main/$username/$repo/pulls/$number': typeof MainUsernameRepoPullsNumberRoute
   '/_main/$username/$repo/pulls/new': typeof MainUsernameRepoPullsNewRoute
+  '/_main/$username/$repo/releases/new': typeof MainUsernameRepoReleasesNewRoute
   '/_main/$username/$repo/tree/$': typeof MainUsernameRepoTreeSplatRoute
   '/_main/$username/$repo/discussions/': typeof MainUsernameRepoDiscussionsIndexRoute
   '/_main/$username/$repo/issues/': typeof MainUsernameRepoIssuesIndexRoute
   '/_main/$username/$repo/projects/': typeof MainUsernameRepoProjectsIndexRoute
   '/_main/$username/$repo/pulls/': typeof MainUsernameRepoPullsIndexRoute
+  '/_main/$username/$repo/releases/': typeof MainUsernameRepoReleasesIndexRoute
   '/_main/$username/$repo/commits/$branch/$oid': typeof MainUsernameRepoCommitsBranchOidRoute
+  '/_main/$username/$repo/releases/$id/edit': typeof MainUsernameRepoReleasesIdEditRoute
+  '/_main/$username/$repo/releases/tag/$tag': typeof MainUsernameRepoReleasesTagTagRoute
   '/_main/$username/$repo/commits/$branch/': typeof MainUsernameRepoCommitsBranchIndexRoute
 }
 export interface FileRouteTypes {
@@ -407,6 +573,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/$username'
     | '/about'
+    | '/admin'
     | '/careers'
     | '/contact'
     | '/explore'
@@ -416,11 +583,24 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/$username/$repo'
+    | '/$username/index-org'
+    | '/gists/$id'
+    | '/gists/new'
+    | '/organizations/new'
+    | '/settings/migrations'
     | '/$username/'
+    | '/admin/'
+    | '/gists/'
     | '/$username/$repo/commits'
     | '/$username/$repo/labels'
     | '/$username/$repo/settings'
+    | '/gists/$id/edit'
     | '/$username/$repo/'
+    | '/admin/audit-logs/'
+    | '/admin/repositories/'
+    | '/admin/settings/'
+    | '/admin/users/'
+    | '/new/import/'
     | '/$username/$repo/blob/$'
     | '/$username/$repo/commits/$branch'
     | '/$username/$repo/discussions/$number'
@@ -430,12 +610,16 @@ export interface FileRouteTypes {
     | '/$username/$repo/projects/$projectId'
     | '/$username/$repo/pulls/$number'
     | '/$username/$repo/pulls/new'
+    | '/$username/$repo/releases/new'
     | '/$username/$repo/tree/$'
     | '/$username/$repo/discussions/'
     | '/$username/$repo/issues/'
     | '/$username/$repo/projects/'
     | '/$username/$repo/pulls/'
+    | '/$username/$repo/releases/'
     | '/$username/$repo/commits/$branch/$oid'
+    | '/$username/$repo/releases/$id/edit'
+    | '/$username/$repo/releases/tag/$tag'
     | '/$username/$repo/commits/$branch/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -455,11 +639,24 @@ export interface FileRouteTypes {
     | '/security'
     | '/settings'
     | '/terms'
+    | '/$username/index-org'
+    | '/gists/$id'
+    | '/gists/new'
+    | '/organizations/new'
+    | '/settings/migrations'
     | '/$username'
+    | '/admin'
+    | '/gists'
     | '/$username/$repo/commits'
     | '/$username/$repo/labels'
     | '/$username/$repo/settings'
+    | '/gists/$id/edit'
     | '/$username/$repo'
+    | '/admin/audit-logs'
+    | '/admin/repositories'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/new/import'
     | '/$username/$repo/blob/$'
     | '/$username/$repo/discussions/$number'
     | '/$username/$repo/discussions/new'
@@ -468,12 +665,16 @@ export interface FileRouteTypes {
     | '/$username/$repo/projects/$projectId'
     | '/$username/$repo/pulls/$number'
     | '/$username/$repo/pulls/new'
+    | '/$username/$repo/releases/new'
     | '/$username/$repo/tree/$'
     | '/$username/$repo/discussions'
     | '/$username/$repo/issues'
     | '/$username/$repo/projects'
     | '/$username/$repo/pulls'
+    | '/$username/$repo/releases'
     | '/$username/$repo/commits/$branch/$oid'
+    | '/$username/$repo/releases/$id/edit'
+    | '/$username/$repo/releases/tag/$tag'
     | '/$username/$repo/commits/$branch'
   id:
     | '__root__'
@@ -487,6 +688,7 @@ export interface FileRouteTypes {
     | '/_auth/verify-email'
     | '/_main/$username'
     | '/_main/about'
+    | '/_main/admin'
     | '/_main/careers'
     | '/_main/contact'
     | '/_main/explore'
@@ -497,11 +699,24 @@ export interface FileRouteTypes {
     | '/_main/terms'
     | '/_main/'
     | '/_main/$username/$repo'
+    | '/_main/$username/index-org'
+    | '/_main/gists/$id'
+    | '/_main/gists/new'
+    | '/_main/organizations/new'
+    | '/_main/settings/migrations'
     | '/_main/$username/'
+    | '/_main/admin/'
+    | '/_main/gists/'
     | '/_main/$username/$repo/commits'
     | '/_main/$username/$repo/labels'
     | '/_main/$username/$repo/settings'
+    | '/_main/gists/$id/edit'
     | '/_main/$username/$repo/'
+    | '/_main/admin/audit-logs/'
+    | '/_main/admin/repositories/'
+    | '/_main/admin/settings/'
+    | '/_main/admin/users/'
+    | '/_main/new/import/'
     | '/_main/$username/$repo/blob/$'
     | '/_main/$username/$repo/commits/$branch'
     | '/_main/$username/$repo/discussions/$number'
@@ -511,12 +726,16 @@ export interface FileRouteTypes {
     | '/_main/$username/$repo/projects/$projectId'
     | '/_main/$username/$repo/pulls/$number'
     | '/_main/$username/$repo/pulls/new'
+    | '/_main/$username/$repo/releases/new'
     | '/_main/$username/$repo/tree/$'
     | '/_main/$username/$repo/discussions/'
     | '/_main/$username/$repo/issues/'
     | '/_main/$username/$repo/projects/'
     | '/_main/$username/$repo/pulls/'
+    | '/_main/$username/$repo/releases/'
     | '/_main/$username/$repo/commits/$branch/$oid'
+    | '/_main/$username/$repo/releases/$id/edit'
+    | '/_main/$username/$repo/releases/tag/$tag'
     | '/_main/$username/$repo/commits/$branch/'
   fileRoutesById: FileRoutesById
 }
@@ -612,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainCareersRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/admin': {
+      id: '/_main/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof MainAdminRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/about': {
       id: '/_main/about'
       path: '/about'
@@ -661,11 +887,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_main/gists/': {
+      id: '/_main/gists/'
+      path: '/gists'
+      fullPath: '/gists/'
+      preLoaderRoute: typeof MainGistsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/admin/': {
+      id: '/_main/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof MainAdminIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/_main/$username/': {
       id: '/_main/$username/'
       path: '/'
       fullPath: '/$username/'
       preLoaderRoute: typeof MainUsernameIndexRouteImport
+      parentRoute: typeof MainUsernameRoute
+    }
+    '/_main/settings/migrations': {
+      id: '/_main/settings/migrations'
+      path: '/migrations'
+      fullPath: '/settings/migrations'
+      preLoaderRoute: typeof MainSettingsMigrationsRouteImport
+      parentRoute: typeof MainSettingsRoute
+    }
+    '/_main/organizations/new': {
+      id: '/_main/organizations/new'
+      path: '/organizations/new'
+      fullPath: '/organizations/new'
+      preLoaderRoute: typeof MainOrganizationsNewRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/gists/new': {
+      id: '/_main/gists/new'
+      path: '/gists/new'
+      fullPath: '/gists/new'
+      preLoaderRoute: typeof MainGistsNewRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/gists/$id': {
+      id: '/_main/gists/$id'
+      path: '/gists/$id'
+      fullPath: '/gists/$id'
+      preLoaderRoute: typeof MainGistsIdRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/$username/index-org': {
+      id: '/_main/$username/index-org'
+      path: '/index-org'
+      fullPath: '/$username/index-org'
+      preLoaderRoute: typeof MainUsernameIndexOrgRouteImport
       parentRoute: typeof MainUsernameRoute
     }
     '/_main/$username/$repo': {
@@ -675,12 +950,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainUsernameRepoRouteImport
       parentRoute: typeof MainUsernameRoute
     }
+    '/_main/new/import/': {
+      id: '/_main/new/import/'
+      path: '/new/import'
+      fullPath: '/new/import/'
+      preLoaderRoute: typeof MainNewImportIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/admin/users/': {
+      id: '/_main/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof MainAdminUsersIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/settings/': {
+      id: '/_main/admin/settings/'
+      path: '/settings'
+      fullPath: '/admin/settings/'
+      preLoaderRoute: typeof MainAdminSettingsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/repositories/': {
+      id: '/_main/admin/repositories/'
+      path: '/repositories'
+      fullPath: '/admin/repositories/'
+      preLoaderRoute: typeof MainAdminRepositoriesIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/audit-logs/': {
+      id: '/_main/admin/audit-logs/'
+      path: '/audit-logs'
+      fullPath: '/admin/audit-logs/'
+      preLoaderRoute: typeof MainAdminAuditLogsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/_main/$username/$repo/': {
       id: '/_main/$username/$repo/'
       path: '/'
       fullPath: '/$username/$repo/'
       preLoaderRoute: typeof MainUsernameRepoIndexRouteImport
       parentRoute: typeof MainUsernameRepoRoute
+    }
+    '/_main/gists/$id/edit': {
+      id: '/_main/gists/$id/edit'
+      path: '/edit'
+      fullPath: '/gists/$id/edit'
+      preLoaderRoute: typeof MainGistsIdEditRouteImport
+      parentRoute: typeof MainGistsIdRoute
     }
     '/_main/$username/$repo/settings': {
       id: '/_main/$username/$repo/settings'
@@ -701,6 +1018,13 @@ declare module '@tanstack/react-router' {
       path: '/commits'
       fullPath: '/$username/$repo/commits'
       preLoaderRoute: typeof MainUsernameRepoCommitsRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
+    }
+    '/_main/$username/$repo/releases/': {
+      id: '/_main/$username/$repo/releases/'
+      path: '/releases'
+      fullPath: '/$username/$repo/releases/'
+      preLoaderRoute: typeof MainUsernameRepoReleasesIndexRouteImport
       parentRoute: typeof MainUsernameRepoRoute
     }
     '/_main/$username/$repo/pulls/': {
@@ -736,6 +1060,13 @@ declare module '@tanstack/react-router' {
       path: '/tree/$'
       fullPath: '/$username/$repo/tree/$'
       preLoaderRoute: typeof MainUsernameRepoTreeSplatRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
+    }
+    '/_main/$username/$repo/releases/new': {
+      id: '/_main/$username/$repo/releases/new'
+      path: '/releases/new'
+      fullPath: '/$username/$repo/releases/new'
+      preLoaderRoute: typeof MainUsernameRepoReleasesNewRouteImport
       parentRoute: typeof MainUsernameRepoRoute
     }
     '/_main/$username/$repo/pulls/new': {
@@ -807,6 +1138,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/$username/$repo/commits/$branch/'
       preLoaderRoute: typeof MainUsernameRepoCommitsBranchIndexRouteImport
       parentRoute: typeof MainUsernameRepoCommitsBranchRoute
+    }
+    '/_main/$username/$repo/releases/tag/$tag': {
+      id: '/_main/$username/$repo/releases/tag/$tag'
+      path: '/releases/tag/$tag'
+      fullPath: '/$username/$repo/releases/tag/$tag'
+      preLoaderRoute: typeof MainUsernameRepoReleasesTagTagRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
+    }
+    '/_main/$username/$repo/releases/$id/edit': {
+      id: '/_main/$username/$repo/releases/$id/edit'
+      path: '/releases/$id/edit'
+      fullPath: '/$username/$repo/releases/$id/edit'
+      preLoaderRoute: typeof MainUsernameRepoReleasesIdEditRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
     }
     '/_main/$username/$repo/commits/$branch/$oid': {
       id: '/_main/$username/$repo/commits/$branch/$oid'
@@ -882,11 +1227,15 @@ interface MainUsernameRepoRouteChildren {
   MainUsernameRepoProjectsProjectIdRoute: typeof MainUsernameRepoProjectsProjectIdRoute
   MainUsernameRepoPullsNumberRoute: typeof MainUsernameRepoPullsNumberRoute
   MainUsernameRepoPullsNewRoute: typeof MainUsernameRepoPullsNewRoute
+  MainUsernameRepoReleasesNewRoute: typeof MainUsernameRepoReleasesNewRoute
   MainUsernameRepoTreeSplatRoute: typeof MainUsernameRepoTreeSplatRoute
   MainUsernameRepoDiscussionsIndexRoute: typeof MainUsernameRepoDiscussionsIndexRoute
   MainUsernameRepoIssuesIndexRoute: typeof MainUsernameRepoIssuesIndexRoute
   MainUsernameRepoProjectsIndexRoute: typeof MainUsernameRepoProjectsIndexRoute
   MainUsernameRepoPullsIndexRoute: typeof MainUsernameRepoPullsIndexRoute
+  MainUsernameRepoReleasesIndexRoute: typeof MainUsernameRepoReleasesIndexRoute
+  MainUsernameRepoReleasesIdEditRoute: typeof MainUsernameRepoReleasesIdEditRoute
+  MainUsernameRepoReleasesTagTagRoute: typeof MainUsernameRepoReleasesTagTagRoute
 }
 
 const MainUsernameRepoRouteChildren: MainUsernameRepoRouteChildren = {
@@ -904,11 +1253,15 @@ const MainUsernameRepoRouteChildren: MainUsernameRepoRouteChildren = {
     MainUsernameRepoProjectsProjectIdRoute,
   MainUsernameRepoPullsNumberRoute: MainUsernameRepoPullsNumberRoute,
   MainUsernameRepoPullsNewRoute: MainUsernameRepoPullsNewRoute,
+  MainUsernameRepoReleasesNewRoute: MainUsernameRepoReleasesNewRoute,
   MainUsernameRepoTreeSplatRoute: MainUsernameRepoTreeSplatRoute,
   MainUsernameRepoDiscussionsIndexRoute: MainUsernameRepoDiscussionsIndexRoute,
   MainUsernameRepoIssuesIndexRoute: MainUsernameRepoIssuesIndexRoute,
   MainUsernameRepoProjectsIndexRoute: MainUsernameRepoProjectsIndexRoute,
   MainUsernameRepoPullsIndexRoute: MainUsernameRepoPullsIndexRoute,
+  MainUsernameRepoReleasesIndexRoute: MainUsernameRepoReleasesIndexRoute,
+  MainUsernameRepoReleasesIdEditRoute: MainUsernameRepoReleasesIdEditRoute,
+  MainUsernameRepoReleasesTagTagRoute: MainUsernameRepoReleasesTagTagRoute,
 }
 
 const MainUsernameRepoRouteWithChildren =
@@ -916,11 +1269,13 @@ const MainUsernameRepoRouteWithChildren =
 
 interface MainUsernameRouteChildren {
   MainUsernameRepoRoute: typeof MainUsernameRepoRouteWithChildren
+  MainUsernameIndexOrgRoute: typeof MainUsernameIndexOrgRoute
   MainUsernameIndexRoute: typeof MainUsernameIndexRoute
 }
 
 const MainUsernameRouteChildren: MainUsernameRouteChildren = {
   MainUsernameRepoRoute: MainUsernameRepoRouteWithChildren,
+  MainUsernameIndexOrgRoute: MainUsernameIndexOrgRoute,
   MainUsernameIndexRoute: MainUsernameIndexRoute,
 }
 
@@ -928,32 +1283,88 @@ const MainUsernameRouteWithChildren = MainUsernameRoute._addFileChildren(
   MainUsernameRouteChildren,
 )
 
+interface MainAdminRouteChildren {
+  MainAdminIndexRoute: typeof MainAdminIndexRoute
+  MainAdminAuditLogsIndexRoute: typeof MainAdminAuditLogsIndexRoute
+  MainAdminRepositoriesIndexRoute: typeof MainAdminRepositoriesIndexRoute
+  MainAdminSettingsIndexRoute: typeof MainAdminSettingsIndexRoute
+  MainAdminUsersIndexRoute: typeof MainAdminUsersIndexRoute
+}
+
+const MainAdminRouteChildren: MainAdminRouteChildren = {
+  MainAdminIndexRoute: MainAdminIndexRoute,
+  MainAdminAuditLogsIndexRoute: MainAdminAuditLogsIndexRoute,
+  MainAdminRepositoriesIndexRoute: MainAdminRepositoriesIndexRoute,
+  MainAdminSettingsIndexRoute: MainAdminSettingsIndexRoute,
+  MainAdminUsersIndexRoute: MainAdminUsersIndexRoute,
+}
+
+const MainAdminRouteWithChildren = MainAdminRoute._addFileChildren(
+  MainAdminRouteChildren,
+)
+
+interface MainSettingsRouteChildren {
+  MainSettingsMigrationsRoute: typeof MainSettingsMigrationsRoute
+}
+
+const MainSettingsRouteChildren: MainSettingsRouteChildren = {
+  MainSettingsMigrationsRoute: MainSettingsMigrationsRoute,
+}
+
+const MainSettingsRouteWithChildren = MainSettingsRoute._addFileChildren(
+  MainSettingsRouteChildren,
+)
+
+interface MainGistsIdRouteChildren {
+  MainGistsIdEditRoute: typeof MainGistsIdEditRoute
+}
+
+const MainGistsIdRouteChildren: MainGistsIdRouteChildren = {
+  MainGistsIdEditRoute: MainGistsIdEditRoute,
+}
+
+const MainGistsIdRouteWithChildren = MainGistsIdRoute._addFileChildren(
+  MainGistsIdRouteChildren,
+)
+
 interface MainRouteChildren {
   MainUsernameRoute: typeof MainUsernameRouteWithChildren
   MainAboutRoute: typeof MainAboutRoute
+  MainAdminRoute: typeof MainAdminRouteWithChildren
   MainCareersRoute: typeof MainCareersRoute
   MainContactRoute: typeof MainContactRoute
   MainExploreRoute: typeof MainExploreRoute
   MainPrivacyRoute: typeof MainPrivacyRoute
   MainSearchRoute: typeof MainSearchRoute
   MainSecurityRoute: typeof MainSecurityRoute
-  MainSettingsRoute: typeof MainSettingsRoute
+  MainSettingsRoute: typeof MainSettingsRouteWithChildren
   MainTermsRoute: typeof MainTermsRoute
   MainIndexRoute: typeof MainIndexRoute
+  MainGistsIdRoute: typeof MainGistsIdRouteWithChildren
+  MainGistsNewRoute: typeof MainGistsNewRoute
+  MainOrganizationsNewRoute: typeof MainOrganizationsNewRoute
+  MainGistsIndexRoute: typeof MainGistsIndexRoute
+  MainNewImportIndexRoute: typeof MainNewImportIndexRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
   MainUsernameRoute: MainUsernameRouteWithChildren,
   MainAboutRoute: MainAboutRoute,
+  MainAdminRoute: MainAdminRouteWithChildren,
   MainCareersRoute: MainCareersRoute,
   MainContactRoute: MainContactRoute,
   MainExploreRoute: MainExploreRoute,
   MainPrivacyRoute: MainPrivacyRoute,
   MainSearchRoute: MainSearchRoute,
   MainSecurityRoute: MainSecurityRoute,
-  MainSettingsRoute: MainSettingsRoute,
+  MainSettingsRoute: MainSettingsRouteWithChildren,
   MainTermsRoute: MainTermsRoute,
   MainIndexRoute: MainIndexRoute,
+  MainGistsIdRoute: MainGistsIdRouteWithChildren,
+  MainGistsNewRoute: MainGistsNewRoute,
+  MainOrganizationsNewRoute: MainOrganizationsNewRoute,
+  MainGistsIndexRoute: MainGistsIndexRoute,
+  MainNewImportIndexRoute: MainNewImportIndexRoute,
 }
 
 const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)

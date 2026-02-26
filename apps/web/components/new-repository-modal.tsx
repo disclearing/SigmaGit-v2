@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Globe, Loader2, Lock } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useCreateRepository, useCurrentUser } from "@sigmagit/hooks";
+import { useCreateRepository, useCurrentUser, useOrganizations } from "@sigmagit/hooks";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -24,13 +25,17 @@ interface NewRepositoryModalProps {
 export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalProps) {
   const { data: session } = useSession();
   const { data: currentUser } = useCurrentUser();
+  const { data: orgsData } = useOrganizations();
   const navigate = useNavigate();
   const { mutate: createRepo, isPending: isCreating } = useCreateRepository();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     visibility: "public" as "public" | "private",
+    organizationId: "" as string | "",
   });
+
+  const organizations = orgsData?.organizations || [];
 
   useEffect(() => {
     if (currentUser?.user.defaultRepositoryVisibility) {
@@ -56,6 +61,9 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
   }
 
   const username = (session.user as { username?: string }).username || "";
+  const ownerUsername = formData.organizationId 
+    ? organizations.find((o) => o.id === formData.organizationId)?.name || username
+    : username;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +73,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
         name: formData.name,
         description: formData.description || undefined,
         visibility: formData.visibility,
+        organizationId: formData.organizationId || undefined,
       },
       {
         onSuccess: () => {
@@ -73,7 +82,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
           navigate({
             to: "/$username/$repo",
             params: {
-              username,
+              username: ownerUsername,
               repo: formData.name.toLowerCase().replace(/\s+/g, "-"),
             },
           });
@@ -97,6 +106,29 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
+            {organizations.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="owner" className="text-sm font-semibold">
+                  Owner
+                </Label>
+                <Select
+                  value={formData.organizationId}
+                  onValueChange={(value) => setFormData({ ...formData, organizationId: value || "" })}
+                >
+                  <SelectTrigger id="owner">
+                    <SelectValue placeholder="Select owner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{username} (Personal)</SelectItem>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-semibold">
                 Repository name <span className="text-destructive">*</span>

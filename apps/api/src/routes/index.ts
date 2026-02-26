@@ -19,6 +19,11 @@ import discord from "./discord";
 import collaborators from "./collaborators";
 import branchProtection from "./branch-protection";
 import repoWebhooks from "./repo-webhooks";
+import admin from "./admin";
+import organizations from "./organizations";
+import releases from "./releases";
+import gists from "./gists";
+import migrations from "./migrations";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
@@ -38,6 +43,11 @@ export function mountRoutes(app: Hono) {
   app.route("/", discord);
   app.route("/", collaborators);
   app.route("/", branchProtection);
+  app.route("/", admin);
+  app.route("/", organizations);
+  app.route("/", releases);
+  app.route("/", gists);
+  app.route("/", migrations);
 
   if (config.webhooksEnabled) {
     app.route("/", webhooks);

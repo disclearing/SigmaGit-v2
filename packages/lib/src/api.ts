@@ -29,6 +29,22 @@ import type {
   UserProfile,
   UserSummary,
   WebhookEvent,
+  Release,
+  ReleaseAsset,
+  Gist,
+  GistFile,
+  GistComment,
+  GistFork,
+  RepositoryMigration,
+  Organization,
+  OrganizationMember,
+  Team,
+  TeamMember,
+  TeamRepository,
+  OrganizationInvitation,
+  Notification,
+  SearchResult,
+  SearchResultType,
 } from "@sigmagit/hooks";
 
 export interface ApiClientConfig {
@@ -37,9 +53,7 @@ export interface ApiClientConfig {
   fetchOptions?: RequestInit;
 }
 
-export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "settings"> & {
-  settings: Omit<ApiClient["settings"], "updateAvatar" | "deleteAvatar">;
-} {
+export function createApiClient(config: ApiClientConfig): ApiClient {
   const { baseUrl, getAuthHeaders, fetchOptions = {} } = config;
 
   async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -67,7 +81,7 @@ export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "setti
 
   return {
     repositories: {
-      create: (data: { name: string; description?: string; visibility: "public" | "private" }) =>
+      create: (data: { name: string; description?: string; visibility: "public" | "private"; organizationId?: string }) =>
         apiFetch<Repository>("/api/repositories", {
           method: "POST",
           body: JSON.stringify(data),
@@ -327,6 +341,16 @@ export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "setti
           method: "PATCH",
           body: JSON.stringify(data),
         }),
+
+      updateAvatar: (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return apiFetch<{ success: boolean; avatarUrl: string }>("/api/settings/avatar", {
+          method: "POST",
+          body: formData,
+          headers: {},
+        });
+      },
 
       deleteAvatar: () =>
         apiFetch<{ success: boolean; avatarUrl: string | null }>("/api/settings/avatar", {
@@ -641,6 +665,247 @@ export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "setti
         }),
     },
 
+    gists: {
+      list: () => apiFetch<{ gists: Gist[]; hasMore: boolean }>("/api/gists"),
+
+      getPublic: (limit = 20, offset = 0) =>
+        apiFetch<{ gists: Gist[]; hasMore: boolean }>(`/api/gists/public?limit=${limit}&offset=${offset}`),
+
+      get: (id: string) => apiFetch<Gist>(`/api/gists/${id}`),
+
+      create: (data: unknown) =>
+        apiFetch<Gist>("/api/gists", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      update: (id: string, data: unknown) =>
+        apiFetch<Gist>(`/api/gists/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+
+      delete: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/gists/${id}`, {
+          method: "DELETE",
+        }),
+
+      getRevisions: (id: string) => apiFetch<{ revisions: unknown[] }>(`/api/gists/${id}/revisions`),
+
+      toggleStar: (id: string) =>
+        apiFetch<{ starred: boolean }>(`/api/gists/${id}/star`, {
+          method: "POST",
+        }),
+
+      isStarred: (id: string) => apiFetch<{ starred: boolean }>(`/api/gists/${id}/star`),
+
+      fork: (id: string) =>
+        apiFetch<{ id: string }>(`/api/gists/${id}/fork`, {
+          method: "POST",
+        }),
+
+      getForks: (id: string, limit = 20, offset = 0) =>
+        apiFetch<{ forks: GistFork[]; hasMore: boolean }>(`/api/gists/${id}/forks?limit=${limit}&offset=${offset}`),
+
+      getComments: (id: string) => apiFetch<{ comments: GistComment[] }>(`/api/gists/${id}/comments`),
+
+      createComment: (id: string, body: string) =>
+        apiFetch<GistComment>(`/api/gists/${id}/comments`, {
+          method: "POST",
+          body: JSON.stringify({ body }),
+        }),
+
+      updateComment: (commentId: string, body: string) =>
+        apiFetch<{ success: boolean }>(`/api/gists/comments/${commentId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ body }),
+        }),
+
+      deleteComment: (commentId: string) =>
+        apiFetch<{ success: boolean }>(`/api/gists/comments/${commentId}`, {
+          method: "DELETE",
+        }),
+
+      getUserGists: (username: string, limit = 20, offset = 0) =>
+        apiFetch<{ gists: Gist[]; hasMore: boolean }>(`/api/users/${username}/gists?limit=${limit}&offset=${offset}`),
+    },
+
+    releases: {
+      list: (owner: string, repo: string, includeDrafts = false) =>
+        apiFetch<{ releases: Release[]; hasMore?: boolean }>(
+          `/api/repositories/${owner}/${repo}/releases?draft=${includeDrafts}`
+        ),
+
+      getLatest: (owner: string, repo: string) =>
+        apiFetch<Release & { assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/latest`),
+
+      getByTag: (owner: string, repo: string, tag: string) =>
+        apiFetch<Release & { assets?: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/tag/${tag}`),
+
+      get: (owner: string, repo: string, id: string) =>
+        apiFetch<Release>(`/api/repositories/${owner}/${repo}/releases/${id}`),
+
+      create: (
+        owner: string,
+        repo: string,
+        tagName: string,
+        name: string,
+        body: string,
+        isDraft = false,
+        isPrerelease = false,
+        targetCommitish = "main"
+      ) =>
+        apiFetch<Release>(`/api/repositories/${owner}/${repo}/releases`, {
+          method: "POST",
+          body: JSON.stringify({ tagName, name, body, isDraft, isPrerelease, targetCommitish }),
+        }),
+
+      update: (owner: string, repo: string, id: string, data: { name?: string; body?: string; isDraft?: boolean }) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+
+      delete: (owner: string, repo: string, id: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}`, {
+          method: "DELETE",
+        }),
+
+      publish: (owner: string, repo: string, id: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}/publish`, {
+          method: "POST",
+        }),
+
+      getAssets: (owner: string, repo: string, id: string) =>
+        apiFetch<{ assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets`),
+
+      deleteAsset: (owner: string, repo: string, id: string, assetId: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets/${assetId}`, {
+          method: "DELETE",
+        }),
+    },
+
+    migrations: {
+      list: () => apiFetch<{ migrations: RepositoryMigration[]; hasMore?: boolean }>("/api/migrations"),
+
+      get: (id: string) => apiFetch<RepositoryMigration>(`/api/migrations/${id}`),
+
+      create: (data: unknown) =>
+        apiFetch<RepositoryMigration>("/api/migrations", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      cancel: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/migrations/${id}/cancel`, {
+          method: "POST",
+        }),
+
+      delete: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/migrations/${id}`, {
+          method: "DELETE",
+        }),
+    },
+
+    organizations: {
+      list: () => apiFetch<{ organizations: Organization[]; hasMore?: boolean }>("/api/organizations"),
+
+      get: (org: string) => apiFetch<Organization>(`/api/organizations/${org}`),
+
+      getMembers: (org: string) => apiFetch<{ members: OrganizationMember[] }>(`/api/organizations/${org}/members`),
+
+      getTeams: (org: string) => apiFetch<{ teams: Team[] }>(`/api/organizations/${org}/teams`),
+
+      getRepositories: (org: string) => apiFetch<{ repositories: Repository[] }>(`/api/organizations/${org}/repositories`),
+
+      getInvitations: (org: string) =>
+        apiFetch<{ invitations: OrganizationInvitation[] }>(`/api/organizations/${org}/invitations`),
+
+      create: (data: unknown) =>
+        apiFetch<Organization>("/api/organizations", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      update: (org: string, data: unknown) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+
+      delete: (org: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}`, {
+          method: "DELETE",
+        }),
+
+      updateMember: (org: string, username: string, data: unknown) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/members/${username}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+
+      removeMember: (org: string, username: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/members/${username}`, {
+          method: "DELETE",
+        }),
+
+      createTeam: (org: string, data: unknown) =>
+        apiFetch<Team>(`/api/organizations/${org}/teams`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      deleteTeam: (org: string, team: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}`, {
+          method: "DELETE",
+        }),
+
+      getTeam: (org: string, team: string) => apiFetch<Team>(`/api/organizations/${org}/teams/${team}`),
+
+      addTeamMember: (org: string, team: string, data: unknown) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/members`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+
+      removeTeamMember: (org: string, team: string, username: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/members/${username}`, {
+          method: "DELETE",
+        }),
+
+      addTeamRepo: (org: string, team: string, repo: string, data: unknown) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/repos/${repo}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+
+      removeTeamRepo: (org: string, team: string, repo: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/repos/${repo}`, {
+          method: "DELETE",
+        }),
+
+      deleteTeamRepo: (org: string, team: string, repo: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/repos/${repo}`, {
+          method: "DELETE",
+        }),
+
+      sendInvitation: (org: string, data: unknown) =>
+        apiFetch<OrganizationInvitation>(`/api/organizations/${org}/invitations`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      deleteInvitation: (org: string, id: string) =>
+        apiFetch<{ success: boolean }>(`/api/organizations/${org}/invitations/${id}`, {
+          method: "DELETE",
+        }),
+
+      acceptInvitation: (token: string) =>
+        apiFetch<{ success: boolean }>(`/api/invitations/${token}/accept`, {
+          method: "POST",
+        }),
+    },
+
     discussions: {
       list: (owner: string, repo: string, options?: { category?: string; limit?: number; offset?: number }) => {
         const params = new URLSearchParams();
@@ -763,6 +1028,279 @@ export function createApiClient(config: ApiClientConfig): Omit<ApiClient, "setti
         apiFetch<{ success: boolean }>(`/api/projects/items/${itemId}`, {
           method: "DELETE",
         }),
+    },
+
+    admin: {
+      getStats: () => apiFetch<any>("/api/admin/stats"),
+
+      getUsers: (search = "", role?: string, limit = 20, offset = 0) =>
+        apiFetch<{ users: any[]; hasMore: boolean }>(
+          `/api/admin/users?search=${encodeURIComponent(search)}&role=${role || ""}&limit=${limit}&offset=${offset}`
+        ),
+
+      getUser: (id: string) => apiFetch<any>(`/api/admin/users/${id}`),
+
+      updateUser: (id: string, data: { role?: string }) =>
+        apiFetch<{ success: boolean }>(`/api/admin/users/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+
+      deleteUser: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/admin/users/${id}`, {
+          method: "DELETE",
+        }),
+
+      getRepositories: (search = "", visibility?: string, limit = 20, offset = 0) =>
+        apiFetch<{ repositories: any[]; hasMore: boolean }>(
+          `/api/admin/repositories?search=${encodeURIComponent(search)}&visibility=${visibility || ""}&limit=${limit}&offset=${offset}`
+        ),
+
+      deleteRepository: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/admin/repositories/${id}`, {
+          method: "DELETE",
+        }),
+
+      transferRepository: (id: string, newOwnerId: string) =>
+        apiFetch<{ success: boolean }>(`/api/admin/repositories/${id}/transfer`, {
+          method: "POST",
+          body: JSON.stringify({ newOwnerId }),
+        }),
+
+      getAuditLogs: (action?: string, targetType?: string, limit = 50, offset = 0) =>
+        apiFetch<{ logs: any[]; hasMore: boolean }>(
+          `/api/admin/audit-logs?action=${action || ""}&targetType=${targetType || ""}&limit=${limit}&offset=${offset}`
+        ),
+
+      getSettings: () => apiFetch<Record<string, unknown>>("/api/admin/settings"),
+
+      updateSettings: (settings: Record<string, unknown>) =>
+        apiFetch<{ success: boolean }>("/api/admin/settings", {
+          method: "PATCH",
+          body: JSON.stringify(settings),
+        }),
+
+      toggleMaintenance: (enabled: boolean) =>
+        apiFetch<{ success: boolean }>("/api/admin/maintenance", {
+          method: "POST",
+          body: JSON.stringify({ enabled }),
+        }),
+
+      releases: {
+        list: (owner: string, repo: string, includeDrafts = false) =>
+          apiFetch<{ releases: Release[] }>(
+            `/api/repositories/${owner}/${repo}/releases?draft=${includeDrafts}`
+          ),
+
+        getLatest: (owner: string, repo: string) =>
+          apiFetch<Release & { assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/latest`),
+
+        getByTag: (owner: string, repo: string, tag: string) =>
+          apiFetch<Release & { assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/tag/${tag}`),
+
+        get: (owner: string, repo: string, id: string) =>
+          apiFetch<Release>(`/api/repositories/${owner}/${repo}/releases/${id}`),
+
+        create: (owner: string, repo: string, data: unknown) =>
+          apiFetch<{ data: Release }>(`/api/repositories/${owner}/${repo}/releases`, {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
+
+        update: (owner: string, repo: string, id: string, data: unknown) =>
+          apiFetch<{ data: Release }>(`/api/repositories/${owner}/${repo}/releases/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+          }),
+
+        delete: (owner: string, repo: string, id: string) =>
+          apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}`, {
+            method: "DELETE",
+          }),
+
+        publish: (owner: string, repo: string, id: string) =>
+          apiFetch<{ data: Release }>(`/api/repositories/${owner}/${repo}/releases/${id}/publish`, {
+            method: "POST",
+          }),
+
+        getAssets: (owner: string, repo: string, id: string) =>
+          apiFetch<{ assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets`),
+
+        deleteAsset: (owner: string, repo: string, id: string, assetId: string) =>
+          apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets/${assetId}`, {
+            method: "DELETE",
+          }),
+      },
+
+      gists: {
+        list: () => apiFetch<{ gists: Gist[] }>("/api/gists"),
+
+        getPublic: (limit = 20, offset = 0) =>
+          apiFetch<{ gists: Gist[]; hasMore: boolean }>(`/api/gists/public?limit=${limit}&offset=${offset}`),
+
+        get: (id: string) => apiFetch<Gist>(`/api/gists/${id}`),
+
+        update: (id: string, data: unknown) =>
+          apiFetch<{ data: Gist }>(`/api/gists/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+          }),
+
+        delete: (id: string) =>
+          apiFetch<{ success: boolean }>(`/api/gists/${id}`, {
+            method: "DELETE",
+          }),
+
+        getRevisions: (id: string) =>
+          apiFetch<{ revisions: unknown[] }>(`/api/gists/${id}/revisions`),
+
+        toggleStar: (id: string) =>
+          apiFetch<{ starred: boolean }>(`/api/gists/${id}/star`, {
+            method: "POST",
+          }),
+
+        isStarred: (id: string) => apiFetch<{ starred: boolean }>(`/api/gists/${id}/star`),
+
+        fork: (id: string) =>
+          apiFetch<{ id: string }>(`/api/gists/${id}/fork`, {
+            method: "POST",
+          }),
+
+        getForks: (id: string, limit = 20, offset = 0) =>
+          apiFetch<{ forks: GistFork[]; hasMore: boolean }>(`/api/gists/${id}/forks?limit=${limit}&offset=${offset}`),
+
+        getComments: (id: string) => apiFetch<{ comments: GistComment[] }>(`/api/gists/${id}/comments`),
+
+        createComment: (id: string, body: string) =>
+          apiFetch<GistComment>(`/api/gists/${id}/comments`, {
+            method: "POST",
+            body: JSON.stringify({ body }),
+          }),
+
+        getUserGists: (username: string, limit = 20, offset = 0) =>
+          apiFetch<{ gists: Gist[]; hasMore: boolean }>(`/api/users/${username}/gists?limit=${limit}&offset=${offset}`),
+      },
+
+      migrations: {
+        list: () => apiFetch<{ migrations: RepositoryMigration[]; hasMore?: boolean }>("/api/migrations"),
+
+        get: (id: string) => apiFetch<RepositoryMigration>(`/api/migrations/${id}`),
+
+        create: (data: unknown) =>
+          apiFetch<{ data: RepositoryMigration }>("/api/migrations", {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
+
+        cancel: (id: string) =>
+          apiFetch<{ success: boolean }>(`/api/migrations/${id}/cancel`, {
+            method: "POST",
+          }),
+
+        delete: (id: string) =>
+          apiFetch<{ success: boolean }>(`/api/migrations/${id}`, {
+            method: "DELETE",
+          }),
+      },
+
+      organizations: {
+        list: () => apiFetch<{ organizations: Organization[] }>("/api/organizations"),
+
+        get: (org: string) => apiFetch<Organization>(`/api/organizations/${org}`),
+
+        getMembers: (org: string) => apiFetch<{ members: OrganizationMember[] }>(`/api/organizations/${org}/members`),
+
+        getTeams: (org: string) => apiFetch<{ teams: Team[] }>(`/api/organizations/${org}/teams`),
+
+        getRepositories: (org: string) => apiFetch<{ repositories: Repository[] }>(`/api/organizations/${org}/repositories`),
+
+        getInvitations: (org: string) =>
+          apiFetch<{ invitations: OrganizationInvitation[] }>(`/api/organizations/${org}/invitations`),
+
+        create: (data: unknown) =>
+          apiFetch<{ data: Organization }>("/api/organizations", {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
+
+        update: (org: string, data: unknown) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+          }),
+
+        delete: (org: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}`, {
+            method: "DELETE",
+          }),
+
+        updateMember: (org: string, username: string, data: unknown) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/members/${username}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+          }),
+
+        removeMember: (org: string, username: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/members/${username}`, {
+            method: "DELETE",
+          }),
+
+        createTeam: (org: string, data: unknown) =>
+          apiFetch<{ data: Team }>(`/api/organizations/${org}/teams`, {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
+
+        deleteTeam: (org: string, team: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}`, {
+            method: "DELETE",
+          }),
+
+        getTeam: (org: string, team: string) => apiFetch<Team>(`/api/organizations/${org}/teams/${team}`),
+
+        addTeamMember: (org: string, team: string, data: unknown) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/members`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+          }),
+
+        removeTeamMember: (org: string, team: string, username: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/members/${username}`, {
+            method: "DELETE",
+          }),
+
+        addTeamRepo: (org: string, team: string, repo: string, data: unknown) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/repos/${repo}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+          }),
+
+        removeTeamRepo: (org: string, team: string, repo: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/repos/${repo}`, {
+            method: "DELETE",
+          }),
+
+        deleteTeamRepo: (org: string, team: string, repo: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/teams/${team}/repos/${repo}`, {
+            method: "DELETE",
+          }),
+
+        sendInvitation: (org: string, data: unknown) =>
+          apiFetch<{ data: OrganizationInvitation }>(`/api/organizations/${org}/invitations`, {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
+
+        deleteInvitation: (org: string, id: string) =>
+          apiFetch<{ success: boolean }>(`/api/organizations/${org}/invitations/${id}`, {
+            method: "DELETE",
+          }),
+
+        acceptInvitation: (token: string) =>
+          apiFetch<{ success: boolean }>(`/api/invitations/${token}/accept`, {
+            method: "POST",
+          }),
+      },
     },
   };
 }

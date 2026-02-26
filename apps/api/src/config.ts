@@ -14,6 +14,7 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL!,
   redisUrl: process.env.REDIS_URL,
   webhooksEnabled: process.env.ENABLE_WEBHOOKS !== 'false',
+  enableMigrations: process.env.ENABLE_MIGRATIONS !== 'false',
   storage: {
     type: (process.env.STORAGE_TYPE as 's3' | 'local') || 's3',
     localPath: process.env.STORAGE_LOCAL_PATH || './data/repos',

@@ -42,9 +42,11 @@ import { Route as MainNewImportIndexRouteImport } from './app/_main/new/import/i
 import { Route as MainAdminUsersIndexRouteImport } from './app/_main/admin/users/index'
 import { Route as MainAdminSettingsIndexRouteImport } from './app/_main/admin/settings/index'
 import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admin/repositories/index'
+import { Route as MainAdminOrganizationsIndexRouteImport } from './app/_main/admin/organizations/index'
 import { Route as MainAdminAuditLogsIndexRouteImport } from './app/_main/admin/audit-logs/index'
 import { Route as MainUsernameRepoIndexRouteImport } from './app/_main/$username/$repo/index'
 import { Route as MainGistsIdEditRouteImport } from './app/_main/gists/$id/edit'
+import { Route as MainAdminUsersUserIdRouteImport } from './app/_main/admin/users/$userId'
 import { Route as MainUsernameRepoSettingsRouteImport } from './app/_main/$username/$repo/settings'
 import { Route as MainUsernameRepoLabelsRouteImport } from './app/_main/$username/$repo/labels'
 import { Route as MainUsernameRepoCommitsRouteImport } from './app/_main/$username/$repo/commits'
@@ -233,6 +235,12 @@ const MainAdminRepositoriesIndexRoute =
     path: '/repositories/',
     getParentRoute: () => MainAdminRoute,
   } as any)
+const MainAdminOrganizationsIndexRoute =
+  MainAdminOrganizationsIndexRouteImport.update({
+    id: '/organizations/',
+    path: '/organizations/',
+    getParentRoute: () => MainAdminRoute,
+  } as any)
 const MainAdminAuditLogsIndexRoute = MainAdminAuditLogsIndexRouteImport.update({
   id: '/audit-logs/',
   path: '/audit-logs/',
@@ -247,6 +255,11 @@ const MainGistsIdEditRoute = MainGistsIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => MainGistsIdRoute,
+} as any)
+const MainAdminUsersUserIdRoute = MainAdminUsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => MainAdminRoute,
 } as any)
 const MainUsernameRepoSettingsRoute =
   MainUsernameRepoSettingsRouteImport.update({
@@ -416,9 +429,11 @@ export interface FileRoutesByFullPath {
   '/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
   '/$username/$repo/settings': typeof MainUsernameRepoSettingsRoute
+  '/admin/users/$userId': typeof MainAdminUsersUserIdRoute
   '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo/': typeof MainUsernameRepoIndexRoute
   '/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
   '/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/admin/settings/': typeof MainAdminSettingsIndexRoute
   '/admin/users/': typeof MainAdminUsersIndexRoute
@@ -472,9 +487,11 @@ export interface FileRoutesByTo {
   '/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
   '/$username/$repo/settings': typeof MainUsernameRepoSettingsRoute
+  '/admin/users/$userId': typeof MainAdminUsersUserIdRoute
   '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo': typeof MainUsernameRepoIndexRoute
   '/admin/audit-logs': typeof MainAdminAuditLogsIndexRoute
+  '/admin/organizations': typeof MainAdminOrganizationsIndexRoute
   '/admin/repositories': typeof MainAdminRepositoriesIndexRoute
   '/admin/settings': typeof MainAdminSettingsIndexRoute
   '/admin/users': typeof MainAdminUsersIndexRoute
@@ -533,9 +550,11 @@ export interface FileRoutesById {
   '/_main/$username/$repo/commits': typeof MainUsernameRepoCommitsRouteWithChildren
   '/_main/$username/$repo/labels': typeof MainUsernameRepoLabelsRoute
   '/_main/$username/$repo/settings': typeof MainUsernameRepoSettingsRoute
+  '/_main/admin/users/$userId': typeof MainAdminUsersUserIdRoute
   '/_main/gists/$id/edit': typeof MainGistsIdEditRoute
   '/_main/$username/$repo/': typeof MainUsernameRepoIndexRoute
   '/_main/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/_main/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
   '/_main/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/_main/admin/settings/': typeof MainAdminSettingsIndexRoute
   '/_main/admin/users/': typeof MainAdminUsersIndexRoute
@@ -594,9 +613,11 @@ export interface FileRouteTypes {
     | '/$username/$repo/commits'
     | '/$username/$repo/labels'
     | '/$username/$repo/settings'
+    | '/admin/users/$userId'
     | '/gists/$id/edit'
     | '/$username/$repo/'
     | '/admin/audit-logs/'
+    | '/admin/organizations/'
     | '/admin/repositories/'
     | '/admin/settings/'
     | '/admin/users/'
@@ -650,9 +671,11 @@ export interface FileRouteTypes {
     | '/$username/$repo/commits'
     | '/$username/$repo/labels'
     | '/$username/$repo/settings'
+    | '/admin/users/$userId'
     | '/gists/$id/edit'
     | '/$username/$repo'
     | '/admin/audit-logs'
+    | '/admin/organizations'
     | '/admin/repositories'
     | '/admin/settings'
     | '/admin/users'
@@ -710,9 +733,11 @@ export interface FileRouteTypes {
     | '/_main/$username/$repo/commits'
     | '/_main/$username/$repo/labels'
     | '/_main/$username/$repo/settings'
+    | '/_main/admin/users/$userId'
     | '/_main/gists/$id/edit'
     | '/_main/$username/$repo/'
     | '/_main/admin/audit-logs/'
+    | '/_main/admin/organizations/'
     | '/_main/admin/repositories/'
     | '/_main/admin/settings/'
     | '/_main/admin/users/'
@@ -978,6 +1003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAdminRepositoriesIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
+    '/_main/admin/organizations/': {
+      id: '/_main/admin/organizations/'
+      path: '/organizations'
+      fullPath: '/admin/organizations/'
+      preLoaderRoute: typeof MainAdminOrganizationsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/_main/admin/audit-logs/': {
       id: '/_main/admin/audit-logs/'
       path: '/audit-logs'
@@ -998,6 +1030,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/gists/$id/edit'
       preLoaderRoute: typeof MainGistsIdEditRouteImport
       parentRoute: typeof MainGistsIdRoute
+    }
+    '/_main/admin/users/$userId': {
+      id: '/_main/admin/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof MainAdminUsersUserIdRouteImport
+      parentRoute: typeof MainAdminRoute
     }
     '/_main/$username/$repo/settings': {
       id: '/_main/$username/$repo/settings'
@@ -1285,7 +1324,9 @@ const MainUsernameRouteWithChildren = MainUsernameRoute._addFileChildren(
 
 interface MainAdminRouteChildren {
   MainAdminIndexRoute: typeof MainAdminIndexRoute
+  MainAdminUsersUserIdRoute: typeof MainAdminUsersUserIdRoute
   MainAdminAuditLogsIndexRoute: typeof MainAdminAuditLogsIndexRoute
+  MainAdminOrganizationsIndexRoute: typeof MainAdminOrganizationsIndexRoute
   MainAdminRepositoriesIndexRoute: typeof MainAdminRepositoriesIndexRoute
   MainAdminSettingsIndexRoute: typeof MainAdminSettingsIndexRoute
   MainAdminUsersIndexRoute: typeof MainAdminUsersIndexRoute
@@ -1293,7 +1334,9 @@ interface MainAdminRouteChildren {
 
 const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminIndexRoute: MainAdminIndexRoute,
+  MainAdminUsersUserIdRoute: MainAdminUsersUserIdRoute,
   MainAdminAuditLogsIndexRoute: MainAdminAuditLogsIndexRoute,
+  MainAdminOrganizationsIndexRoute: MainAdminOrganizationsIndexRoute,
   MainAdminRepositoriesIndexRoute: MainAdminRepositoriesIndexRoute,
   MainAdminSettingsIndexRoute: MainAdminSettingsIndexRoute,
   MainAdminUsersIndexRoute: MainAdminUsersIndexRoute,

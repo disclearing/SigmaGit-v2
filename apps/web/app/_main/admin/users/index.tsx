@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAdminUsers, useUpdateAdminUser, useDeleteAdminUser } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_main/admin/users/")({
+  head: () => ({
+    meta: [
+      { title: "Users | Admin Panel | Sigmagit" },
+      {
+        name: "description",
+        content: "Manage platform users, roles, permissions, and user accounts.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Users | Admin Panel | Sigmagit" },
+      {
+        property: "og:description",
+        content: "Manage platform users, roles, permissions, and user accounts.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Users | Admin Panel | Sigmagit" },
+      {
+        name: "twitter:description",
+        content: "Manage platform users, roles, permissions, and user accounts.",
+      },
+    ],
+  }),
   component: AdminUsers,
 });
 
@@ -116,6 +138,11 @@ function AdminUsers() {
                 <td className="p-4 text-sm">{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td className="p-4">
                   <div className="flex justify-end gap-2">
+                    <Link to={`/admin/users/${user.id}`}>
+                      <Button variant="outline" size="sm">
+                        View
+                      </Button>
+                    </Link>
                     <Select
                       defaultValue={user.role}
                       onValueChange={(value) => handleUpdateRole(user.id, value)}

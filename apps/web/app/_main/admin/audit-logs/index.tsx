@@ -5,6 +5,28 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_main/admin/audit-logs/")({
+  head: () => ({
+    meta: [
+      { title: "Audit Logs | Admin Panel | Sigmagit" },
+      {
+        name: "description",
+        content: "View system audit logs, track administrative actions, and monitor platform activity.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Audit Logs | Admin Panel | Sigmagit" },
+      {
+        property: "og:description",
+        content: "View system audit logs, track administrative actions, and monitor platform activity.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Audit Logs | Admin Panel | Sigmagit" },
+      {
+        name: "twitter:description",
+        content: "View system audit logs, track administrative actions, and monitor platform activity.",
+      },
+    ],
+  }),
   component: AdminAuditLogs,
 });
 

@@ -5,6 +5,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_main/admin/settings/")({
+  head: () => ({
+    meta: [
+      { title: "Settings | Admin Panel | Sigmagit" },
+      {
+        name: "description",
+        content: "Configure system settings, maintenance mode, and platform-wide configuration.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Settings | Admin Panel | Sigmagit" },
+      {
+        property: "og:description",
+        content: "Configure system settings, maintenance mode, and platform-wide configuration.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Settings | Admin Panel | Sigmagit" },
+      {
+        name: "twitter:description",
+        content: "Configure system settings, maintenance mode, and platform-wide configuration.",
+      },
+    ],
+  }),
   component: AdminSettings,
 });
 

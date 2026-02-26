@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { db, users, repositories, auditLogs, systemSettings } from "@sigmagit/db";
-import { eq, sql, desc, count, and, or, ilike } from "drizzle-orm";
+import { db, users, repositories, auditLogs, systemSettings, organizations, issues, pullRequests, gists } from "@sigmagit/db";
+import { eq, sql, desc, count, and, or, ilike, gte, lte } from "drizzle-orm";
 import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -45,6 +45,31 @@ app.get("/api/admin/stats", async (c) => {
     .select({ count: count() })
     .from(users)
     .where(eq(users.role, "moderator"));
+  const [orgCount] = await db.select({ count: count() }).from(organizations);
+  const [issueCount] = await db.select({ count: count() }).from(issues);
+  const [openIssueCount] = await db
+    .select({ count: count() })
+    .from(issues)
+    .where(eq(issues.state, "open"));
+  const [prCount] = await db.select({ count: count() }).from(pullRequests);
+  const [openPrCount] = await db
+    .select({ count: count() })
+    .from(pullRequests)
+    .where(eq(pullRequests.state, "open"));
+  const [gistCount] = await db.select({ count: count() }).from(gists);
+
+  // Get recent activity (last 30 days)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const [recentUsers] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(gte(users.createdAt, thirtyDaysAgo));
+  const [recentRepos] = await db
+    .select({ count: count() })
+    .from(repositories)
+    .where(gte(repositories.createdAt, thirtyDaysAgo));
 
   return c.json({
     userCount: Number(userCount.count),
@@ -53,6 +78,14 @@ app.get("/api/admin/stats", async (c) => {
     privateRepoCount: Number(privateRepoCount.count),
     adminCount: Number(adminCount.count),
     moderatorCount: Number(moderatorCount.count),
+    orgCount: Number(orgCount.count),
+    issueCount: Number(issueCount.count),
+    openIssueCount: Number(openIssueCount.count),
+    prCount: Number(prCount.count),
+    openPrCount: Number(openPrCount.count),
+    gistCount: Number(gistCount.count),
+    recentUsers: Number(recentUsers.count),
+    recentRepos: Number(recentRepos.count),
   });
 });
 
@@ -422,6 +455,172 @@ app.post("/api/admin/maintenance", async (c) => {
   );
 
   return c.json({ success: true });
+});
+
+app.get("/api/admin/organizations", async (c) => {
+  const search = c.req.query("search") || "";
+  const limit = parseInt(c.req.query("limit") || "20", 10);
+  const offset = parseInt(c.req.query("offset") || "0", 10);
+
+  const conditions = [];
+
+  if (search) {
+    conditions.push(
+      or(
+        ilike(organizations.name, `%${search}%`),
+        ilike(organizations.displayName, `%${search}%`),
+        ilike(organizations.description, `%${search}%`)
+      )
+    );
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const orgsResult = await db
+    .select()
+    .from(organizations)
+    .where(whereClause)
+    .orderBy(desc(organizations.createdAt))
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = orgsResult.length > limit;
+  const orgsData = orgsResult.slice(0, limit);
+
+  return c.json({
+    organizations: orgsData,
+    hasMore,
+  });
+});
+
+app.get("/api/admin/organizations/:id", async (c) => {
+  const id = c.req.param("id");
+
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.id, id),
+  });
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const [repoCount] = await db
+    .select({ count: count() })
+    .from(repositories)
+    .where(eq(repositories.organizationId, id));
+
+  return c.json({
+    ...org,
+    repoCount: Number(repoCount.count),
+  });
+});
+
+app.delete("/api/admin/organizations/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+
+  const existingOrg = await db.query.organizations.findFirst({
+    where: eq(organizations.id, id),
+  });
+
+  if (!existingOrg) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  await db.delete(organizations).where(eq(organizations.id, id));
+
+  await logAuditEvent(
+    actor.id,
+    "org.delete",
+    "organization",
+    id,
+    { name: existingOrg.name },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
+});
+
+app.get("/api/admin/issues", async (c) => {
+  const search = c.req.query("search") || "";
+  const state = c.req.query("state");
+  const limit = parseInt(c.req.query("limit") || "20", 10);
+  const offset = parseInt(c.req.query("offset") || "0", 10);
+
+  const conditions = [];
+
+  if (search) {
+    conditions.push(
+      or(ilike(issues.title, `%${search}%`), ilike(issues.body, `%${search}%`))
+    );
+  }
+
+  if (state) {
+    conditions.push(eq(issues.state, state as "open" | "closed"));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const issuesResult = await db
+    .select()
+    .from(issues)
+    .where(whereClause)
+    .orderBy(desc(issues.createdAt))
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = issuesResult.length > limit;
+  const issuesData = issuesResult.slice(0, limit);
+
+  return c.json({
+    issues: issuesData,
+    hasMore,
+  });
+});
+
+app.get("/api/admin/analytics", async (c) => {
+  const days = parseInt(c.req.query("days") || "30", 10);
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  // User growth over time
+  const userGrowth = await db
+    .select({
+      date: sql<string>`DATE(${users.createdAt})`,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(users)
+    .where(gte(users.createdAt, startDate))
+    .groupBy(sql`DATE(${users.createdAt})`)
+    .orderBy(sql`DATE(${users.createdAt})`);
+
+  // Repository growth over time
+  const repoGrowth = await db
+    .select({
+      date: sql<string>`DATE(${repositories.createdAt})`,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(repositories)
+    .where(gte(repositories.createdAt, startDate))
+    .groupBy(sql`DATE(${repositories.createdAt})`)
+    .orderBy(sql`DATE(${repositories.createdAt})`);
+
+  // Activity by day
+  const activityByDay = await db
+    .select({
+      date: sql<string>`DATE(${auditLogs.createdAt})`,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(auditLogs)
+    .where(gte(auditLogs.createdAt, startDate))
+    .groupBy(sql`DATE(${auditLogs.createdAt})`)
+    .orderBy(sql`DATE(${auditLogs.createdAt})`);
+
+  return c.json({
+    userGrowth,
+    repoGrowth,
+    activityByDay,
+  });
 });
 
 export default app;

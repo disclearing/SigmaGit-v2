@@ -1086,6 +1086,30 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
           body: JSON.stringify({ enabled }),
         }),
 
+      getOrganizations: (search = "", limit = 20, offset = 0) =>
+        apiFetch<{ organizations: any[]; hasMore: boolean }>(
+          `/api/admin/organizations?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`
+        ),
+
+      getOrganization: (id: string) => apiFetch<any>(`/api/admin/organizations/${id}`),
+
+      deleteOrganization: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/admin/organizations/${id}`, {
+          method: "DELETE",
+        }),
+
+      getIssues: (search = "", state?: string, limit = 20, offset = 0) =>
+        apiFetch<{ issues: any[]; hasMore: boolean }>(
+          `/api/admin/issues?search=${encodeURIComponent(search)}&state=${state || ""}&limit=${limit}&offset=${offset}`
+        ),
+
+      getAnalytics: (days = 30) =>
+        apiFetch<{
+          userGrowth: { date: string; count: number }[];
+          repoGrowth: { date: string; count: number }[];
+          activityByDay: { date: string; count: number }[];
+        }>(`/api/admin/analytics?days=${days}`),
+
       releases: {
         list: (owner: string, repo: string, includeDrafts = false) =>
           apiFetch<{ releases: Release[] }>(

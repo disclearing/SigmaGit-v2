@@ -124,3 +124,48 @@ export function useToggleMaintenance() {
     },
   });
 }
+
+export function useAdminOrganizations(search = "", limit = 20, offset = 0) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "organizations", search, limit, offset],
+    queryFn: () => api.admin.getOrganizations(search, limit, offset),
+  });
+}
+
+export function useAdminOrganization(id: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "organization", id],
+    queryFn: () => api.admin.getOrganization(id),
+    enabled: !!id,
+  });
+}
+
+export function useDeleteAdminOrganization() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.admin.deleteOrganization(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "organizations"] });
+    },
+  });
+}
+
+export function useAdminIssues(search = "", state?: string, limit = 20, offset = 0) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "issues", search, state, limit, offset],
+    queryFn: () => api.admin.getIssues(search, state, limit, offset),
+  });
+}
+
+export function useAdminAnalytics(days = 30) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "analytics", days],
+    queryFn: () => api.admin.getAnalytics(days),
+  });
+}

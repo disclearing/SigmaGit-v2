@@ -7,6 +7,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_main/admin/repositories/")({
+  head: () => ({
+    meta: [
+      { title: "Repositories | Admin Panel | Sigmagit" },
+      {
+        name: "description",
+        content: "Manage all platform repositories, visibility settings, and repository transfers.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Repositories | Admin Panel | Sigmagit" },
+      {
+        property: "og:description",
+        content: "Manage all platform repositories, visibility settings, and repository transfers.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Repositories | Admin Panel | Sigmagit" },
+      {
+        name: "twitter:description",
+        content: "Manage all platform repositories, visibility settings, and repository transfers.",
+      },
+    ],
+  }),
   component: AdminRepositories,
 });
 
@@ -61,7 +83,7 @@ function AdminRepositories() {
         <Select
           value={visibility}
           onValueChange={(value) => {
-            setVisibility(value);
+            setVisibility(value || "");
             setPage(0);
           }}
         >

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from "@/lib/auth-client";
 import { useCurrentUserSummary } from "@sigmagit/hooks";
 import { Link, useNavigate, useLocation, useParams } from "@tanstack/react-router";
-import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User, FileText, Download, GitBranch } from "lucide-react";
+import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User, FileText, Download, GitBranch, Search, Menu, X } from "lucide-react";
 import { useTheme } from "tanstack-theme-kit";
 import { NewRepositoryModal } from "@/components/new-repository-modal";
 import { SearchBar } from "@/components/search";
@@ -17,6 +17,7 @@ export function Header() {
   const location = useLocation();
   const params = useParams({ strict: false });
   const [newRepoModalOpen, setNewRepoModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { data: session } = useSession();
   const { data: user } = useCurrentUserSummary(!!session?.user);
@@ -32,53 +33,55 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container max-w-[1280px] mx-auto px-4 flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6 flex-1 min-w-0">
-          <Link to="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm group-hover:shadow transition-shadow">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg shadow-primary/20 group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105">
               σ
             </div>
-            <span className="text-lg font-semibold tracking-tight hidden sm:inline-block">sigmagit</span>
+            <span className="text-xl font-bold tracking-tight hidden sm:inline-block bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              sigmagit
+            </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 text-sm">
             {isRepoPage && username && repoName ? (
-              <>
-                <Link 
-                  to="/$username" 
-                  params={{ username }} 
-                  className="text-foreground hover:text-primary transition-colors font-medium"
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
+                <Link
+                  to="/$username"
+                  params={{ username }}
+                  className="text-muted-foreground hover:text-primary transition-colors font-medium"
                 >
                   {username}
                 </Link>
-                <span className="text-muted-foreground">/</span>
-                <Link 
-                  to="/$username/$repo" 
-                  params={{ username, repo: repoName }} 
+                <span className="text-muted-foreground/50">/</span>
+                <Link
+                  to="/$username/$repo"
+                  params={{ username, repo: repoName }}
                   className="text-foreground hover:text-primary transition-colors font-semibold"
                 >
                   {repoName}
                 </Link>
-              </>
+              </div>
             ) : (
               <>
-                <Link 
-                  to="/explore" 
-                  className="px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                <Link
+                  to="/explore"
+                  className="px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
                 >
                   Explore
                 </Link>
-                <Link 
-                  to="/gists" 
-                  className="px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                <Link
+                  to="/gists"
+                  className="px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
                 >
                   Gists
                 </Link>
                 {isAdmin && (
-                  <Link 
-                    to="/admin" 
-                    className="px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  <Link
+                    to="/admin"
+                    className="px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
                   >
                     Admin
                   </Link>
@@ -87,35 +90,53 @@ export function Header() {
             )}
           </nav>
 
-          <div className="flex-1 max-w-xl">
-            <SearchBar className="hidden md:block" />
+          <div className="flex-1 max-w-md hidden md:block">
+            <SearchBar className="w-full" />
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </Button>
+
+          {/* Mobile search */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => navigate({ to: "/search" })}
+          >
+            <Search className="size-5" />
+          </Button>
+
           {session?.user ? (
             <>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="relative"
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative rounded-lg"
                     title="Create new"
                   >
-                    <Plus className="size-4" />
+                    <Plus className="size-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 p-1.5">
-                  <DropdownMenuItem 
-                    onClick={() => {
-                      setNewRepoModalOpen(true);
-                    }}
-                    className="cursor-pointer rounded-sm px-3 py-2.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                <DropdownMenuContent align="end" className="w-72 p-2">
+                  <DropdownMenuItem
+                    onClick={() => setNewRepoModalOpen(true)}
+                    className="cursor-pointer rounded-lg px-3 py-3"
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <div className="flex items-center justify-center size-8 rounded-md bg-primary/10 text-primary shrink-0">
-                        <GitBranch className="size-4" />
+                      <div className="flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shrink-0">
+                        <GitBranch className="size-5" />
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-medium leading-none">New repository</span>
@@ -123,13 +144,13 @@ export function Header() {
                       </div>
                     </div>
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     asChild
-                    className="cursor-pointer rounded-sm px-3 py-2.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    className="cursor-pointer rounded-lg px-3 py-3"
                   >
                     <Link to="/new/import" className="flex items-center gap-3 w-full">
-                      <div className="flex items-center justify-center size-8 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
-                        <Download className="size-4" />
+                      <div className="flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 text-blue-600 dark:text-blue-400 shrink-0">
+                        <Download className="size-5" />
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-medium leading-none">Import repository</span>
@@ -139,26 +160,35 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
               <NotificationDropdown />
-              <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Toggle theme">
-                {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title="Toggle theme"
+                className="rounded-lg"
+              >
+                {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
               </Button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
-                    <Avatar className="h-8 w-8 rounded-full border border-border">
+                  <Button variant="ghost" className="h-9 w-9 rounded-full p-0 ml-1">
+                    <Avatar className="h-9 w-9" size="sm">
                       <AvatarImage src={user?.avatarUrl || undefined} />
-                      <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xs">
+                      <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground font-semibold text-sm">
                         {(user?.name || session.user.name || "U").charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 p-1">
-                  <div className="flex items-center gap-3 px-3 py-3 border-b border-border/50 mb-1">
-                    <Avatar className="h-10 w-10 border border-border/50 shadow-sm">
+                <DropdownMenuContent align="end" className="w-64 p-2">
+                  <div className="flex items-center gap-3 px-3 py-3 border-b border-border/50 mb-2">
+                    <Avatar className="h-10 w-10" size="default">
                       <AvatarImage src={user?.avatarUrl || undefined} />
-                      <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground font-semibold">
                         {(user?.name || session.user.name || "U").charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -171,9 +201,9 @@ export function Header() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-0.5">
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
                       <Link
                         to="/$username"
                         params={{
@@ -185,8 +215,8 @@ export function Header() {
                         <span>Your profile</span>
                       </Link>
                     </DropdownMenuItem>
-                    
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
                       <Link to="/settings" className="flex items-center gap-3 w-full">
                         <Settings className="size-4 text-muted-foreground" />
                         <span>Settings</span>
@@ -194,11 +224,11 @@ export function Header() {
                     </DropdownMenuItem>
                   </div>
 
-                  <DropdownMenuSeparator className="my-1 bg-border/50" />
-                  
-                  <DropdownMenuItem 
+                  <DropdownMenuSeparator className="my-2" />
+
+                  <DropdownMenuItem
                     onClick={handleSignOut}
-                    className="cursor-pointer rounded-sm px-3 py-2 text-sm text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center gap-3 transition-colors"
+                    className="cursor-pointer rounded-lg px-3 py-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center gap-3"
                   >
                     <LogOut className="size-4" />
                     <span>Sign out</span>
@@ -208,30 +238,60 @@ export function Header() {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Toggle theme">
-                {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title="Toggle theme"
+                className="rounded-lg"
+              >
+                {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
               </Button>
               <Link to="/login">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="rounded-lg">
                   Sign in
                 </Button>
               </Link>
               <Link to="/register">
-                <Button size="sm">Sign up</Button>
+                <Button size="sm" className="rounded-lg">Sign up</Button>
               </Link>
             </>
           )}
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
+          <nav className="container py-4 flex flex-col gap-2">
+            <Link
+              to="/explore"
+              className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Explore
+            </Link>
+            <Link
+              to="/gists"
+              className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Gists
+            </Link>
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
+          </nav>
+        </div>
+      )}
+
       <NewRepositoryModal open={newRepoModalOpen} onOpenChange={setNewRepoModalOpen} />
     </header>
-  );
-}
-
-function BookIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 16 16" fill="currentColor">
-      <path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z" />
-    </svg>
   );
 }

@@ -1,12 +1,35 @@
+import { useEffect, useState } from "react";
 import { GithubIcon, LinkedInIcon, XIcon } from "@/components/icons";
 import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUserProfile, useUserRepositories, useUserStarredRepos, useOrganization, useOrganizationRepos, useOrganizationMembers, useOrganizationTeams } from "@sigmagit/hooks";
-import { Activity, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, MapPin, Award, Users, Mail } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { useSession } from "@/lib/auth-client";
+import {
+  useUserProfile,
+  useUserRepositories,
+  useUserStarredRepos,
+  useOrganization,
+  useOrganizationRepos,
+  useOrganizationMembers,
+  useOrganizationTeams,
+  useUpdateOrganization,
+  useDeleteOrganization,
+  useRemoveOrgMember,
+  useUpdateOrgMember,
+} from "@sigmagit/hooks";
+import { toast } from "sonner";
+import { Activity, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, MapPin, Award, Users, Mail, Settings, Trash2 } from "lucide-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { timeAgo, formatDate } from "@sigmagit/lib";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
+
+const ORG_MEMBER_ROLES = ["owner", "admin", "member"] as const;
+type OrganizationRole = (typeof ORG_MEMBER_ROLES)[number];
 
 export const Route = createFileRoute("/_main/$username/")({
   component: ProfilePage,
@@ -135,7 +158,75 @@ function OrganizationRepositoriesTab({ orgName }: { orgName: string }) {
   );
 }
 
-function OrganizationMembersTab({ orgName }: { orgName: string }) {
+function OrganizationMemberRow({
+  orgName,
+  member,
+  canManageMembers,
+  currentUsername,
+}: {
+  orgName: string;
+  member: any;
+  canManageMembers: boolean;
+  currentUsername?: string;
+}) {
+  const username = member?.user?.username as string | undefined;
+  const removeMember = useRemoveOrgMember(orgName, username || "");
+
+  const canRemove =
+    canManageMembers &&
+    !!username &&
+    username !== currentUsername &&
+    member.role !== "owner";
+
+  const handleRemoveMember = async () => {
+    if (!username) return;
+    if (!confirm(`Remove @${username} from ${orgName}?`)) return;
+    try {
+      await removeMember.mutateAsync();
+      toast.success(`Removed @${username} from organization`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove member");
+    }
+  };
+
+  return (
+    <div className="p-4 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Avatar className="size-10">
+          <AvatarFallback>{member.user?.name?.charAt(0) || "?"}</AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="font-medium">{member.user?.name || "Unknown"}</div>
+          <div className="text-sm text-muted-foreground">@{member.user?.username || "unknown"}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="text-sm text-muted-foreground capitalize">{member.role}</div>
+        {canRemove && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRemoveMember}
+            disabled={removeMember.isPending}
+            className="text-destructive hover:text-destructive"
+          >
+            Remove
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OrganizationMembersTab({
+  orgName,
+  canManageMembers,
+  currentUsername,
+}: {
+  orgName: string;
+  canManageMembers: boolean;
+  currentUsername?: string;
+}) {
   const { data, isLoading } = useOrganizationMembers(orgName);
 
   if (isLoading) {
@@ -147,19 +238,315 @@ function OrganizationMembersTab({ orgName }: { orgName: string }) {
   return (
     <div className="border border-border rounded-lg bg-card divide-y divide-border">
       {members.map((member) => (
-        <div key={member.userId} className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="size-10">
-              <AvatarFallback>{(member as any).user?.name?.charAt(0) || "?"}</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-medium">{(member as any).user?.name || "Unknown"}</div>
-              <div className="text-sm text-muted-foreground">@{(member as any).user?.username || "unknown"}</div>
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground capitalize">{member.role}</div>
-        </div>
+        <OrganizationMemberRow
+          key={member.userId}
+          orgName={orgName}
+          member={member}
+          canManageMembers={canManageMembers}
+          currentUsername={currentUsername}
+        />
       ))}
+    </div>
+  );
+}
+
+function OrganizationSettingsMemberRow({
+  orgName,
+  member,
+  currentUsername,
+}: {
+  orgName: string;
+  member: any;
+  currentUsername?: string;
+}) {
+  const username = member?.user?.username as string | undefined;
+  const role = (member?.role || "member") as OrganizationRole;
+  const updateMemberRole = useUpdateOrgMember(orgName, username || "");
+  const removeMember = useRemoveOrgMember(orgName, username || "");
+
+  const isSelf = username === currentUsername;
+  const isOwner = role === "owner";
+  const canEditRole = !!username && !isSelf && !isOwner;
+  const canRemove = !!username && !isSelf && !isOwner;
+
+  const handleRoleChange = async (nextRole: string) => {
+    if (!username) return;
+    try {
+      await updateMemberRole.mutateAsync({ role: nextRole as OrganizationRole });
+      toast.success(`Updated @${username} to ${nextRole}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update role");
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!username) return;
+    if (!confirm(`Remove @${username} from ${orgName}?`)) return;
+    try {
+      await removeMember.mutateAsync();
+      toast.success(`Removed @${username}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove member");
+    }
+  };
+
+  return (
+    <div className="p-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar className="size-10">
+          <AvatarFallback>{member.user?.name?.charAt(0) || "?"}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <div className="font-medium truncate">{member.user?.name || "Unknown"}</div>
+          <div className="text-sm text-muted-foreground truncate">@{member.user?.username || "unknown"}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <Select value={role} onValueChange={handleRoleChange}>
+          <SelectTrigger className="w-32 h-9" disabled={!canEditRole || updateMemberRole.isPending}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ORG_MEMBER_ROLES.map((memberRole) => (
+              <SelectItem key={memberRole} value={memberRole}>
+                {memberRole}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRemoveMember}
+          disabled={!canRemove || removeMember.isPending}
+          className="text-destructive hover:text-destructive"
+        >
+          Remove
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function OrganizationSettingsMembersSection({
+  orgName,
+  currentUsername,
+}: {
+  orgName: string;
+  currentUsername?: string;
+}) {
+  const { data, isLoading } = useOrganizationMembers(orgName);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState<OrganizationRole>("member");
+  const addOrUpdateMember = useUpdateOrgMember(orgName, usernameInput.trim());
+
+  const members = data?.members || [];
+
+  const handleAddMember = async () => {
+    const username = usernameInput.trim();
+    if (!username) {
+      toast.error("Enter a username");
+      return;
+    }
+
+    try {
+      await addOrUpdateMember.mutateAsync({ role: newMemberRole });
+      toast.success(`Added/updated @${username}`);
+      setUsernameInput("");
+      setNewMemberRole("member");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add member");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
+        <h3 className="text-lg font-semibold">Add Member</h3>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_160px_auto] gap-3">
+          <Input
+            placeholder="Username"
+            value={usernameInput}
+            onChange={(e) => setUsernameInput(e.target.value)}
+            disabled={addOrUpdateMember.isPending}
+          />
+          <Select value={newMemberRole} onValueChange={(value) => setNewMemberRole(value as OrganizationRole)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ORG_MEMBER_ROLES.map((memberRole) => (
+                <SelectItem key={memberRole} value={memberRole}>
+                  {memberRole}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAddMember} disabled={addOrUpdateMember.isPending}>
+            Add member
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Enter an existing username to add them to this organization.
+        </p>
+      </div>
+
+      <div className="border border-border rounded-lg bg-card divide-y divide-border">
+        {isLoading ? (
+          <div className="p-6 text-sm text-muted-foreground">Loading members...</div>
+        ) : members.length === 0 ? (
+          <div className="p-6 text-sm text-muted-foreground">No members yet.</div>
+        ) : (
+          members.map((member) => (
+            <OrganizationSettingsMemberRow
+              key={(member as any).user?.id || member.userId}
+              orgName={orgName}
+              member={member}
+              currentUsername={currentUsername}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OrganizationSettingsTab({
+  orgName,
+  org,
+  isOwner,
+}: {
+  orgName: string;
+  org: {
+    displayName: string;
+    description: string | null;
+    email: string | null;
+    website: string | null;
+    location: string | null;
+  };
+  isOwner: boolean;
+}) {
+  const updateOrg = useUpdateOrganization(orgName);
+  const deleteOrg = useDeleteOrganization(orgName);
+  const [formData, setFormData] = useState({
+    displayName: org.displayName || "",
+    description: org.description || "",
+    email: org.email || "",
+    website: org.website || "",
+    location: org.location || "",
+  });
+  const navigate = Route.useNavigate();
+
+  useEffect(() => {
+    setFormData({
+      displayName: org.displayName || "",
+      description: org.description || "",
+      email: org.email || "",
+      website: org.website || "",
+      location: org.location || "",
+    });
+  }, [org.displayName, org.description, org.email, org.website, org.location]);
+
+  const handleSave = async () => {
+    try {
+      await updateOrg.mutateAsync({
+        displayName: formData.displayName,
+        description: formData.description || null,
+        email: formData.email || null,
+        website: formData.website || null,
+        location: formData.location || null,
+      });
+      toast.success("Organization settings updated");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update organization");
+    }
+  };
+
+  const handleDeleteOrg = async () => {
+    if (!isOwner) return;
+    if (!confirm(`Delete @${orgName}? This action cannot be undone.`)) return;
+    try {
+      await deleteOrg.mutateAsync();
+      toast.success("Organization deleted");
+      navigate({ to: "/" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete organization");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
+        <h3 className="text-lg font-semibold">General</h3>
+        <div className="space-y-2">
+          <Label htmlFor="org-display-name">Display name</Label>
+          <Input
+            id="org-display-name"
+            value={formData.displayName}
+            onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
+            disabled={!isOwner || updateOrg.isPending}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="org-description">Description</Label>
+          <Textarea
+            id="org-description"
+            value={formData.description}
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+            disabled={!isOwner || updateOrg.isPending}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="org-email">Email</Label>
+            <Input
+              id="org-email"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+              disabled={!isOwner || updateOrg.isPending}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="org-website">Website</Label>
+            <Input
+              id="org-website"
+              value={formData.website}
+              onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+              disabled={!isOwner || updateOrg.isPending}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="org-location">Location</Label>
+          <Input
+            id="org-location"
+            value={formData.location}
+            onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+            disabled={!isOwner || updateOrg.isPending}
+          />
+        </div>
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={!isOwner || updateOrg.isPending}>
+            Save changes
+          </Button>
+        </div>
+      </div>
+
+      <div className="border border-destructive/30 rounded-lg bg-card p-6">
+        <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Delete this organization and all associated repositories.
+        </p>
+        <Button
+          variant="destructive"
+          onClick={handleDeleteOrg}
+          disabled={!isOwner || deleteOrg.isPending}
+          className="gap-2"
+        >
+          <Trash2 className="size-4" />
+          Delete organization
+        </Button>
+      </div>
     </div>
   );
 }
@@ -202,7 +589,8 @@ function OrganizationTeamsTab({ orgName }: { orgName: string }) {
 
 function ProfilePage() {
   const { username } = Route.useParams();
-  const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "members", "teams"]).withDefault("repositories"));
+  const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "members", "teams", "settings"]).withDefault("repositories"));
+  const { data: session } = useSession();
   
   // Check for organization first
   const { data: org, isLoading: isLoadingOrg, error: orgError } = useOrganization(username);
@@ -217,6 +605,12 @@ function ProfilePage() {
 
   const isLoading = isLoadingOrg || isLoadingUser;
   const isOrg = !!org && !orgError;
+  const currentUsername = (session?.user as { username?: string } | undefined)?.username;
+  const currentOrgMembership = orgMembersData?.members?.find(
+    (member) => (member as any)?.user?.username === currentUsername
+  );
+  const isOrgOwner = currentOrgMembership?.role === "owner";
+  const canManageMembers = isOrgOwner;
   
   const repoCount = isOrg ? (orgReposData?.repositories?.length || 0) : (reposData?.repos?.length || 0);
   const starredCount = starredData?.repos?.length || 0;
@@ -296,7 +690,7 @@ function ProfilePage() {
           </aside>
 
           <div className="w-full">
-            <Tabs value={tab} onValueChange={(value) => setTab(value === "repositories" ? null : (value as "members" | "teams"))}>
+            <Tabs value={tab} onValueChange={(value) => setTab(value === "repositories" ? null : (value as "members" | "teams" | "settings"))}>
               <TabsList variant="line" className="w-full mb-6 h-auto bg-transparent p-0">
                 <TabsTrigger value="repositories" className="gap-2">
                   <BookOpen className="size-4" />
@@ -313,6 +707,12 @@ function ProfilePage() {
                   <span>Teams</span>
                   {teamCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({teamCount})</span>}
                 </TabsTrigger>
+                {isOrgOwner && (
+                  <TabsTrigger value="settings" className="gap-2">
+                    <Settings className="size-4" />
+                    <span>Settings</span>
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="repositories" className="mt-0">
@@ -320,12 +720,22 @@ function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="members" className="mt-0">
-                <OrganizationMembersTab orgName={username} />
+                <OrganizationMembersTab
+                  orgName={username}
+                  canManageMembers={canManageMembers}
+                  currentUsername={currentUsername}
+                />
               </TabsContent>
 
               <TabsContent value="teams" className="mt-0">
                 <OrganizationTeamsTab orgName={username} />
               </TabsContent>
+
+              {isOrgOwner && (
+                <TabsContent value="settings" className="mt-0">
+                  <OrganizationSettingsTab orgName={username} org={org} isOwner={isOrgOwner} />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>

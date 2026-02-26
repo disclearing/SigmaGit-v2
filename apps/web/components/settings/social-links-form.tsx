@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUpdateSocialLinks } from "@sigmagit/hooks";
-import { Loader2, Link } from "lucide-react";
+import { Loader2, Link as LinkIcon } from "lucide-react";
 import { GithubIcon, LinkedInIcon, XIcon } from "../icons";
 
 interface SocialLinksFormProps {
@@ -29,47 +29,56 @@ export function SocialLinksForm({ socialLinks }: SocialLinksFormProps) {
     setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
+    const data = {
+      github: formData.get("github") as string,
+      twitter: formData.get("twitter") as string,
+      linkedin: formData.get("linkedin") as string,
+      custom: customLinks.filter(link => link.trim() !== ""),
+    };
 
-    mutate(
-      {
-        github: formData.get("github") as string,
-        twitter: formData.get("twitter") as string,
-        linkedin: formData.get("linkedin") as string,
-        custom: customLinks.filter(Boolean),
+    mutate(data, {
+      onSuccess: () => {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
       },
-      {
-        onSuccess: () => {
-          setSuccess(true);
-          setTimeout(() => setSuccess(false), 3000);
-        },
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : "Failed to update social links");
-        },
-      }
-    );
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : "Failed to update social links");
+      },
+    });
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="github" className="flex items-center gap-2">
-          <GithubIcon className="w-4 h-4" />
+      {error && (
+        <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="p-3 bg-green-500/10 text-green-600 text-sm rounded-md">
+          Social links updated successfully!
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <Label className="flex items-center gap-2">
+          <GithubIcon className="size-4" />
           GitHub
         </Label>
         <Input id="github" name="github" defaultValue={socialLinks?.github || ""} placeholder="https://github.com/username" type="url" />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="twitter" className="flex items-center gap-2">
-          <XIcon className="w-4 h-4" />
+      <div className="space-y-3">
+        <Label className="flex items-center gap-2">
+          <XIcon className="size-4" />
           Twitter / X
         </Label>
         <Input id="twitter" name="twitter" defaultValue={socialLinks?.twitter || ""} placeholder="https://twitter.com/username" type="url" />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="linkedin" className="flex items-center gap-2">
-          <LinkedInIcon className="w-4 h-4" />
+      <div className="space-y-3">
+        <Label className="flex items-center gap-2">
+          <LinkedInIcon className="size-4" />
           LinkedIn
         </Label>
         <Input id="linkedin" name="linkedin" defaultValue={socialLinks?.linkedin || ""} placeholder="https://linkedin.com/in/username" type="url" />
@@ -89,20 +98,21 @@ export function SocialLinksForm({ socialLinks }: SocialLinksFormProps) {
               newLinks[i] = e.target.value;
               setCustomLinks(newLinks);
             }}
-            placeholder={`Custom link ${i + 1}`}
+            placeholder={`Custom URL ${i + 1}`}
             type="url"
           />
         ))}
-        <p className="text-xs text-muted-foreground">Add up to 3 custom links to your profile</p>
       </div>
 
-      {error && <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2">{error}</div>}
-
-      {success && <div className="text-sm text-green-500 bg-green-500/10 border border-green-500/20 px-3 py-2">Social links updated!</div>}
-
       <Button type="submit" disabled={isPending}>
-        {isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
-        Save Social Links
+        {isPending ? (
+          <>
+            <Loader2 className="mr-2 size-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          "Save Social Links"
+        )}
       </Button>
     </form>
   );

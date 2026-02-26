@@ -3,7 +3,7 @@ import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserProfile, useUserRepositories, useUserStarredRepos, useOrganization, useOrganizationRepos, useOrganizationMembers, useOrganizationTeams } from "@sigmagit/hooks";
-import { Activity, BookOpen, Building2, Calendar, GitBranch, Globe, Link, MapPin, Award, Users, Mail } from "lucide-react";
+import { Activity, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, MapPin, Award, Users, Mail } from "lucide-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { timeAgo, formatDate } from "@sigmagit/lib";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";

@@ -1,6 +1,6 @@
 "use client";
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateGist } from "@sigmagit/hooks";

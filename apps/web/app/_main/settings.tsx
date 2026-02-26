@@ -16,7 +16,7 @@ import { useApiKeys, useCreateApiKey, useDeleteApiKey } from "@/lib/hooks/use-ap
 import { useAddPasskey, useDeletePasskey, usePasskeys } from "@/lib/hooks/use-passkeys";
 import { getApiUrl } from "@/lib/utils";
 import { useCurrentUser, useUpdatePreferences, useUpdateProfile, useUpdateWordWrapPreference, useWordWrapPreference } from "@sigmagit/hooks";
-import { AlertTriangle, CheckCircle2, Copy, Trash2, Fingerprint, Key, Loader2, Plus, Shield, User } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Copy, Trash2, Fingerprint, Key, Loader2, Plus, Shield, User, Check } from "lucide-react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 import { useEffect, useState } from "react";
@@ -437,7 +437,7 @@ function SecurityTab() {
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger>
                 <Button size="sm">
-                  <PlusSignIcon className="size-4 mr-2" />
+                  <Plus className="size-4 mr-2" />
                   Add Passkey
                 </Button>
               </DialogTrigger>
@@ -483,7 +483,7 @@ function SecurityTab() {
                   <Dialog open={deletePasskeyId === passkey.id} onOpenChange={(open) => setDeletePasskeyId(open ? passkey.id : null)}>
                     <DialogTrigger>
                       <Button variant="ghost" size="icon">
-                        <DeleteIcon className="size-4 text-muted-foreground hover:text-destructive" />
+                        <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -618,7 +618,7 @@ Password: <your-token>`}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger>
                 <Button size="sm">
-                  <PlusSignIcon className="size-4 mr-2" />
+                  <Plus className="size-4 mr-2" />
                   Generate Token
                 </Button>
               </DialogTrigger>
@@ -631,16 +631,16 @@ Password: <your-token>`}
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20">
-                        <Alert01Icon className="size-5 text-amber-500 shrink-0 mt-0.5" />
+                        <AlertTriangle className="size-5 text-amber-500 shrink-0 mt-0.5" />
                         <p className="text-sm text-muted-foreground">Make sure to copy your token now. For security reasons, we won't show it again.</p>
                       </div>
                       <div className="flex gap-2">
                         <Input value={createdKey} readOnly className="font-mono text-sm" />
                         <Button variant="outline" size="icon" onClick={handleCopy}>
                           {copied ? (
-                            <CheckmarkCircleIcon className="size-4 text-green-500" />
+                            <CheckCircle2 className="size-4 text-green-500" />
                           ) : (
-                            <CopyIcon className="size-4" />
+                            <Copy className="size-4" />
                           )}
                         </Button>
                       </div>
@@ -694,7 +694,7 @@ Password: <your-token>`}
                   <Dialog open={deleteKeyId === key.id} onOpenChange={(open) => setDeleteKeyId(open ? key.id : null)}>
                     <DialogTrigger>
                       <Button variant="ghost" size="icon">
-                        <DeleteIcon className="size-4 text-muted-foreground hover:text-destructive" />
+                        <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>

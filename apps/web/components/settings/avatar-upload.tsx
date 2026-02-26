@@ -89,7 +89,7 @@ export function AvatarUpload({ currentAvatar, name }: AvatarUploadProps) {
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={updateAvatarMutation.isPending || deleteAvatarMutation.isPending}>
-            <CameraIcon className="size-4 mr-2" />
+            <Camera className="size-4 mr-2" />
             Change Avatar
           </Button>
           {preview && (
@@ -97,7 +97,7 @@ export function AvatarUpload({ currentAvatar, name }: AvatarUploadProps) {
               {deleteAvatarMutation.isPending ? (
                 <Loader2 className="size-4 mr-2 animate-spin" />
               ) : (
-                <DeleteIcon className="size-4 mr-2" />
+                <Trash2 className="size-4 mr-2" />
               )}
               Delete Avatar
             </Button>

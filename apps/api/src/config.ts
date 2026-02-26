@@ -43,6 +43,10 @@ export const config = {
     },
     fromAddress: process.env.EMAIL_FROM || 'SigmaGit <noreply@sigmagit.dev>',
   },
+  github: {
+    clientId: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  },
 };
 
 export const getApiUrl = (): string => {

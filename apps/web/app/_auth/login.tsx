@@ -17,6 +17,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -69,6 +70,23 @@ function LoginPage() {
       }
     } finally {
       setPasskeyLoading(false);
+    }
+  }
+
+  async function handleGithubSignIn() {
+    setGithubLoading(true);
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "github",
+      });
+
+      if (error) {
+        toast.error(error.message || "Failed to sign in with GitHub");
+      }
+    } catch {
+      toast.error("Failed to start GitHub sign in");
+    } finally {
+      setGithubLoading(false);
     }
   }
 
@@ -186,12 +204,17 @@ function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              disabled={loading || passkeyLoading}
+              onClick={handleGithubSignIn}
+              disabled={loading || passkeyLoading || githubLoading}
               className="h-11"
             >
-              <Github className="size-4 mr-2" />
+              {githubLoading ? (
+                <Loader2 className="size-4 mr-2 animate-spin" />
+              ) : (
+                <Github className="size-4 mr-2" />
+              )}
               GitHub
-        </Button>
+            </Button>
       </div>
         </CardContent>
 

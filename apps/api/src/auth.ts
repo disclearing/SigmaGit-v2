@@ -117,6 +117,7 @@ export const initAuth = async () => {
   authInitPromise = (async () => {
     const redis = await getRedis();
     const apiUrl = getApiUrl();
+    const githubEnabled = Boolean(config.github.clientId && config.github.clientSecret);
 
     authInstance = betterAuth({
       baseURL: apiUrl,
@@ -156,6 +157,15 @@ export const initAuth = async () => {
           sendPasswordResetEmail(user.email, token, user.name);
         },
       },
+      socialProviders: githubEnabled
+        ? {
+            github: {
+              clientId: config.github.clientId as string,
+              clientSecret: config.github.clientSecret as string,
+              scope: ["read:user", "user:email"],
+            },
+          }
+        : undefined,
       plugins: [
         apiKey({
           defaultPrefix: 'sigmagit_',

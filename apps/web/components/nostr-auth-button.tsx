@@ -164,7 +164,13 @@ export function NostrAuthButton({
       }
 
       // Keep better-auth client state in sync so UI (header) updates immediately.
-      await authClient.getSession();
+      const refreshed = await authClient.getSession();
+      const hasSession = !!refreshed.data?.session;
+      if (!hasSession && typeof window !== "undefined") {
+        // Fallback for stale client cache edge-cases.
+        window.location.assign("/");
+        return;
+      }
 
       toast.success("Welcome! Signed in with Nostr successfully.");
       onSuccess?.();

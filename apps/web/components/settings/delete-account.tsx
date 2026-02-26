@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +14,6 @@ export function DeleteAccount({ username }: DeleteAccountProps) {
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
-  const navigate = useNavigate();
 
   async function handleDelete() {
     if (confirmation !== username) {
@@ -27,7 +25,7 @@ export function DeleteAccount({ username }: DeleteAccountProps) {
 
     mutate(undefined, {
       onSuccess: () => {
-        navigate({ to: "/" });
+        window.location.assign("/");
       },
       onError: (err) => {
         setError(err instanceof Error ? err.message : "Failed to delete account");
@@ -51,7 +49,7 @@ export function DeleteAccount({ username }: DeleteAccountProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20">
-        <Alert01Icon className="size-5 text-red-500 shrink-0 mt-0.5" />
+        <AlertTriangle className="size-5 text-red-500 shrink-0 mt-0.5" />
         <div className="space-y-2">
           <p className="text-sm font-medium text-red-500">This action cannot be undone</p>
           <p className="text-sm text-muted-foreground">
@@ -64,7 +62,15 @@ export function DeleteAccount({ username }: DeleteAccountProps) {
         <Label htmlFor="confirm">
           Type <span className="font-mono font-semibold">{username}</span> to confirm
         </Label>
-        <Input id="confirm" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} placeholder="Enter your username" />
+        <Input
+          id="confirm"
+          value={confirmation}
+          onChange={(e) => setConfirmation(e.target.value)}
+          placeholder="Enter your username"
+          autoComplete="off"
+          data-lpignore="true"
+          data-1p-ignore="true"
+        />
       </div>
 
       {error && <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2">{error}</div>}

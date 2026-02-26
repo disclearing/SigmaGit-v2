@@ -91,7 +91,7 @@ export function SearchBar({ className }: { className?: string }) {
                   <span>K</span>
                 </kbd>
               </>
-            )}
+          )}
           </div>
         </div>
       </form>
@@ -134,13 +134,13 @@ export function SearchBar({ className }: { className?: string }) {
             </button>
           ))}
           <div className="border-t border-border mt-2 pt-2">
-            <button
-              onClick={() => handleSubmit({ preventDefault: () => { } } as React.FormEvent)}
+          <button
+            onClick={() => handleSubmit({ preventDefault: () => { } } as React.FormEvent)}
               className="w-full p-3 text-left rounded-lg text-sm text-primary hover:bg-accent hover:text-accent-foreground transition-all duration-150 flex items-center gap-2"
-            >
+          >
               <Search className="size-4" />
-              See all results for "{query}"
-            </button>
+            See all results for "{query}"
+          </button>
           </div>
         </div>
       )}

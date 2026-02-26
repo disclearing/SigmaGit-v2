@@ -33,33 +33,33 @@ export function NotificationDropdown() {
           className="relative rounded-lg"
         >
           <Bell className="size-5" />
-          {unreadCount > 0 && (
+        {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 size-5 bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm animate-in zoom-in-50 duration-200">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-96 p-0 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
           <span className="font-semibold text-sm">Notifications</span>
           <div className="flex items-center gap-1">
-            {unreadCount > 0 && (
-              <Button
-                variant="ghost"
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
                 size="sm"
-                onClick={() => markAllRead.mutate()}
-                disabled={markAllRead.isPending}
+              onClick={() => markAllRead.mutate()}
+              disabled={markAllRead.isPending}
                 className="h-8 text-xs"
-              >
-                {markAllRead.isPending ? (
-                  <Loader2 className="size-3 animate-spin mr-1" />
-                ) : (
-                  <CheckCircle2 className="size-3 mr-1" />
-                )}
-                Mark all read
-              </Button>
-            )}
+            >
+              {markAllRead.isPending ? (
+                <Loader2 className="size-3 animate-spin mr-1" />
+              ) : (
+                <CheckCircle2 className="size-3 mr-1" />
+              )}
+              Mark all read
+            </Button>
+          )}
             <Link to="/settings/notifications">
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <Settings className="size-4" />

@@ -69,7 +69,7 @@ function AdminRepositories() {
   const handleDeleteRepo = async (repoId: string, repoName: string) => {
     if (confirm(`Are you sure you want to delete repository "${repoName}"? This action cannot be undone.`)) {
       try {
-        await deleteRepo.mutateAsync(repoId);
+      await deleteRepo.mutateAsync(repoId);
         toast.success(`Repository "${repoName}" deleted`);
       } catch {
         toast.error("Failed to delete repository");
@@ -91,10 +91,10 @@ function AdminRepositories() {
               <Skeleton className="h-12 w-40" />
             </div>
             <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-20" />
-              ))}
-            </div>
+            ))}
+          </div>
           </CardContent>
         </Card>
       </div>
@@ -120,8 +120,8 @@ function AdminRepositories() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Repositories</h1>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Repositories</h1>
           <p className="text-muted-foreground mt-2">
             Manage {data?.repositories?.length || 0} platform repositories
           </p>
@@ -133,35 +133,35 @@ function AdminRepositories() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                placeholder="Search repositories..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(0);
-                }}
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search repositories..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
                 className="pl-10 h-12"
-              />
-            </div>
-            <Select
-              value={visibility}
-              onValueChange={(value) => {
-                setVisibility(value || "");
-                setPage(0);
-              }}
-            >
+          />
+        </div>
+        <Select
+          value={visibility}
+          onValueChange={(value) => {
+            setVisibility(value || "");
+            setPage(0);
+          }}
+        >
               <SelectTrigger className="w-44 h-12">
                 <Filter className="size-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="All visibility" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All visibility</SelectItem>
-                <SelectItem value="public">Public</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <SelectValue placeholder="All visibility" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All visibility</SelectItem>
+            <SelectItem value="public">Public</SelectItem>
+            <SelectItem value="private">Private</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
         </CardContent>
       </Card>
 
@@ -179,32 +179,32 @@ function AdminRepositories() {
         </CardHeader>
         <CardContent>
           <div className="rounded-xl border border-border overflow-hidden">
-            <table className="w-full">
-              <thead>
+          <table className="w-full">
+            <thead>
                 <tr className="bg-muted/50 border-b border-border">
-                  <th className="text-left p-4 font-semibold text-sm">Repository</th>
-                  <th className="text-left p-4 font-semibold text-sm">Owner</th>
-                  <th className="text-left p-4 font-semibold text-sm">Visibility</th>
-                  <th className="text-left p-4 font-semibold text-sm">Created</th>
-                  <th className="text-right p-4 font-semibold text-sm">Actions</th>
-                </tr>
-              </thead>
+                <th className="text-left p-4 font-semibold text-sm">Repository</th>
+                <th className="text-left p-4 font-semibold text-sm">Owner</th>
+                <th className="text-left p-4 font-semibold text-sm">Visibility</th>
+                <th className="text-left p-4 font-semibold text-sm">Created</th>
+                <th className="text-right p-4 font-semibold text-sm">Actions</th>
+              </tr>
+            </thead>
               <tbody className="divide-y divide-border">
-                {data?.repositories && data.repositories.length > 0 ? (
-                  data.repositories.map((repo) => (
+              {data?.repositories && data.repositories.length > 0 ? (
+                data.repositories.map((repo) => (
                     <tr key={repo.id} className="hover:bg-accent/30 transition-colors">
-                      <td className="p-4">
+                    <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-muted">
                             <GitBranch className="size-4 text-muted-foreground" />
                           </div>
                           <div>
-                            <div className="font-medium">{repo.name}</div>
-                            {repo.description && (
+                      <div className="font-medium">{repo.name}</div>
+                      {repo.description && (
                               <div className="text-sm text-muted-foreground mt-0.5 line-clamp-1 max-w-xs">
                                 {repo.description}
                               </div>
-                            )}
+                      )}
                           </div>
                         </div>
                       </td>
@@ -215,8 +215,8 @@ function AdminRepositories() {
                           </div>
                           <span className="text-sm text-muted-foreground">{repo.ownerId}</span>
                         </div>
-                      </td>
-                      <td className="p-4">
+                    </td>
+                    <td className="p-4">
                         <Badge
                           variant="outline"
                           className={cn(
@@ -226,23 +226,23 @@ function AdminRepositories() {
                               : "bg-orange-500/10 text-orange-600 border-orange-500/20"
                           )}
                         >
-                          {repo.visibility === "public" ? (
-                            <Globe className="size-3" />
-                          ) : (
-                            <Lock className="size-3" />
-                          )}
-                          {repo.visibility}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-sm text-muted-foreground">
+                        {repo.visibility === "public" ? (
+                          <Globe className="size-3" />
+                        ) : (
+                          <Lock className="size-3" />
+                        )}
+                        {repo.visibility}
+                      </Badge>
+                    </td>
+                    <td className="p-4 text-sm text-muted-foreground">
                         {new Date(repo.createdAt).toLocaleDateString(undefined, {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
                         })}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex justify-end gap-2">
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-end gap-2">
                           <a 
                             href={`/${repo.ownerId}/${repo.name}`} 
                             target="_blank" 
@@ -269,21 +269,21 @@ function AdminRepositories() {
                               </a>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                onClick={() => handleDeleteRepo(repo.id, repo.name)}
+                          onClick={() => handleDeleteRepo(repo.id, repo.name)}
                                 className="text-destructive focus:text-destructive gap-2"
-                              >
+                        >
                                 <Trash2 className="size-4" />
                                 Delete Repository
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="p-12 text-center">
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="size-12 rounded-full bg-muted flex items-center justify-center">
                           <FolderGit2 className="size-6 text-muted-foreground" />
@@ -295,12 +295,12 @@ function AdminRepositories() {
                           </p>
                         </div>
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         </CardContent>
       </Card>
 

@@ -60,20 +60,20 @@ export default function RepositoryCard({ repository, showOwner = false }: { repo
           {/* Header */}
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
-              {showOwner ? (
+                {showOwner ? (
                 <span className="flex items-center gap-1.5">
-                  <Link
-                    to="/$username"
-                    params={{ username: ownerUsername }}
-                    onClick={(e) => e.stopPropagation()}
+                    <Link
+                      to="/$username"
+                      params={{ username: ownerUsername }}
+                      onClick={(e) => e.stopPropagation()}
                     className="z-10 text-muted-foreground hover:text-primary font-normal transition-colors"
-                  >
-                    {ownerUsername}
-                  </Link>
+                    >
+                      {ownerUsername}
+                    </Link>
                   <span className="text-muted-foreground/50">/</span>
                   <span className="text-foreground group-hover:text-primary transition-colors">{repository.name}</span>
                 </span>
-              ) : (
+                ) : (
                 <span className="flex items-center gap-2">
                   <GitFork className="size-4 text-muted-foreground" />
                   {repository.name}

@@ -25,7 +25,7 @@ export function AdminLayout() {
   const location = useLocation();
   const { data: session } = useSession();
   const { data: user } = useCurrentUserSummary(!!session?.user);
-
+  
   const navItems = [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard", description: "Overview & stats" },
     { to: "/admin/users", icon: Users, label: "Users", description: "Manage accounts" },
@@ -74,7 +74,7 @@ export function AdminLayout() {
                     "p-2 rounded-lg transition-colors",
                     isActive ? "bg-primary-foreground/20" : "bg-muted group-hover:bg-accent"
                   )}>
-                    <Icon className="size-4" />
+                  <Icon className="size-4" />
                   </div>
                   <div className="flex-1">
                     <div className="font-medium">{item.label}</div>

@@ -72,10 +72,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Display Name</Label>
+      <div className="space-y-2">
+        <Label htmlFor="name">Display Name</Label>
               <Input
                 id="name"
                 name="name"
@@ -84,11 +84,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 required
                 className="h-11"
               />
-              <p className="text-xs text-muted-foreground">Your name as it appears on your profile</p>
-            </div>
+        <p className="text-xs text-muted-foreground">Your name as it appears on your profile</p>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+      <div className="space-y-2">
+        <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 name="username"
@@ -99,12 +99,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 minLength={3}
                 className="h-11"
               />
-              <p className="text-xs text-muted-foreground">Your unique handle. Letters, numbers, underscores, and hyphens only.</p>
+        <p className="text-xs text-muted-foreground">Your unique handle. Letters, numbers, underscores, and hyphens only.</p>
             </div>
-          </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+      <div className="space-y-2">
+        <Label htmlFor="bio">Bio</Label>
             <Textarea
               id="bio"
               name="bio"
@@ -113,12 +113,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
               maxLength={160}
               rows={3}
             />
-            <p className="text-xs text-muted-foreground">Brief description for your profile. Max 160 characters.</p>
-          </div>
+        <p className="text-xs text-muted-foreground">Brief description for your profile. Max 160 characters.</p>
+      </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="pronouns">Pronouns</Label>
+      <div className="space-y-2">
+        <Label htmlFor="pronouns">Pronouns</Label>
               <Input
                 id="pronouns"
                 name="pronouns"
@@ -126,10 +126,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 placeholder="e.g., they/them, she/her, he/him"
                 className="h-11"
               />
-            </div>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+      <div className="space-y-2">
+        <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
                 name="location"
@@ -138,11 +138,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 className="h-11"
               />
             </div>
-          </div>
+      </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
+      <div className="space-y-2">
+        <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
                 name="website"
@@ -151,10 +151,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 placeholder="https://yourwebsite.com"
                 className="h-11"
               />
-            </div>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
+      <div className="space-y-2">
+        <Label htmlFor="company">Company</Label>
               <Input
                 id="company"
                 name="company"
@@ -163,10 +163,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 className="h-11"
               />
             </div>
-          </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="gitEmail">Git Email</Label>
+      <div className="space-y-2">
+        <Label htmlFor="gitEmail">Git Email</Label>
             <Input
               id="gitEmail"
               name="gitEmail"
@@ -175,8 +175,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
               placeholder="Email for git commits"
               className="h-11"
             />
-            <p className="text-xs text-muted-foreground">Email address used for git commits. Defaults to your account email if not set.</p>
-          </div>
+        <p className="text-xs text-muted-foreground">Email address used for git commits. Defaults to your account email if not set.</p>
+      </div>
 
           {error && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-3">
@@ -194,16 +194,16 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
           <div className="flex items-center gap-4 pt-2">
             <Button type="submit" disabled={isPending} className="h-11 px-6">
-              {isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
-              Save Changes
-            </Button>
+        {isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
+        Save Changes
+      </Button>
             {success && (
               <span className="text-sm text-green-600 font-medium animate-in fade-in slide-in-from-left-2">
                 Saved!
               </span>
             )}
           </div>
-        </form>
+    </form>
       </CardContent>
     </Card>
   );

@@ -77,7 +77,7 @@ function LoginPage() {
         <CardHeader className="space-y-1 text-center pb-6">
           <div className="mx-auto size-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-xl shadow-lg shadow-primary/20 mb-4">
             σ
-          </div>
+        </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>
             Sign in to your account to continue
@@ -86,27 +86,27 @@ function LoginPage() {
 
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+          <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
                 Email address
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  required
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
                   className="pl-10 h-11"
-                />
-              </div>
+            />
+          </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
                 </Label>
@@ -114,22 +114,22 @@ function LoginPage() {
                   to="/forgot-password"
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Forgot password?
-                </Link>
-              </div>
+                Forgot password?
+              </Link>
+            </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              required
                   className="pl-10 h-11"
-                />
-              </div>
+            />
+          </div>
             </div>
 
             <Button
@@ -137,25 +137,25 @@ function LoginPage() {
               disabled={loading || passkeyLoading}
               className="w-full h-11 text-base"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
+            {loading ? (
+              <>
+                <Loader2 className="size-4 mr-2 animate-spin" />
+                Signing in...
+              </>
+            ) : (
                 <>
                   Sign in
                   <ArrowRight className="size-4 ml-2" />
                 </>
-              )}
-            </Button>
-          </form>
+            )}
+          </Button>
+        </form>
 
           <div className="relative">
-            <div className="absolute inset-0 flex items-center">
+          <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border/50" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
@@ -168,10 +168,10 @@ function LoginPage() {
               disabled={loading || passkeyLoading}
               className="h-11"
             >
-              {passkeyLoading ? (
-                <Loader2 className="size-4 mr-2 animate-spin" />
-              ) : (
-                <Fingerprint className="size-4 mr-2" />
+          {passkeyLoading ? (
+              <Loader2 className="size-4 mr-2 animate-spin" />
+          ) : (
+              <Fingerprint className="size-4 mr-2" />
               )}
               Passkey
             </Button>
@@ -184,19 +184,19 @@ function LoginPage() {
             >
               <Github className="size-4 mr-2" />
               GitHub
-            </Button>
-          </div>
+        </Button>
+      </div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4 pt-2">
           <div className="text-center text-sm text-muted-foreground">
-            New to sigmagit?{" "}
+          New to sigmagit?{" "}
             <Link
               to="/register"
               className="text-primary hover:underline font-medium transition-colors"
             >
-              Create an account
-            </Link>
+            Create an account
+          </Link>
           </div>
         </CardFooter>
       </Card>

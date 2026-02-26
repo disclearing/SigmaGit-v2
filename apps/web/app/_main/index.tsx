@@ -52,24 +52,24 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
           <Card className="overflow-hidden">
             <div className="h-20 bg-gradient-to-br from-primary/20 to-primary/5" />
             <CardContent className="-mt-10 pb-6">
-              {userLoading ? (
+          {userLoading ? (
                 <div className="animate-pulse">
                   <div className="size-20 rounded-full bg-muted mb-3" />
                   <div className="h-5 w-32 bg-muted rounded mb-2" />
                   <div className="h-4 w-24 bg-muted rounded" />
-                </div>
-              ) : (
+            </div>
+          ) : (
                 <>
                   <Avatar className="size-20 rounded-full border-4 border-background shadow-lg">
-                    <AvatarImage src={user?.avatarUrl || undefined} />
+                <AvatarImage src={user?.avatarUrl || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground font-bold text-2xl">
                       {user?.name?.charAt(0).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                </AvatarFallback>
+              </Avatar>
                   <div className="mt-3">
                     <h2 className="font-bold text-lg">{user?.name}</h2>
                     <p className="text-muted-foreground text-sm">@{username}</p>
-                  </div>
+              </div>
                   <div className="mt-4 flex gap-2">
                     <Link to="/$username" params={{ username }} className="flex-1">
                       <Button variant="outline" size="sm" className="w-full">
@@ -81,9 +81,9 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
                         Settings
                       </Button>
                     </Link>
-                  </div>
+            </div>
                 </>
-              )}
+          )}
             </CardContent>
           </Card>
 
@@ -126,16 +126,16 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <GitBranch className="size-8 text-primary" />
+              <GitBranch className="size-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">No repositories yet</h3>
+              <h3 className="text-lg font-semibold mb-2">No repositories yet</h3>
                 <p className="text-muted-foreground mb-6 max-w-sm">
                   Create your first repository to start building something awesome
                 </p>
                 <Button size="lg" className="gap-2" onClick={() => setNewRepoModalOpen(true)}>
                   <Plus className="size-4" />
-                  Create repository
-                </Button>
+                Create repository
+              </Button>
               </CardContent>
             </Card>
           ) : (
@@ -198,30 +198,30 @@ function LandingPage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 text-primary mb-8">
               <Sparkles className="size-4" />
               <span className="text-sm font-medium">Now with AI-powered code review</span>
-            </div>
+          </div>
 
             {/* Heading */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
               Where code lives
-            </h1>
+          </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              A modern Git hosting platform built for developers. Host your code, collaborate with your team, and ship faster.
-            </p>
+            A modern Git hosting platform built for developers. Host your code, collaborate with your team, and ship faster.
+          </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link to="/register">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <Link to="/register">
                 <Button size="lg" className="h-14 px-8 text-lg gap-2">
                   Get started for free
                   <ArrowRight className="size-5" />
                 </Button>
-              </Link>
-              <Link to="/login">
+            </Link>
+            <Link to="/login">
                 <Button size="lg" variant="outline" className="h-14 px-8 text-lg">
                   Sign in
                 </Button>
-              </Link>
-            </div>
+            </Link>
+          </div>
 
             {/* Code preview card */}
             <div className="relative mx-auto max-w-3xl">
@@ -236,13 +236,13 @@ function LandingPage() {
                   <div className="flex-1 text-center">
                     <span className="text-xs text-muted-foreground">terminal</span>
                   </div>
-                </div>
+              </div>
                 <CardContent className="p-6 text-left font-mono text-sm">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary">$</span>
-                      <span className="text-foreground">git clone git@sigmagit.com:username/repo.git</span>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-primary">$</span>
+                  <span className="text-foreground">git clone git@sigmagit.com:username/repo.git</span>
+                </div>
                     <div className="flex items-center gap-2">
                       <span className="text-green-500">Cloning into 'repo'...</span>
                     </div>
@@ -253,15 +253,15 @@ function LandingPage() {
                       <span className="text-primary">$</span>
                       <span className="text-foreground">cd repo</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary">$</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-primary">$</span>
                       <span className="text-muted-foreground"># Start building something amazing...</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary">$</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-primary">$</span>
                       <span className="animate-pulse">_</span>
-                    </div>
-                  </div>
+                </div>
+              </div>
                 </CardContent>
               </Card>
             </div>
@@ -333,21 +333,21 @@ function LandingPage() {
           <div className="relative rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-12 lg:p-16 text-center overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
             <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to get started?</h2>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of developers already using sigmagit to build amazing things.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to get started?</h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join thousands of developers already using sigmagit to build amazing things.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/register">
                   <Button size="lg" className="h-14 px-8 text-lg">
                     Create your account
                   </Button>
-                </Link>
-                <Link to="/explore">
+            </Link>
+            <Link to="/explore">
                   <Button size="lg" variant="outline" className="h-14 px-8 text-lg">
                     Explore repositories
                   </Button>
-                </Link>
+            </Link>
               </div>
             </div>
           </div>

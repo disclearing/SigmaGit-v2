@@ -66,12 +66,12 @@ function StatCard({ title, value, icon: Icon, subtitle, trend, color = "blue", h
               <Icon className="size-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
               <p className="text-3xl font-bold mt-1">{value.toLocaleString()}</p>
-              {subtitle && (
+            {subtitle && (
                 <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-              )}
-              {trend && (
+            )}
+            {trend && (
                 <div className="flex items-center gap-1 mt-2">
                   <Badge
                     variant="outline"
@@ -84,8 +84,8 @@ function StatCard({ title, value, icon: Icon, subtitle, trend, color = "blue", h
                   </Badge>
                   <span className="text-xs text-muted-foreground">{trend.label}</span>
                 </div>
-              )}
-            </div>
+            )}
+          </div>
           </div>
           {href && (
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -147,8 +147,8 @@ function AdminDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-2">
             Welcome back! Here's what's happening on your platform.
           </p>

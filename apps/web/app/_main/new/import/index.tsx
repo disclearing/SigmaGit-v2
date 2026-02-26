@@ -290,7 +290,7 @@ function ImportRepositoryPage() {
               {activeSource.requiresAuth && (
                 <div className="space-y-4 pt-4 border-t border-border/50">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                       <Shield className="size-4 text-muted-foreground" />
                       <Label className="text-sm font-semibold">Authentication</Label>
                     </div>
@@ -388,102 +388,102 @@ function ImportRepositoryPage() {
                           </div>
                         </div>
                       )}
-                    </div>
+                </div>
                   )}
                 </div>
               )}
 
               {/* Source Input */}
-              {formData.source === "url" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="sourceUrl" className="text-sm font-semibold">
+        {formData.source === "url" ? (
+          <div className="space-y-2">
+            <Label htmlFor="sourceUrl" className="text-sm font-semibold">
                     Repository URL <span className="text-destructive">*</span>
-                  </Label>
+            </Label>
                   <div className="relative">
                     <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                    <Input
-                      id="sourceUrl"
-                      value={formData.sourceUrl}
-                      onChange={(e) => setFormData({ ...formData, sourceUrl: e.target.value })}
+            <Input
+              id="sourceUrl"
+              value={formData.sourceUrl}
+              onChange={(e) => setFormData({ ...formData, sourceUrl: e.target.value })}
                       placeholder={activeSource.placeholder}
-                      required
+              required
                       className="h-12 pl-10"
-                      autoFocus
-                    />
+              autoFocus
+            />
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Enter the full Git repository URL (HTTPS or SSH)
                   </p>
-                </div>
-              ) : (
+          </div>
+        ) : (
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="sourceOwner" className="text-sm font-semibold">
+            <div className="space-y-2">
+              <Label htmlFor="sourceOwner" className="text-sm font-semibold">
                       Owner / Organization <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="sourceOwner"
-                      value={formData.sourceOwner}
-                      onChange={(e) => setFormData({ ...formData, sourceOwner: e.target.value })}
+              </Label>
+              <Input
+                id="sourceOwner"
+                value={formData.sourceOwner}
+                onChange={(e) => setFormData({ ...formData, sourceOwner: e.target.value })}
                       placeholder="e.g., facebook"
-                      required
+                required
                       className="h-12"
-                      autoFocus
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sourceRepo" className="text-sm font-semibold">
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sourceRepo" className="text-sm font-semibold">
                       Repository name <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="sourceRepo"
-                      value={formData.sourceRepo}
-                      onChange={(e) => setFormData({ ...formData, sourceRepo: e.target.value })}
+              </Label>
+              <Input
+                id="sourceRepo"
+                value={formData.sourceRepo}
+                onChange={(e) => setFormData({ ...formData, sourceRepo: e.target.value })}
                       placeholder="e.g., react"
-                      required
+                required
                       className="h-12"
-                    />
-                  </div>
-                </div>
-              )}
+              />
+            </div>
+          </div>
+        )}
 
               {/* Repository Details */}
               <div className="space-y-4 pt-4 border-t border-border/50">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-semibold">
                     New repository name{" "}
                     <span className="text-muted-foreground font-normal">(optional)</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          </Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Leave empty to use source name"
                     className="h-12"
-                  />
+          />
                   <p className="text-xs text-muted-foreground">
                     If left empty, the source repository name will be used
                   </p>
-                </div>
+        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="description" className="text-sm font-semibold">
                     Description{" "}
                     <span className="text-muted-foreground font-normal">(optional)</span>
-                  </Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          </Label>
+          <Input
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="What's this repository about?"
                     className="h-12"
-                  />
+          />
                 </div>
-              </div>
+        </div>
 
               {/* Visibility */}
               <div className="space-y-3 pt-4 border-t border-border/50">
-                <Label className="text-sm font-semibold">Visibility</Label>
+          <Label className="text-sm font-semibold">Visibility</Label>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div
                     className={cn(
@@ -499,21 +499,21 @@ function ImportRepositoryPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="visibility"
-                          value="public"
-                          checked={formData.visibility === "public"}
-                          onChange={() => setFormData({ ...formData, visibility: "public" })}
+              <input
+                type="radio"
+                name="visibility"
+                value="public"
+                checked={formData.visibility === "public"}
+                onChange={() => setFormData({ ...formData, visibility: "public" })}
                           className="size-4"
-                        />
+              />
                         <span className="font-semibold">Public</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Anyone can see this repository
                       </p>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
                   <div
                     className={cn(
@@ -529,83 +529,83 @@ function ImportRepositoryPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="visibility"
-                          value="private"
-                          checked={formData.visibility === "private"}
-                          onChange={() => setFormData({ ...formData, visibility: "private" })}
+              <input
+                type="radio"
+                name="visibility"
+                value="private"
+                checked={formData.visibility === "private"}
+                onChange={() => setFormData({ ...formData, visibility: "private" })}
                           className="size-4"
-                        />
+              />
                         <span className="font-semibold">Private</span>
-                      </div>
+                </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Only you can see this repository
                       </p>
-                    </div>
-                  </div>
-                </div>
               </div>
+                  </div>
+          </div>
+        </div>
 
               {/* Import Options */}
               <div className="space-y-4 pt-4 border-t border-border/50">
-                <Label className="text-sm font-semibold">Import options</Label>
+          <Label className="text-sm font-semibold">Import options</Label>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <label className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors cursor-pointer">
-                    <Checkbox
-                      id="importIssues"
-                      checked={formData.importIssues}
+              <Checkbox
+                id="importIssues"
+                checked={formData.importIssues}
                       onCheckedChange={(checked) =>
                         setFormData({ ...formData, importIssues: checked as boolean })
                       }
-                    />
+              />
                     <div className="flex items-center gap-2">
                       <MessageSquare className="size-4 text-muted-foreground" />
                       <span className="text-sm">Issues</span>
-                    </div>
+            </div>
                   </label>
                   <label className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors cursor-pointer">
-                    <Checkbox
-                      id="importPRs"
-                      checked={formData.importPRs}
+              <Checkbox
+                id="importPRs"
+                checked={formData.importPRs}
                       onCheckedChange={(checked) =>
                         setFormData({ ...formData, importPRs: checked as boolean })
                       }
-                    />
+              />
                     <div className="flex items-center gap-2">
                       <GitBranch className="size-4 text-muted-foreground" />
                       <span className="text-sm">Pull requests</span>
-                    </div>
+            </div>
                   </label>
                   <label className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors cursor-pointer">
-                    <Checkbox
-                      id="importLabels"
-                      checked={formData.importLabels}
+              <Checkbox
+                id="importLabels"
+                checked={formData.importLabels}
                       onCheckedChange={(checked) =>
                         setFormData({ ...formData, importLabels: checked as boolean })
                       }
-                    />
+              />
                     <div className="flex items-center gap-2">
                       <Tag className="size-4 text-muted-foreground" />
                       <span className="text-sm">Labels</span>
-                    </div>
+            </div>
                   </label>
-                </div>
-              </div>
+          </div>
+        </div>
             </CardContent>
           </Card>
 
           {/* Actions */}
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
+          <Button
+            type="button"
+            variant="outline"
               size="lg"
-              onClick={() => navigate({ to: "/" })}
-              disabled={createMigration.isPending}
-            >
-              Cancel
-            </Button>
+            onClick={() => navigate({ to: "/" })}
+            disabled={createMigration.isPending}
+          >
+            Cancel
+          </Button>
             <Button
               type="submit"
               size="lg"
@@ -613,19 +613,19 @@ function ImportRepositoryPage() {
               onClick={handleSubmit}
               className="gap-2"
             >
-              {createMigration.isPending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
+            {createMigration.isPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
                   Starting import...
-                </>
-              ) : (
-                <>
-                  <Download className="size-4" />
+              </>
+            ) : (
+              <>
+                <Download className="size-4" />
                   Begin import
-                </>
-              )}
-            </Button>
-          </div>
+              </>
+            )}
+          </Button>
+        </div>
         </div>
 
         {/* Sidebar Info */}

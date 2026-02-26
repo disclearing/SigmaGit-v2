@@ -48,17 +48,17 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-1 text-sm">
             {isRepoPage && username && repoName ? (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
-                <Link
-                  to="/$username"
-                  params={{ username }}
+                <Link 
+                  to="/$username" 
+                  params={{ username }} 
                   className="text-muted-foreground hover:text-primary transition-colors font-medium"
                 >
                   {username}
                 </Link>
                 <span className="text-muted-foreground/50">/</span>
-                <Link
-                  to="/$username/$repo"
-                  params={{ username, repo: repoName }}
+                <Link 
+                  to="/$username/$repo" 
+                  params={{ username, repo: repoName }} 
                   className="text-foreground hover:text-primary transition-colors font-semibold"
                 >
                   {repoName}
@@ -66,21 +66,21 @@ export function Header() {
               </div>
             ) : (
               <>
-                <Link
-                  to="/explore"
+                <Link 
+                  to="/explore" 
                   className="px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
                 >
                   Explore
                 </Link>
-                <Link
-                  to="/gists"
+                <Link 
+                  to="/gists" 
                   className="px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
                 >
                   Gists
                 </Link>
                 {isAdmin && (
-                  <Link
-                    to="/admin"
+                  <Link 
+                    to="/admin" 
                     className="px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
                   >
                     Admin
@@ -120,9 +120,9 @@ export function Header() {
             <>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
                     className="relative rounded-lg"
                     title="Create new"
                   >
@@ -130,7 +130,7 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72 p-2">
-                  <DropdownMenuItem
+                  <DropdownMenuItem 
                     onClick={() => setNewRepoModalOpen(true)}
                     className="cursor-pointer rounded-lg px-3 py-3"
                   >
@@ -144,7 +144,7 @@ export function Header() {
                       </div>
                     </div>
                   </DropdownMenuItem>
-                  <DropdownMenuItem
+                  <DropdownMenuItem 
                     asChild
                     className="cursor-pointer rounded-lg px-3 py-3"
                   >
@@ -201,7 +201,7 @@ export function Header() {
                       </p>
                     </div>
                   </div>
-
+                  
                   <div className="space-y-0.5">
                     <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
                       <Link
@@ -215,7 +215,7 @@ export function Header() {
                         <span>Your profile</span>
                       </Link>
                     </DropdownMenuItem>
-
+                    
                     <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
                       <Link to="/settings" className="flex items-center gap-3 w-full">
                         <Settings className="size-4 text-muted-foreground" />
@@ -225,8 +225,8 @@ export function Header() {
                   </div>
 
                   <DropdownMenuSeparator className="my-2" />
-
-                  <DropdownMenuItem
+                  
+                  <DropdownMenuItem 
                     onClick={handleSignOut}
                     className="cursor-pointer rounded-lg px-3 py-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center gap-3"
                   >

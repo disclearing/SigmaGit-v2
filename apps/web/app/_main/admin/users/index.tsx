@@ -63,7 +63,7 @@ function AdminUsers() {
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     try {
-      await updateUser.mutateAsync({ id: userId, data: { role: newRole } });
+    await updateUser.mutateAsync({ id: userId, data: { role: newRole } });
       toast.success(`User role updated to ${newRole}`);
     } catch {
       toast.error("Failed to update user role");
@@ -73,7 +73,7 @@ function AdminUsers() {
   const handleDeleteUser = async (userId: string, username: string) => {
     if (confirm(`Are you sure you want to delete user @${username}? This action cannot be undone.`)) {
       try {
-        await deleteUser.mutateAsync(userId);
+      await deleteUser.mutateAsync(userId);
         toast.success(`User @${username} deleted`);
       } catch {
         toast.error("Failed to delete user");
@@ -95,10 +95,10 @@ function AdminUsers() {
               <Skeleton className="h-12 w-40" />
             </div>
             <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-20" />
-              ))}
-            </div>
+            ))}
+          </div>
           </CardContent>
         </Card>
       </div>
@@ -124,8 +124,8 @@ function AdminUsers() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground mt-2">
             Manage {data?.users?.length || 0} platform users, roles, and permissions
           </p>
@@ -143,37 +143,37 @@ function AdminUsers() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
                 placeholder="Search by name, username, or email..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(0);
-                }}
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
                 className="pl-10 h-12"
-              />
-            </div>
+          />
+        </div>
             <div className="flex gap-2">
-              <Select
-                value={role}
-                onValueChange={(value) => {
-                  setRole(value);
-                  setPage(0);
-                }}
-              >
+        <Select
+          value={role}
+          onValueChange={(value) => {
+            setRole(value);
+            setPage(0);
+          }}
+        >
                 <SelectTrigger className="w-44 h-12">
                   <Filter className="size-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="All roles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All roles</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+            <SelectValue placeholder="All roles" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All roles</SelectItem>
+            <SelectItem value="user">User</SelectItem>
                   <SelectItem value="moderator">Moderator</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
           </div>
         </CardContent>
       </Card>
@@ -192,61 +192,61 @@ function AdminUsers() {
         </CardHeader>
         <CardContent>
           <div className="rounded-xl border border-border overflow-hidden">
-            <table className="w-full">
-              <thead>
+          <table className="w-full">
+            <thead>
                 <tr className="bg-muted/50 border-b border-border">
-                  <th className="text-left p-4 font-semibold text-sm">User</th>
-                  <th className="text-left p-4 font-semibold text-sm">Email</th>
-                  <th className="text-left p-4 font-semibold text-sm">Role</th>
-                  <th className="text-left p-4 font-semibold text-sm">Joined</th>
-                  <th className="text-right p-4 font-semibold text-sm">Actions</th>
-                </tr>
-              </thead>
+                <th className="text-left p-4 font-semibold text-sm">User</th>
+                <th className="text-left p-4 font-semibold text-sm">Email</th>
+                <th className="text-left p-4 font-semibold text-sm">Role</th>
+                <th className="text-left p-4 font-semibold text-sm">Joined</th>
+                <th className="text-right p-4 font-semibold text-sm">Actions</th>
+              </tr>
+            </thead>
               <tbody className="divide-y divide-border">
-                {data?.users && data.users.length > 0 ? (
+              {data?.users && data.users.length > 0 ? (
                   data.users.map((user) => {
                     const roleStyle = roleConfig[user.role as keyof typeof roleConfig] || roleConfig.user;
                     const RoleIcon = roleStyle.icon;
                     return (
                       <tr key={user.id} className="hover:bg-accent/30 transition-colors">
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={user.avatarUrl || undefined} />
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user.avatarUrl || undefined} />
                               <AvatarFallback className="text-sm font-semibold bg-gradient-to-br from-muted to-muted/50">
                                 {user.name.charAt(0)}
                               </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{user.name}</div>
-                              <div className="text-sm text-muted-foreground">@{user.username}</div>
-                            </div>
-                          </div>
-                        </td>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{user.name}</div>
+                          <div className="text-sm text-muted-foreground">@{user.username}</div>
+                        </div>
+                      </div>
+                    </td>
                         <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
-                        <td className="p-4">
+                    <td className="p-4">
                           <Badge
                             variant="outline"
                             className={cn("gap-1.5 font-medium", roleStyle.color)}
                           >
                             <RoleIcon className="size-3" />
-                            {user.role}
-                          </Badge>
-                        </td>
-                        <td className="p-4 text-sm text-muted-foreground">
+                        {user.role}
+                      </Badge>
+                    </td>
+                    <td className="p-4 text-sm text-muted-foreground">
                           {new Date(user.createdAt).toLocaleDateString(undefined, {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
                           })}
-                        </td>
-                        <td className="p-4">
-                          <div className="flex justify-end gap-2">
-                            <Link to={`/admin/users/${user.id}`}>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-end gap-2">
+                        <Link to={`/admin/users/${user.id}`}>
                               <Button variant="ghost" size="icon" className="size-9">
                                 <Eye className="size-4" />
-                              </Button>
-                            </Link>
+                          </Button>
+                        </Link>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="size-9">
@@ -265,7 +265,7 @@ function AdminUsers() {
                                 <DropdownMenuItem
                                   onClick={() => handleUpdateRole(user.id, "user")}
                                   className={cn(user.role === "user" && "bg-accent")}
-                                >
+                        >
                                   <User className="size-4 mr-2" />
                                   User
                                   {user.role === "user" && <CheckCircle2 className="size-3 ml-auto" />}
@@ -288,9 +288,9 @@ function AdminUsers() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => handleDeleteUser(user.id, user.username)}
+                          onClick={() => handleDeleteUser(user.id, user.username)}
                                   className="text-destructive focus:text-destructive gap-2"
-                                >
+                        >
                                   <Trash2 className="size-4" />
                                   Delete User
                                 </DropdownMenuItem>
@@ -315,12 +315,12 @@ function AdminUsers() {
                           </p>
                         </div>
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         </CardContent>
       </Card>
 

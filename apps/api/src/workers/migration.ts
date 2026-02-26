@@ -118,11 +118,11 @@ export async function processMigration(migrationId: string) {
     if (existing) throw new Error("Repository with this name already exists");
 
     const [repo] = await db.insert(repositories).values({
-      name: normalizedName,
-      description: migration.options?.description || null,
-      visibility: (migration.options?.visibility as "public" | "private") || "public",
-      ownerId: user.id,
-      organizationId: migration.options?.organizationId || null,
+        name: normalizedName,
+        description: migration.options?.description || null,
+        visibility: (migration.options?.visibility as "public" | "private") || "public",
+        ownerId: user.id,
+        organizationId: migration.options?.organizationId || null,
     }).returning();
 
     const targetPrefix = getRepoPrefix(user.id, normalizedName);
@@ -130,7 +130,7 @@ export async function processMigration(migrationId: string) {
     await putObject(`${targetPrefix}/HEAD`, headContent);
     const configContent = await Bun.file(join(tempRepoPath, "config")).text().catch(() => "[core]\n\tbare = true\n");
     await putObject(`${targetPrefix}/config`, configContent);
-
+    
     const objectsPath = join(tempRepoPath, "objects");
     try {
       const { readdir, readFile } = await import("fs/promises");

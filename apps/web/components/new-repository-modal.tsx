@@ -64,7 +64,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
   }
 
   const username = (session.user as { username?: string }).username || "";
-  const ownerUsername = formData.organizationId
+  const ownerUsername = formData.organizationId 
     ? organizations.find((o) => o.id === formData.organizationId)?.name || username
     : username;
 
@@ -189,14 +189,14 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="public"
-                    checked={formData.visibility === "public"}
-                    onChange={() => setFormData({ ...formData, visibility: "public" })}
+              <input
+                type="radio"
+                name="visibility"
+                value="public"
+                checked={formData.visibility === "public"}
+                onChange={() => setFormData({ ...formData, visibility: "public" })}
                     className="size-4 text-primary"
-                  />
+              />
                   <span className="font-semibold text-sm">Public</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -219,14 +219,14 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="private"
-                    checked={formData.visibility === "private"}
-                    onChange={() => setFormData({ ...formData, visibility: "private" })}
+              <input
+                type="radio"
+                name="visibility"
+                value="private"
+                checked={formData.visibility === "private"}
+                onChange={() => setFormData({ ...formData, visibility: "private" })}
                     className="size-4 text-primary"
-                  />
+              />
                   <span className="font-semibold text-sm">Private</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">

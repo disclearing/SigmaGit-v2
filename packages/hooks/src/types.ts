@@ -451,8 +451,9 @@ export type RepositoryMigration = {
   id: string;
   repositoryId: string | null;
   userId: string;
-  source: "github" | "gitlab" | "bitbucket" | "url";
+  source: "github" | "gitlab" | "bitbucket" | "gitea" | "url";
   sourceUrl: string;
+  sourceBaseUrl: string | null; // For self-hosted GitLab/Gitea
   sourceOwner: string | null;
   sourceRepo: string | null;
   status: "pending" | "cloning" | "importing" | "completed" | "failed";
@@ -467,6 +468,17 @@ export type RepositoryMigration = {
   };
   startedAt: string | null;
   completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MigrationCredentials = {
+  id: string;
+  migrationId: string;
+  authToken?: string;
+  authType: "token" | "password" | "ssh_key";
+  sshKey?: string;
+  sshKeyPassphrase?: string;
   createdAt: string;
   updatedAt: string;
 };

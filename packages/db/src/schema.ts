@@ -1257,8 +1257,9 @@ export const repositoryMigrations = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    source: text("source", { enum: ["github", "gitlab", "bitbucket", "url"] }).notNull(),
+    source: text("source", { enum: ["github", "gitlab", "bitbucket", "gitea", "url"] }).notNull(),
     sourceUrl: text("source_url").notNull(),
+    sourceBaseUrl: text("source_base_url"), // For self-hosted GitLab/Gitea instances
     sourceOwner: text("source_owner"),
     sourceRepo: text("source_repo"),
     status: text("status", { enum: ["pending", "cloning", "importing", "completed", "failed"] }).notNull().default("pending"),
@@ -1282,6 +1283,28 @@ export const repositoryMigrations = pgTable(
   ]
 );
 
+// Separate table for encrypted migration credentials
+export const migrationCredentials = pgTable(
+  "migration_credentials",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    migrationId: uuid("migration_id")
+      .notNull()
+      .references(() => repositoryMigrations.id, { onDelete: "cascade" }),
+    // Encrypted authentication token/password
+    authToken: text("auth_token"),
+    authType: text("auth_type", { enum: ["token", "password", "ssh_key"] }).default("token"),
+    // For SSH key imports
+    sshKey: text("ssh_key"),
+    sshKeyPassphrase: text("ssh_key_passphrase"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("migration_creds_migration_id_idx").on(table.migrationId),
+  ]
+);
+
 export const repositoryMigrationRelations = relations(repositoryMigrations, ({ one }) => ({
   repository: one(repositories, {
     fields: [repositoryMigrations.repositoryId],
@@ -1290,6 +1313,17 @@ export const repositoryMigrationRelations = relations(repositoryMigrations, ({ o
   user: one(users, {
     fields: [repositoryMigrations.userId],
     references: [users.id],
+  }),
+  credentials: one(migrationCredentials, {
+    fields: [repositoryMigrations.id],
+    references: [migrationCredentials.migrationId],
+  }),
+}));
+
+export const migrationCredentialRelations = relations(migrationCredentials, ({ one }) => ({
+  migration: one(repositoryMigrations, {
+    fields: [migrationCredentials.migrationId],
+    references: [repositoryMigrations.id],
   }),
 }));
 

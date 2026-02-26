@@ -545,7 +545,7 @@ export type OrganizationInvitation = {
 
 export type ApiClient = {
   repositories: {
-    create: (data: { name: string; description?: string; visibility: "public" | "private" }) => Promise<Repository>;
+    create: (data: { name: string; description?: string; visibility: "public" | "private"; organizationId?: string }) => Promise<Repository>;
     fork: (owner: string, name: string, data?: { name?: string; description?: string }) => Promise<RepoInfo>;
     getForks: (owner: string, name: string, limit?: number, offset?: number) => Promise<{ forks: RepositoryWithOwner[] }>;
     get: (owner: string, name: string) => Promise<RepositoryWithOwner>;

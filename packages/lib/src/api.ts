@@ -808,7 +808,26 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     },
 
     organizations: {
-      list: () => apiFetch<{ organizations: Organization[]; hasMore?: boolean }>("/api/organizations"),
+      list: async () => {
+        const data = await apiFetch<{
+          organizations: Array<
+            | Organization
+            | {
+                organization: Organization;
+                role: "owner" | "admin" | "member";
+                joinedAt: string;
+              }
+          >;
+          hasMore?: boolean;
+        }>("/api/user/organizations");
+
+        // Normalize API shape to a plain Organization[] for hook/UI consumers.
+        const organizations = data.organizations.map((entry) =>
+          "organization" in entry ? entry.organization : entry
+        );
+
+        return { organizations, hasMore: data.hasMore };
+      },
 
       get: (org: string) => apiFetch<Organization>(`/api/organizations/${org}`),
 

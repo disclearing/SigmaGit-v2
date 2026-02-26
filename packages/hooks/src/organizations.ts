@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "./context";
 
-export function useOrganizations(includeDrafts = false) {
+export function useOrganizations(enabled = true) {
   const api = useApi();
   return useQuery({
     queryKey: ["organizations", "mine"],
     queryFn: () => api.organizations?.list?.() ?? Promise.resolve({ organizations: [], hasMore: false }),
-    enabled: includeDrafts,
+    enabled,
   });
 }
 

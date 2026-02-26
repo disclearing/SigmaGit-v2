@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Globe, Loader2, Lock, GitBranch, BookOpen, Shield } from "lucide-react";
+import { Globe, Loader2, Lock, GitBranch } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useCreateRepository, useCurrentUser, useOrganizations } from "@sigmagit/hooks";
@@ -16,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface NewRepositoryModalProps {
@@ -34,7 +33,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
     name: "",
     description: "",
     visibility: "public" as "public" | "private",
-    organizationId: "" as string | "",
+    organizationId: "personal" as string,
   });
 
   const organizations = orgsData?.organizations || [];
@@ -54,7 +53,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
         name: "",
         description: "",
         visibility: currentUser?.user.defaultRepositoryVisibility as "public" | "private" || "public",
-        organizationId: "",
+        organizationId: "personal",
       });
     }
   }, [open, currentUser?.user.defaultRepositoryVisibility]);
@@ -64,7 +63,11 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
   }
 
   const username = (session.user as { username?: string }).username || "";
-  const ownerUsername = formData.organizationId 
+  const selectedOwnerLabel =
+    formData.organizationId === "personal"
+      ? `${username} (Personal)`
+      : organizations.find((o) => o.id === formData.organizationId)?.displayName || username;
+  const ownerUsername = formData.organizationId !== "personal"
     ? organizations.find((o) => o.id === formData.organizationId)?.name || username
     : username;
 
@@ -76,7 +79,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
         name: formData.name,
         description: formData.description || undefined,
         visibility: formData.visibility,
-        organizationId: formData.organizationId || undefined,
+        organizationId: formData.organizationId === "personal" ? undefined : formData.organizationId,
       },
       {
         onSuccess: () => {
@@ -119,13 +122,13 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
                 </Label>
                 <Select
                   value={formData.organizationId}
-                  onValueChange={(value) => setFormData({ ...formData, organizationId: value || "" })}
+                  onValueChange={(value) => setFormData({ ...formData, organizationId: value })}
                 >
                   <SelectTrigger id="owner" className="h-11">
-                    <SelectValue placeholder="Select owner" />
+                    <SelectValue>{selectedOwnerLabel}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{username} (Personal)</SelectItem>
+                    <SelectItem value="personal">{username} (Personal)</SelectItem>
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.displayName}

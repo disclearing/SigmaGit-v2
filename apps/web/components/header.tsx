@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { signOut, useSession } from "@/lib/auth-client";
 import { useCurrentUserSummary } from "@sigmagit/hooks";
 import { Link, useNavigate, useLocation, useParams } from "@tanstack/react-router";
-import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User, FileText, Download, GitBranch, Search, Menu, X } from "lucide-react";
+import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User, FileText, Download, GitBranch, Search, Menu, X, Building2 } from "lucide-react";
 import { useTheme } from "tanstack-theme-kit";
 import { NewRepositoryModal } from "@/components/new-repository-modal";
 import { SearchBar } from "@/components/search";
@@ -155,6 +155,20 @@ export function Header() {
                       <div className="flex flex-col min-w-0">
                         <span className="font-medium leading-none">Import repository</span>
                         <span className="text-xs text-muted-foreground mt-1">Import from GitHub, GitLab, etc.</span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer rounded-lg px-3 py-3"
+                  >
+                    <Link to="/organizations/new" className="flex items-center gap-3 w-full">
+                      <div className="flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 text-violet-600 dark:text-violet-400 shrink-0">
+                        <Building2 className="size-5" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium leading-none">New organization</span>
+                        <span className="text-xs text-muted-foreground mt-1">Create an organization for teams</span>
                       </div>
                     </Link>
                   </DropdownMenuItem>

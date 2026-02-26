@@ -3,7 +3,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePublicGists } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
-import { FileText, Plus } from "lucide-react";
+import { FileCode2, Plus } from "lucide-react";
 import { timeAgo } from "@sigmagit/lib";
 
 export const Route = createFileRoute("/_main/gists/")({
@@ -12,8 +12,7 @@ export const Route = createFileRoute("/_main/gists/")({
 
 function GistsPage() {
   const { data, isLoading } = usePublicGists(20, 0);
-
-  const gists = data?.gists || [];
+  const gists = data?.gists ?? [];
 
   return (
     <div className="container max-w-[1280px] mx-auto px-4 py-6 space-y-6">
@@ -32,18 +31,18 @@ function GistsPage() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="border border-border bg-card p-4 animate-pulse">
-              <div className="h-4 w-32 bg-muted mb-2" />
-              <div className="h-3 w-24 bg-muted" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="border border-border bg-card p-4 rounded-lg animate-pulse">
+              <div className="h-4 w-32 bg-muted rounded mb-2" />
+              <div className="h-3 w-24 bg-muted rounded" />
             </div>
           ))}
         </div>
       ) : gists.length === 0 ? (
         <div className="border border-dashed border-border bg-muted/20 p-12 text-center rounded-lg">
-          <FileText className="size-12 mx-auto mb-4 text-muted-foreground/50" />
+          <FileCode2 className="size-12 mx-auto mb-4 text-muted-foreground/50" />
           <h3 className="text-lg font-semibold mb-2">No gists yet</h3>
-          <p className="text-muted-foreground mb-6">Create your first gist to share code snippets</p>
+          <p className="text-muted-foreground mb-6">Be the first to share a code snippet</p>
           <Link to="/gists/new">
             <Button className="gap-2">
               <Plus className="size-4" />
@@ -60,19 +59,13 @@ function GistsPage() {
               params={{ id: gist.id }}
               className="block border border-border bg-card rounded-lg p-4 hover:bg-muted/30 transition-colors"
             >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">
-                    {gist.description || (gist.files?.[0]?.filename || "Untitled gist")}
-                  </h3>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {gist.files?.length || 0} {gist.files?.length === 1 ? "file" : "files"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3">
-                <span>Updated {timeAgo(gist.updatedAt)}</span>
-              </div>
+              <h3 className="font-semibold truncate mb-1">
+                {gist.description || gist.files?.[0]?.filename || "Untitled gist"}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {gist.files?.length ?? 0} {gist.files?.length === 1 ? "file" : "files"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-3">Updated {timeAgo(gist.updatedAt)}</p>
             </Link>
           ))}
         </div>

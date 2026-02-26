@@ -28,10 +28,13 @@ export function getMemoryUsage(): { used: number; total: number; percent: number
   const usage = process.memoryUsage();
   const used = usage.heapUsed;
   const total = usage.heapTotal;
+  // In Bun/Node.js, heapUsed can exceed heapTotal during heap growth
+  // This is normal - cap the percentage at 1.0 for display purposes
+  const percent = total > 0 ? Math.min(used / total, 1.0) : 0;
   return {
     used,
     total,
-    percent: used / total,
+    percent,
   };
 }
 

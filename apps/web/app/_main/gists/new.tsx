@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { GIST_LANGUAGES } from "@/lib/gist-languages";
 import { getLanguage } from "@sigmagit/lib";
@@ -17,72 +16,54 @@ export const Route = createFileRoute("/_main/gists/new")({
   component: NewGistPage,
 });
 
+interface GistFile {
+  filename: string;
+  content: string;
+  language: string;
+}
+
 function NewGistPage() {
   const navigate = useNavigate();
   const createGist = useCreateGist();
-  const [fileKeys, setFileKeys] = useState<number[]>([0]);
-  const [formData, setFormData] = useState({
-    description: "",
-    visibility: "public" as "public" | "secret",
-    files: [{ filename: "", content: "", language: "" }],
-  });
+
+  const [description, setDescription] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "secret">("public");
+  const [files, setFiles] = useState<GistFile[]>([{ filename: "", content: "", language: "" }]);
 
   function addFile() {
-    const newKey = Math.max(...fileKeys, 0) + 1;
-    setFileKeys([...fileKeys, newKey]);
-    setFormData({
-      ...formData,
-      files: [...formData.files, { filename: "", content: "", language: "" }],
-    });
+    setFiles((prev) => [...prev, { filename: "", content: "", language: "" }]);
   }
 
   function removeFile(index: number) {
-    setFileKeys(fileKeys.filter((_, i) => i !== index));
-    setFormData({
-      ...formData,
-      files: formData.files.filter((_, i) => i !== index),
-    });
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function updateFile(index: number, field: "filename" | "content" | "language", value: string) {
-    const updatedFiles = formData.files.map((file, i) => {
-      if (i === index) {
+  function updateFile(index: number, field: keyof GistFile, value: string) {
+    setFiles((prev) =>
+      prev.map((file, i) => {
+        if (i !== index) return file;
         const updated = { ...file, [field]: value };
-        // Auto-detect language from filename if language is empty and filename changed
-        if (field === "filename" && !updated.language && value) {
+        if (field === "filename" && !file.language && value) {
           const detected = getLanguage(value);
-          if (detected !== "plaintext") {
-            updated.language = detected;
-          }
+          if (detected !== "plaintext") updated.language = detected;
         }
         return updated;
-      }
-      return file;
-    });
-    setFormData({
-      ...formData,
-      files: updatedFiles,
-    });
+      })
+    );
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    const validFiles = formData.files.filter((f) => f.filename && f.content);
+    const validFiles = files.filter((f) => f.filename.trim() && f.content.trim());
     if (validFiles.length === 0) {
       toast.error("At least one file with a filename and content is required");
       return;
     }
 
-    // Close any open Select dropdowns by blurring active elements
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
     createGist.mutate(
       {
-        description: formData.description || undefined,
-        visibility: formData.visibility,
+        description: description.trim() || undefined,
+        visibility,
         files: validFiles.map((f) => ({
           filename: f.filename,
           content: f.content,
@@ -92,15 +73,7 @@ function NewGistPage() {
       {
         onSuccess: (data) => {
           toast.success("Gist created!");
-          // Use requestAnimationFrame to ensure DOM updates are complete before navigation
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              navigate({
-                to: "/gists/$id",
-                params: { id: data?.id || "" },
-              });
-            }, 50);
-          });
+          navigate({ to: "/gists/$id", params: { id: (data as any)?.id ?? "" } });
         },
         onError: (err) => {
           toast.error(err instanceof Error ? err.message : "Failed to create gist");
@@ -121,27 +94,23 @@ function NewGistPage() {
           <Label htmlFor="description">Description</Label>
           <Input
             id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Gist description..."
-            className="h-10"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="visibility">Visibility</Label>
-          <Select
-            value={formData.visibility}
-            onValueChange={(value) => setFormData({ ...formData, visibility: value as "public" | "secret" })}
+          <select
+            id="visibility"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value as "public" | "secret")}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <SelectTrigger id="visibility">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">Public</SelectItem>
-              <SelectItem value="secret">Secret</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value="public">Public</option>
+            <option value="secret">Secret</option>
+          </select>
         </div>
 
         <div className="space-y-4">
@@ -153,50 +122,52 @@ function NewGistPage() {
             </Button>
           </div>
 
-          {formData.files.map((file, index) => (
-            <div key={fileKeys[index] ?? index} className="border border-border bg-card p-4 rounded-lg space-y-3">
+          {files.map((file, index) => (
+            <div key={index} className="border border-border bg-card p-4 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
-                <Label htmlFor={`filename-${index}`}>Filename</Label>
-                {formData.files.length > 1 && (
+                <Label>File {index + 1}</Label>
+                {files.length > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => removeFile(index)}
-                    className="gap-2 text-destructive"
+                    className="gap-2 text-destructive hover:text-destructive"
                   >
                     <Trash2 className="size-4" />
                     Remove
                   </Button>
                 )}
               </div>
-              <Input
-                id={`filename-${index}`}
-                value={file.filename}
-                onChange={(e) => updateFile(index, "filename", e.target.value)}
-                placeholder="example.js"
-                className="h-10"
-                required
-              />
-              <div className="space-y-2">
-                <Label htmlFor={`language-${index}`}>Language</Label>
-                <Select
-                  value={file.language || ""}
-                  onValueChange={(value) => updateFile(index, "language", value)}
-                >
-                  <SelectTrigger id={`language-${index}`}>
-                    <SelectValue placeholder="Auto-detect" />
-                  </SelectTrigger>
-                  <SelectContent>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor={`filename-${index}`}>Filename</Label>
+                  <Input
+                    id={`filename-${index}`}
+                    value={file.filename}
+                    onChange={(e) => updateFile(index, "filename", e.target.value)}
+                    placeholder="example.js"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`language-${index}`}>Language</Label>
+                  <select
+                    id={`language-${index}`}
+                    value={file.language}
+                    onChange={(e) => updateFile(index, "language", e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="">Auto-detect</option>
                     {GIST_LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
+                      <option key={lang.value} value={lang.value}>
                         {lang.label}
-                      </SelectItem>
+                      </option>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </select>
+                </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor={`content-${index}`}>Content</Label>
                 <Textarea
                   id={`content-${index}`}
@@ -211,13 +182,8 @@ function NewGistPage() {
           ))}
         </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate({ to: "/gists" })}
-            disabled={createGist.isPending}
-          >
+        <div className="flex justify-end gap-3 pt-2">
+          <Button type="button" variant="outline" onClick={() => navigate({ to: "/gists" })} disabled={createGist.isPending}>
             Cancel
           </Button>
           <Button type="submit" disabled={createGist.isPending}>

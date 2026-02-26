@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db, users, repositories, auditLogs, systemSettings, organizations, issues, pullRequests, gists, gistFiles } from "@sigmagit/db";
-import { eq, sql, desc, count, and, or, ilike, gte, lte } from "drizzle-orm";
+import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -356,27 +356,56 @@ app.get("/api/admin/gists", async (c) => {
 
   const hasMore = gistsResult.length > limit;
   const gistsData = gistsResult.slice(0, limit);
+  const gistIds = gistsData.map((g) => g.id);
 
-  // Get files for each gist
-  const gistsWithFiles = await Promise.all(
-    gistsData.map(async (gist) => {
-      const files = await db
-        .select()
+  // Get all files for all gists in one query (without content to save memory)
+  const allFiles = gistIds.length > 0
+    ? await db
+        .select({
+          id: gistFiles.id,
+          gistId: gistFiles.gistId,
+          filename: gistFiles.filename,
+          language: gistFiles.language,
+          size: gistFiles.size,
+          createdAt: gistFiles.createdAt,
+          updatedAt: gistFiles.updatedAt,
+          // Exclude content field to save memory - admin list doesn't need it
+        })
         .from(gistFiles)
-        .where(eq(gistFiles.gistId, gist.id));
+        .where(inArray(gistFiles.gistId, gistIds))
+    : [];
 
-      const owner = await db.query.users.findFirst({
-        where: eq(users.id, gist.ownerId),
-        columns: { id: true, username: true, name: true },
-      });
+  // Get all owners in one query
+  const ownerIds = [...new Set(gistsData.map((g) => g.ownerId))];
+  const allOwners = ownerIds.length > 0
+    ? await db
+        .select({
+          id: users.id,
+          username: users.username,
+          name: users.name,
+        })
+        .from(users)
+        .where(inArray(users.id, ownerIds))
+    : [];
 
-      return {
-        ...gist,
-        files,
-        owner,
-      };
-    })
-  );
+  // Group files by gistId
+  const filesByGistId = new Map<string, typeof allFiles>();
+  for (const file of allFiles) {
+    if (!filesByGistId.has(file.gistId)) {
+      filesByGistId.set(file.gistId, []);
+    }
+    filesByGistId.get(file.gistId)!.push(file);
+  }
+
+  // Create owner lookup
+  const ownerMap = new Map(allOwners.map((o) => [o.id, o]));
+
+  // Combine data
+  const gistsWithFiles = gistsData.map((gist) => ({
+    ...gist,
+    files: filesByGistId.get(gist.id) || [],
+    owner: ownerMap.get(gist.ownerId) || null,
+  }));
 
   return c.json({
     gists: gistsWithFiles,

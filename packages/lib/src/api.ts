@@ -1174,8 +1174,14 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
         get: (id: string) => apiFetch<Gist>(`/api/gists/${id}`),
 
+        create: (data: unknown) =>
+          apiFetch<Gist>("/api/gists", {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
+
         update: (id: string, data: unknown) =>
-          apiFetch<{ data: Gist }>(`/api/gists/${id}`, {
+          apiFetch<Gist>(`/api/gists/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
           }),

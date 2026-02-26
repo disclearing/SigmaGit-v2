@@ -64,26 +64,28 @@ app.get("/api/users/public", async (c) => {
       bio: users.bio,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
+      repoCount: sql<number>`(
+        SELECT COUNT(*)::int
+        FROM ${repositories}
+        WHERE ${repositories.ownerId} = ${users.id}
+        AND ${repositories.visibility} = 'public'
+      )`.as("repo_count"),
     })
     .from(users)
     .orderBy(orderBy)
     .limit(limit + 1)
     .offset(offset);
 
-  const result = await Promise.all(
-    usersResult.map(async (user) => {
-      const [repoCountResult] = await db
-        .select({ count: sql<number>`COUNT(*)` })
-        .from(repositories)
-        .where(and(eq(repositories.ownerId, user.id), eq(repositories.visibility, "public")));
-
-      return {
-        ...user,
+  const result = usersResult.map((user) => ({
+    id: user.id,
+    name: user.name,
+    username: user.username,
         avatarUrl: cacheBustAvatarUrl(user.avatarUrl, user.updatedAt),
-        repoCount: Number(repoCountResult?.count) || 0,
-      };
-    })
-  );
+    bio: user.bio,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    repoCount: Number(user.repoCount) || 0,
+  }));
 
   const hasMore = result.length > limit;
   const usersData = result.slice(0, limit);

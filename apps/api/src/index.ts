@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
 import { config, getAllowedOrigins } from "./config";
 import { initAuth } from "./auth";
@@ -35,16 +34,19 @@ const loggingMiddleware = createMiddleware(async (c, next) => {
 
 app.use("*", loggingMiddleware);
 
-app.use(
-  "*",
-  cors({
-    origin: getAllowedOrigins(),
-    credentials: true,
-    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "Cookie", "x-internal-auth"],
-    exposeHeaders: ["Set-Cookie"],
-  })
-);
+// CORS headers for all actual (non-OPTIONS) responses
+app.use("*", createMiddleware(async (c, next) => {
+  const origin = c.req.header("origin");
+  const allowedOrigins = getAllowedOrigins();
+  const isAllowed = origin && allowedOrigins.includes(origin);
+  const responseOrigin = isAllowed ? origin : (allowedOrigins[0] || "");
+
+  c.header("Access-Control-Allow-Origin", responseOrigin);
+  c.header("Access-Control-Allow-Credentials", "true");
+  c.header("Vary", "Origin");
+
+  await next();
+}));
 
 app.use("*", createMiddleware(async (c, next) => {
   await initAuth();
@@ -67,6 +69,25 @@ const port = config.port;
 export default {
   port,
   fetch: async (request: Request, server: any) => {
+    // Handle ALL OPTIONS preflight requests at the Bun level — completely outside Hono.
+    // This is the only reliable way to guarantee a clean CORS preflight response with no
+    // interference from auth middleware, memory limits, or sub-router middleware.
+    if (request.method === "OPTIONS") {
+      const origin = request.headers.get("origin");
+      const allowedOrigins = getAllowedOrigins();
+      const isAllowed = origin && allowedOrigins.includes(origin);
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": isAllowed ? origin : (allowedOrigins[0] ?? ""),
+          "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization, Cookie, x-internal-auth",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Max-Age": "300",
+        },
+      });
+    }
+
     const wsResponse = await handleWebSocketUpgrade(request, server);
     if (wsResponse !== undefined) {
       return wsResponse;

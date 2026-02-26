@@ -1186,10 +1186,19 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
             body: JSON.stringify(data),
           }),
 
-        delete: (id: string) =>
-          apiFetch<{ success: boolean }>(`/api/gists/${id}`, {
-            method: "DELETE",
-          }),
+        delete: (id: string) => {
+          // Use POST /delete instead of DELETE to avoid CORS preflight.
+          // A POST with no body and no custom headers is a "simple" CORS request —
+          // no preflight OPTIONS is sent. Auth is via session cookie.
+          const url = `${baseUrl.replace(/\/$/, "")}/api/gists/${id}/delete`;
+          return fetch(url, { method: "POST", credentials: "include" }).then(async (res) => {
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}));
+              throw new Error((data as any).error || `Request failed: ${res.status}`);
+            }
+            return res.json() as Promise<{ success: boolean }>;
+          });
+        },
 
         getRevisions: (id: string) =>
           apiFetch<{ revisions: unknown[] }>(`/api/gists/${id}/revisions`),

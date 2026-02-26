@@ -174,21 +174,26 @@ app.delete("/api/gists/:id", requireAuth, async (c) => {
   const user = c.get("user")!;
   const id = c.req.param("id");
 
-  const [gist] = await db
-    .select()
-    .from(gists)
-    .where(eq(gists.id, id));
-
-  if (!gist) {
-    return c.json({ error: "Gist not found" }, 404);
-  }
-
-  if (gist.ownerId !== user.id) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
+  const [gist] = await db.select().from(gists).where(eq(gists.id, id));
+  if (!gist) return c.json({ error: "Gist not found" }, 404);
+  if (gist.ownerId !== user.id) return c.json({ error: "Forbidden" }, 403);
 
   await db.delete(gists).where(eq(gists.id, id));
+  return c.json({ success: true });
+});
 
+// POST /api/gists/:id/delete — same as DELETE but avoids CORS preflight.
+// A simple POST (no body, no custom headers) uses session cookie for auth,
+// which means no preflight request is triggered at all.
+app.post("/api/gists/:id/delete", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const id = c.req.param("id");
+
+  const [gist] = await db.select().from(gists).where(eq(gists.id, id));
+  if (!gist) return c.json({ error: "Gist not found" }, 404);
+  if (gist.ownerId !== user.id) return c.json({ error: "Forbidden" }, 403);
+
+  await db.delete(gists).where(eq(gists.id, id));
   return c.json({ success: true });
 });
 

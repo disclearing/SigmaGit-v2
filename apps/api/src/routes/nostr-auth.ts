@@ -1,9 +1,13 @@
 import { Hono } from "hono";
+import { setSignedCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
 import { db, users, sessions } from "@sigmagit/db";
 import { getAuth } from "../auth";
+import { config } from "../config";
 
 const app = new Hono();
+
+console.log("[Nostr Auth] Routes loading...");
 
 // Default Nostr relays to fetch profile from
 const DEFAULT_NOSTR_RELAYS = [
@@ -25,14 +29,21 @@ interface NostrProfile {
   bannerUrl?: string;
 }
 
+// Lazy load nostr-tools to avoid startup issues
+let nostrTools: typeof import("nostr-tools") | null = null;
+async function getNostrTools() {
+  if (!nostrTools) {
+    nostrTools = await import("nostr-tools");
+  }
+  return nostrTools;
+}
+
 /**
  * Convert hex pubkey to npub (bech32)
  */
-function hexToNpub(hex: string): string | null {
+async function hexToNpub(hex: string): Promise<string | null> {
   try {
-    // Simple bech32 encoding for npub
-    // In production, use nostr-tools library
-    const { nip19 } = require("nostr-tools");
+    const { nip19 } = await getNostrTools();
     return nip19.npubEncode(hex);
   } catch {
     return null;
@@ -44,8 +55,7 @@ function hexToNpub(hex: string): string | null {
  */
 async function fetchNostrProfile(pubkey: string): Promise<NostrProfile | null> {
   try {
-    // Try to import nostr-tools dynamically
-    const { SimplePool } = await import("nostr-tools");
+    const { SimplePool } = await getNostrTools();
     const pool = new SimplePool();
 
     const relays = DEFAULT_NOSTR_RELAYS;
@@ -101,7 +111,7 @@ function generateUsernameFromNpub(npub: string): string {
  */
 function generateTempEmailFromNpub(npub: string): string {
   const suffix = npub.replace("npub1", "").slice(0, 16);
-  return `nostr_${suffix}@sigmagit.local`;
+  return `nostr_${suffix}@sigmagit.com`;
 }
 
 // POST /api/auth/nostr - Sign in or sign up with Nostr
@@ -126,7 +136,7 @@ app.post("/api/auth/nostr", async (c) => {
     if (npub.startsWith("npub1")) {
       // Already in npub format, try to decode to hex for profile fetching
       try {
-        const { nip19 } = await import("nostr-tools");
+        const { nip19 } = await getNostrTools();
         const decoded = nip19.decode(npub);
         if (decoded.type === "npub") {
           hexPubkey = decoded.data as string;
@@ -137,7 +147,7 @@ app.post("/api/auth/nostr", async (c) => {
     } else if (/^[0-9a-fA-F]{64}$/.test(npub)) {
       // Hex format - convert to npub
       hexPubkey = npub.toLowerCase();
-      const converted = hexToNpub(hexPubkey);
+      const converted = await hexToNpub(hexPubkey);
       if (converted) {
         normalizedNpub = converted;
       } else {
@@ -234,27 +244,31 @@ app.post("/api/auth/nostr", async (c) => {
       }
     }
 
-    // Create session using better-auth
-    const auth = getAuth();
-    const sessionResult = await auth.api.createSession({
-      body: {
-        userId: user.id,
-      },
+    // Create session directly in database
+    const sessionId = crypto.randomUUID();
+    const sessionToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    await db.insert(sessions).values({
+      id: sessionId,
+      userId: user.id,
+      token: sessionToken,
+      expiresAt,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    if (!sessionResult || "error" in sessionResult) {
-      return c.json({ error: "Failed to create session" }, 500);
-    }
-
-    const { session, token } = sessionResult;
-
-    // Set session cookie
-    const cookieDomain = c.req.header("host")?.split(":")[0];
-    c.header(
-      "Set-Cookie",
-      `sigmagit_dev_session_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`,
-      { append: true }
-    );
+    // Better Auth expects a signed cookie named `${cookiePrefix}.session_token`.
+    // Using an unsigned or differently-named cookie causes getSession() to return null.
+    const cookiePrefix = config.nodeEnv === "production" ? "sigmagit" : "sigmagit_dev";
+    const cookieName = `${cookiePrefix}.session_token`;
+    await setSignedCookie(c, cookieName, sessionToken, config.betterAuthSecret, {
+      httpOnly: true,
+      sameSite: "Lax",
+      path: "/",
+      secure: config.nodeEnv === "production",
+      maxAge: 30 * 24 * 60 * 60,
+    });
 
     return c.json({
       success: true,
@@ -267,8 +281,8 @@ app.post("/api/auth/nostr", async (c) => {
         nostrPublicKey: user.nostrPublicKey,
       },
       session: {
-        id: session.id,
-        expiresAt: session.expiresAt,
+        id: sessionId,
+        expiresAt,
       },
     });
   } catch (error) {
@@ -311,7 +325,7 @@ app.post("/api/auth/nostr/link", async (c) => {
     // Normalize pubkey
     let normalizedNpub = npub;
     if (!npub.startsWith("npub1") && /^[0-9a-fA-F]{64}$/.test(npub)) {
-      const converted = hexToNpub(npub.toLowerCase());
+      const converted = await hexToNpub(npub.toLowerCase());
       if (converted) {
         normalizedNpub = converted;
       }
@@ -330,7 +344,7 @@ app.post("/api/auth/nostr/link", async (c) => {
     let hexPubkey: string | null = null;
     if (normalizedNpub.startsWith("npub1")) {
       try {
-        const { nip19 } = await import("nostr-tools");
+        const { nip19 } = await getNostrTools();
         const decoded = nip19.decode(normalizedNpub);
         if (decoded.type === "npub") {
           hexPubkey = decoded.data as string;
@@ -464,5 +478,7 @@ app.get("/api/auth/nostr/status", async (c) => {
     return c.json({ error: "Failed to check status" }, 500);
   }
 });
+
+console.log("[Nostr Auth] Routes loaded successfully");
 
 export default app;

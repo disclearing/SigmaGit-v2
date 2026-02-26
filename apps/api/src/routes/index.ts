@@ -28,8 +28,8 @@ import migrations from "./migrations";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
-  app.route("/", auth);
   app.route("/", nostrAuth);
+  app.route("/", auth);
   app.route("/", users);
   app.route("/", repositories);
   app.route("/", git);

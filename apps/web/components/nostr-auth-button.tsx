@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { authClient } from "@/lib/auth-client";
 import { getApiUrl } from "@/lib/utils";
 
 // Nostr window extension type
@@ -147,11 +148,23 @@ export function NostrAuthButton({
         }),
       });
 
-      const data = await response.json();
+      // Get response text first to debug
+      const responseText = await response.text();
+      let data: { error?: string; success?: boolean } = {};
+
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        console.error("[Nostr Auth] Invalid JSON response:", responseText);
+        throw new Error(`Server returned invalid JSON. Status: ${response.status}`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Authentication failed");
+        throw new Error(data.error || `Authentication failed (status ${response.status})`);
       }
+
+      // Keep better-auth client state in sync so UI (header) updates immediately.
+      await authClient.getSession();
 
       toast.success("Welcome! Signed in with Nostr successfully.");
       onSuccess?.();

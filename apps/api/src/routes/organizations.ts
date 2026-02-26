@@ -462,8 +462,336 @@ app.get("/api/organizations/:org/teams/:team", requireAuth, async (c) => {
     .where(eq(teamRepositories.teamId, team.id));
 
   return c.json({ ...team, members: teamMembersList, repositories: teamRepos });
+});
 
-  return c.json({ ...team, members: teamMembers, repositories: teamRepos });
+app.delete("/api/organizations/:org/teams/:team", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const orgName = c.req.param("org");
+  const teamSlug = c.req.param("team");
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.name, orgName));
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const [member] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, org.id),
+        eq(organizationMembers.userId, user.id)
+      )
+    );
+
+  if (!member || (member.role !== "owner" && member.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const [team] = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.organizationId, org.id), eq(teams.slug, teamSlug)));
+
+  if (!team) {
+    return c.json({ error: "Team not found" }, 404);
+  }
+
+  await db.delete(teams).where(eq(teams.id, team.id));
+
+  await logAuditEvent(
+    user.id,
+    "team.delete",
+    "team",
+    team.id,
+    { org: org.name, team: team.slug },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
+});
+
+app.put("/api/organizations/:org/teams/:team/members", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const orgName = c.req.param("org");
+  const teamSlug = c.req.param("team");
+  const body = await c.req.json<{ username?: string }>();
+  const username = body.username?.trim();
+
+  if (!username) {
+    return c.json({ error: "Username is required" }, 400);
+  }
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.name, orgName));
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const [requester] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, org.id),
+        eq(organizationMembers.userId, user.id)
+      )
+    );
+
+  if (!requester || (requester.role !== "owner" && requester.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const [team] = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.organizationId, org.id), eq(teams.slug, teamSlug)));
+
+  if (!team) {
+    return c.json({ error: "Team not found" }, 404);
+  }
+
+  const [targetUser] = await db.select().from(users).where(eq(users.username, username));
+  if (!targetUser) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  const [orgMember] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, org.id),
+        eq(organizationMembers.userId, targetUser.id)
+      )
+    );
+
+  if (!orgMember) {
+    return c.json({ error: "User must be a member of the organization first" }, 400);
+  }
+
+  await db
+    .insert(teamMembers)
+    .values({
+      teamId: team.id,
+      userId: targetUser.id,
+      createdAt: new Date(),
+    })
+    .onConflictDoNothing();
+
+  await logAuditEvent(
+    user.id,
+    "team.member.add",
+    "team",
+    team.id,
+    { org: org.name, team: team.slug, username },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
+});
+
+app.delete("/api/organizations/:org/teams/:team/members/:username", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const orgName = c.req.param("org");
+  const teamSlug = c.req.param("team");
+  const username = c.req.param("username");
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.name, orgName));
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const [requester] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, org.id),
+        eq(organizationMembers.userId, user.id)
+      )
+    );
+
+  if (!requester || (requester.role !== "owner" && requester.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const [team] = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.organizationId, org.id), eq(teams.slug, teamSlug)));
+
+  if (!team) {
+    return c.json({ error: "Team not found" }, 404);
+  }
+
+  const [targetUser] = await db.select().from(users).where(eq(users.username, username));
+  if (!targetUser) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  await db
+    .delete(teamMembers)
+    .where(and(eq(teamMembers.teamId, team.id), eq(teamMembers.userId, targetUser.id)));
+
+  await logAuditEvent(
+    user.id,
+    "team.member.remove",
+    "team",
+    team.id,
+    { org: org.name, team: team.slug, username },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
+});
+
+app.put("/api/organizations/:org/teams/:team/repos/:repo", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const orgName = c.req.param("org");
+  const teamSlug = c.req.param("team");
+  const repoName = c.req.param("repo");
+  const body = await c.req.json<{ permission?: "read" | "write" | "admin" }>();
+  const permission = body.permission || "read";
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.name, orgName));
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const [requester] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, org.id),
+        eq(organizationMembers.userId, user.id)
+      )
+    );
+
+  if (!requester || (requester.role !== "owner" && requester.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const [team] = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.organizationId, org.id), eq(teams.slug, teamSlug)));
+
+  if (!team) {
+    return c.json({ error: "Team not found" }, 404);
+  }
+
+  const [repository] = await db
+    .select()
+    .from(repositories)
+    .where(and(eq(repositories.organizationId, org.id), eq(repositories.name, repoName)));
+
+  if (!repository) {
+    return c.json({ error: "Repository not found" }, 404);
+  }
+
+  await db
+    .insert(teamRepositories)
+    .values({
+      teamId: team.id,
+      repositoryId: repository.id,
+      permission,
+      createdAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [teamRepositories.teamId, teamRepositories.repositoryId],
+      set: { permission },
+    });
+
+  await logAuditEvent(
+    user.id,
+    "team.repo.add",
+    "team",
+    team.id,
+    { org: org.name, team: team.slug, repo: repoName, permission },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
+});
+
+app.delete("/api/organizations/:org/teams/:team/repos/:repo", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const orgName = c.req.param("org");
+  const teamSlug = c.req.param("team");
+  const repoName = c.req.param("repo");
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.name, orgName));
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const [requester] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, org.id),
+        eq(organizationMembers.userId, user.id)
+      )
+    );
+
+  if (!requester || (requester.role !== "owner" && requester.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const [team] = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.organizationId, org.id), eq(teams.slug, teamSlug)));
+
+  if (!team) {
+    return c.json({ error: "Team not found" }, 404);
+  }
+
+  const [repository] = await db
+    .select()
+    .from(repositories)
+    .where(and(eq(repositories.organizationId, org.id), eq(repositories.name, repoName)));
+
+  if (!repository) {
+    return c.json({ error: "Repository not found" }, 404);
+  }
+
+  await db
+    .delete(teamRepositories)
+    .where(and(eq(teamRepositories.teamId, team.id), eq(teamRepositories.repositoryId, repository.id)));
+
+  await logAuditEvent(
+    user.id,
+    "team.repo.remove",
+    "team",
+    team.id,
+    { org: org.name, team: team.slug, repo: repoName },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
 });
 
 app.get("/api/organizations/:org/repositories", async (c) => {

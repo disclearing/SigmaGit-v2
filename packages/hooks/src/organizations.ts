@@ -137,7 +137,8 @@ export function useDeleteTeam(org: string, team: string) {
   return useMutation({
     mutationFn: () => api.organizations?.deleteTeam?.(org, team) ?? Promise.resolve({ success: false }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organization", org, "teams", team] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "teams"] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "team", team] });
     },
   });
 }
@@ -159,6 +160,7 @@ export function useAddTeamMember(org: string, team: string, data: unknown) {
     mutationFn: () => api.organizations?.addTeamMember?.(org, team, data) ?? Promise.resolve(undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organization", org, "team", team] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "members"] });
     },
   });
 }
@@ -183,8 +185,8 @@ export function useAddTeamRepo(org: string, team: string, repo: string, data: un
   return useMutation({
     mutationFn: () => api.organizations?.addTeamRepo?.(org, team, repo, data) ?? Promise.resolve(undefined),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organization", org, "team", "team", "repo"] });
-      queryClient.invalidateQueries({ queryKey: ["repositories", org, repo, "*"] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "team", team] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "repos"] });
     },
   });
 }
@@ -196,7 +198,8 @@ export function useRemoveTeamRepo(org: string, team: string, repo: string) {
   return useMutation({
     mutationFn: () => api.organizations?.removeTeamRepo?.(org, team, repo) ?? Promise.resolve({ success: false }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["repositories", org, repo, "team", "*"] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "team", team] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "repos"] });
     },
   });
 }
@@ -208,7 +211,8 @@ export function useDeleteTeamRepo(org: string, team: string, repo: string) {
   return useMutation({
     mutationFn: () => api.organizations?.deleteTeamRepo?.(org, team, repo) ?? Promise.resolve({ success: false }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["repositories", org, repo, "team", "*"] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "team", team] });
+      queryClient.invalidateQueries({ queryKey: ["organization", org, "repos"] });
     },
   });
 }

@@ -21,6 +21,11 @@ import {
   useDeleteOrganization,
   useRemoveOrgMember,
   useUpdateOrgMember,
+  useCreateTeam,
+  useDeleteTeam,
+  useTeam,
+  useAddTeamRepo,
+  useRemoveTeamRepo,
 } from "@sigmagit/hooks";
 import { toast } from "sonner";
 import { Activity, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, MapPin, Award, Users, Mail, Settings, Trash2 } from "lucide-react";
@@ -30,6 +35,8 @@ import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
 const ORG_MEMBER_ROLES = ["owner", "admin", "member"] as const;
 type OrganizationRole = (typeof ORG_MEMBER_ROLES)[number];
+const TEAM_PERMISSIONS = ["read", "write", "admin"] as const;
+type TeamPermission = (typeof TEAM_PERMISSIONS)[number];
 
 export const Route = createFileRoute("/_main/$username/")({
   component: ProfilePage,
@@ -411,10 +418,243 @@ function OrganizationSettingsMembersSection({
   );
 }
 
+function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
+  const { data: teamsData, isLoading: isLoadingTeams } = useOrganizationTeams(orgName);
+  const { data: orgReposData } = useOrganizationRepos(orgName);
+  const [selectedTeamSlug, setSelectedTeamSlug] = useState("");
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamDescription, setNewTeamDescription] = useState("");
+  const [newTeamPermission, setNewTeamPermission] = useState<TeamPermission>("read");
+  const [repoName, setRepoName] = useState("");
+  const [repoPermission, setRepoPermission] = useState<TeamPermission>("read");
+
+  const createTeam = useCreateTeam(orgName);
+  const deleteTeam = useDeleteTeam(orgName, selectedTeamSlug);
+  const { data: selectedTeamData, isLoading: isLoadingSelectedTeam } = useTeam(orgName, selectedTeamSlug);
+  const addTeamRepo = useAddTeamRepo(orgName, selectedTeamSlug, repoName, { permission: repoPermission });
+  const removeTeamRepo = useRemoveTeamRepo(orgName, selectedTeamSlug, repoName);
+
+  const teams = teamsData?.teams || [];
+  const repositories = orgReposData?.repositories || [];
+  const assignedRepos = (selectedTeamData?.repositories || []) as Array<{ repository: any; permission: TeamPermission }>;
+
+  useEffect(() => {
+    if (!selectedTeamSlug && teams.length > 0) {
+      setSelectedTeamSlug(teams[0].slug);
+    }
+  }, [selectedTeamSlug, teams]);
+
+  const availableRepos = repositories.filter(
+    (repo) => !assignedRepos.some((assigned) => assigned.repository?.name === repo.name)
+  );
+
+  const handleCreateTeam = async () => {
+    const name = newTeamName.trim();
+    if (!name) {
+      toast.error("Team name is required");
+      return;
+    }
+
+    try {
+      await createTeam.mutateAsync({
+        name,
+        description: newTeamDescription.trim() || undefined,
+        permission: newTeamPermission,
+      });
+      const slug = name.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+      setSelectedTeamSlug(slug);
+      setNewTeamName("");
+      setNewTeamDescription("");
+      setNewTeamPermission("read");
+      toast.success("Team created");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create team");
+    }
+  };
+
+  const handleDeleteTeam = async () => {
+    if (!selectedTeamSlug) return;
+    if (!confirm(`Delete team "${selectedTeamSlug}"?`)) return;
+    try {
+      await deleteTeam.mutateAsync();
+      toast.success("Team deleted");
+      setSelectedTeamSlug("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete team");
+    }
+  };
+
+  const handleAssignRepo = async () => {
+    if (!selectedTeamSlug || !repoName) {
+      toast.error("Select a team and repository");
+      return;
+    }
+    try {
+      await addTeamRepo.mutateAsync();
+      toast.success("Repository access assigned");
+      setRepoName("");
+      setRepoPermission("read");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to assign repository access");
+    }
+  };
+
+  const handleRemoveRepo = async (name: string) => {
+    if (!selectedTeamSlug) return;
+    if (!confirm(`Remove ${name} from team access list?`)) return;
+    try {
+      setRepoName(name);
+      await removeTeamRepo.mutateAsync();
+      toast.success("Repository access removed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove repository access");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
+        <h3 className="text-lg font-semibold">Create Team</h3>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3">
+          <Input
+            placeholder="Team name"
+            value={newTeamName}
+            onChange={(e) => setNewTeamName(e.target.value)}
+            disabled={createTeam.isPending}
+          />
+          <Select value={newTeamPermission} onValueChange={(value) => setNewTeamPermission(value as TeamPermission)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TEAM_PERMISSIONS.map((permission) => (
+                <SelectItem key={permission} value={permission}>
+                  {permission}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Textarea
+          placeholder="Team description (optional)"
+          value={newTeamDescription}
+          onChange={(e) => setNewTeamDescription(e.target.value)}
+          disabled={createTeam.isPending}
+        />
+        <div className="flex justify-end">
+          <Button onClick={handleCreateTeam} disabled={createTeam.isPending}>
+            Create team
+          </Button>
+        </div>
+      </div>
+
+      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold">Team Repository Access</h3>
+          {selectedTeamSlug && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteTeam}
+              disabled={deleteTeam.isPending}
+            >
+              Delete team
+            </Button>
+          )}
+        </div>
+
+        {isLoadingTeams ? (
+          <p className="text-sm text-muted-foreground">Loading teams...</p>
+        ) : teams.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No teams yet. Create one to assign repository access.</p>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Team</Label>
+              <Select value={selectedTeamSlug} onValueChange={setSelectedTeamSlug}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.slug}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedTeamSlug && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-3">
+                  <Select value={repoName} onValueChange={setRepoName}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select repository" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRepos.map((repo) => (
+                        <SelectItem key={repo.id} value={repo.name}>
+                          {repo.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={repoPermission} onValueChange={(value) => setRepoPermission(value as TeamPermission)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEAM_PERMISSIONS.map((permission) => (
+                        <SelectItem key={permission} value={permission}>
+                          {permission}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleAssignRepo} disabled={!repoName || addTeamRepo.isPending}>
+                    Assign
+                  </Button>
+                </div>
+
+                <div className="border border-border rounded-lg divide-y divide-border">
+                  {isLoadingSelectedTeam ? (
+                    <div className="p-4 text-sm text-muted-foreground">Loading team access...</div>
+                  ) : assignedRepos.length === 0 ? (
+                    <div className="p-4 text-sm text-muted-foreground">No repositories assigned to this team yet.</div>
+                  ) : (
+                    assignedRepos.map((assigned) => (
+                      <div key={assigned.repository?.id} className="p-4 flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{assigned.repository?.name}</div>
+                          <div className="text-sm text-muted-foreground">Permission: {assigned.permission}</div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleRemoveRepo(assigned.repository?.name)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OrganizationSettingsTab({
   orgName,
   org,
   isOwner,
+  currentUsername,
 }: {
   orgName: string;
   org: {
@@ -425,9 +665,11 @@ function OrganizationSettingsTab({
     location: string | null;
   };
   isOwner: boolean;
+  currentUsername?: string;
 }) {
   const updateOrg = useUpdateOrganization(orgName);
   const deleteOrg = useDeleteOrganization(orgName);
+  const [section, setSection] = useState<"general" | "members" | "teams" | "danger">("general");
   const [formData, setFormData] = useState({
     displayName: org.displayName || "",
     description: org.description || "",
@@ -475,77 +717,122 @@ function OrganizationSettingsTab({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
-        <h3 className="text-lg font-semibold">General</h3>
-        <div className="space-y-2">
-          <Label htmlFor="org-display-name">Display name</Label>
-          <Input
-            id="org-display-name"
-            value={formData.displayName}
-            onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
-            disabled={!isOwner || updateOrg.isPending}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="org-description">Description</Label>
-          <Textarea
-            id="org-description"
-            value={formData.description}
-            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-            disabled={!isOwner || updateOrg.isPending}
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="org-email">Email</Label>
-            <Input
-              id="org-email"
-              value={formData.email}
-              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-              disabled={!isOwner || updateOrg.isPending}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-website">Website</Label>
-            <Input
-              id="org-website"
-              value={formData.website}
-              onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
-              disabled={!isOwner || updateOrg.isPending}
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="org-location">Location</Label>
-          <Input
-            id="org-location"
-            value={formData.location}
-            onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
-            disabled={!isOwner || updateOrg.isPending}
-          />
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={!isOwner || updateOrg.isPending}>
-            Save changes
+    <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
+      <div className="border border-border rounded-lg bg-card p-3 h-fit">
+        <div className="space-y-1">
+          <Button
+            variant={section === "general" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setSection("general")}
+          >
+            General
+          </Button>
+          <Button
+            variant={section === "members" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setSection("members")}
+          >
+            Members
+          </Button>
+          <Button
+            variant={section === "teams" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setSection("teams")}
+          >
+            Teams
+          </Button>
+          <Button
+            variant={section === "danger" ? "secondary" : "ghost"}
+            className="w-full justify-start text-destructive hover:text-destructive"
+            onClick={() => setSection("danger")}
+          >
+            Danger Zone
           </Button>
         </div>
       </div>
 
-      <div className="border border-destructive/30 rounded-lg bg-card p-6">
-        <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Delete this organization and all associated repositories.
-        </p>
-        <Button
-          variant="destructive"
-          onClick={handleDeleteOrg}
-          disabled={!isOwner || deleteOrg.isPending}
-          className="gap-2"
-        >
-          <Trash2 className="size-4" />
-          Delete organization
-        </Button>
+      <div className="space-y-6">
+        {section === "general" && (
+          <div className="border border-border rounded-lg bg-card p-6 space-y-4">
+            <h3 className="text-lg font-semibold">General</h3>
+            <div className="space-y-2">
+              <Label htmlFor="org-display-name">Display name</Label>
+              <Input
+                id="org-display-name"
+                value={formData.displayName}
+                onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
+                disabled={!isOwner || updateOrg.isPending}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="org-description">Description</Label>
+              <Textarea
+                id="org-description"
+                value={formData.description}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                disabled={!isOwner || updateOrg.isPending}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="org-email">Email</Label>
+                <Input
+                  id="org-email"
+                  value={formData.email}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  disabled={!isOwner || updateOrg.isPending}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="org-website">Website</Label>
+                <Input
+                  id="org-website"
+                  value={formData.website}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+                  disabled={!isOwner || updateOrg.isPending}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="org-location">Location</Label>
+              <Input
+                id="org-location"
+                value={formData.location}
+                onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+                disabled={!isOwner || updateOrg.isPending}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSave} disabled={!isOwner || updateOrg.isPending}>
+                Save changes
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {section === "members" && (
+          <OrganizationSettingsMembersSection orgName={orgName} currentUsername={currentUsername} />
+        )}
+
+        {section === "teams" && <OrganizationSettingsTeamsSection orgName={orgName} />}
+
+        {section === "danger" && (
+          <div className="border border-destructive/30 rounded-lg bg-card p-6">
+            <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Delete this organization and all associated repositories.
+            </p>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteOrg}
+              disabled={!isOwner || deleteOrg.isPending}
+              className="gap-2"
+            >
+              <Trash2 className="size-4" />
+              Delete organization
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -733,7 +1020,12 @@ function ProfilePage() {
 
               {isOrgOwner && (
                 <TabsContent value="settings" className="mt-0">
-                  <OrganizationSettingsTab orgName={username} org={org} isOwner={isOrgOwner} />
+                  <OrganizationSettingsTab
+                    orgName={username}
+                    org={org}
+                    isOwner={isOrgOwner}
+                    currentUsername={currentUsername}
+                  />
                 </TabsContent>
               )}
             </Tabs>

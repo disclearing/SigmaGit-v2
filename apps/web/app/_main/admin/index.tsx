@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAdminStats } from "@sigmagit/hooks";
+import { Users, FolderGit2, Building2, CircleAlert, GitPullRequest, FileCode, Globe, Lock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_main/admin/")({
   head: () => ({
@@ -27,21 +30,75 @@ export const Route = createFileRoute("/_main/admin/")({
   component: AdminDashboard,
 });
 
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  subtitle,
+  trend,
+}: {
+  title: string;
+  value: number | string;
+  icon: React.ComponentType<{ className?: string }>;
+  subtitle?: string;
+  trend?: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-3xl font-bold">{value.toLocaleString()}</p>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground">{subtitle}</p>
+            )}
+            {trend && (
+              <p className="text-xs text-muted-foreground mt-1">{trend}</p>
+            )}
+          </div>
+          <div className="rounded-full bg-primary/10 p-3">
+            <Icon className="size-5 text-primary" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AdminDashboard() {
   const { data: stats, isLoading, error } = useAdminStats();
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Loading stats...</div>
+      <div className="space-y-8">
+        <div>
+          <Skeleton className="h-9 w-48 mb-2" />
+          <Skeleton className="h-5 w-64" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-destructive">Error loading stats</div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <CircleAlert className="size-12 text-destructive" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Error loading stats</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Please try refreshing the page
+          </p>
+        </div>
       </div>
     );
   }
@@ -54,81 +111,50 @@ function AdminDashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Total Users</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.userCount || 0}</div>
-          {stats?.recentUsers ? (
-            <p className="text-xs text-muted-foreground mt-1">+{stats.recentUsers} in last 30 days</p>
-          ) : null}
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Total Repositories</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.repoCount || 0}</div>
-          {stats?.recentRepos ? (
-            <p className="text-xs text-muted-foreground mt-1">+{stats.recentRepos} in last 30 days</p>
-          ) : null}
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Organizations</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.orgCount || 0}</div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Issues</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.issueCount || 0}</div>
-          {stats?.openIssueCount ? (
-            <p className="text-xs text-muted-foreground mt-1">{stats.openIssueCount} open</p>
-          ) : null}
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Pull Requests</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.prCount || 0}</div>
-          {stats?.openPrCount ? (
-            <p className="text-xs text-muted-foreground mt-1">{stats.openPrCount} open</p>
-          ) : null}
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Gists</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.gistCount || 0}</div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Public Repositories</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.publicRepoCount || 0}</div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Private Repositories</h3>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <div className="text-2xl font-bold">{stats?.privateRepoCount || 0}</div>
-        </div>
+        <StatCard
+          title="Total Users"
+          value={stats?.userCount || 0}
+          icon={Users}
+          trend={stats?.recentUsers ? `+${stats.recentUsers} in last 30 days` : undefined}
+        />
+        <StatCard
+          title="Total Repositories"
+          value={stats?.repoCount || 0}
+          icon={FolderGit2}
+          trend={stats?.recentRepos ? `+${stats.recentRepos} in last 30 days` : undefined}
+        />
+        <StatCard
+          title="Organizations"
+          value={stats?.orgCount || 0}
+          icon={Building2}
+        />
+        <StatCard
+          title="Issues"
+          value={stats?.issueCount || 0}
+          icon={CircleAlert}
+          subtitle={stats?.openIssueCount ? `${stats.openIssueCount} open` : undefined}
+        />
+        <StatCard
+          title="Pull Requests"
+          value={stats?.prCount || 0}
+          icon={GitPullRequest}
+          subtitle={stats?.openPrCount ? `${stats.openPrCount} open` : undefined}
+        />
+        <StatCard
+          title="Gists"
+          value={stats?.gistCount || 0}
+          icon={FileCode}
+        />
+        <StatCard
+          title="Public Repositories"
+          value={stats?.publicRepoCount || 0}
+          icon={Globe}
+        />
+        <StatCard
+          title="Private Repositories"
+          value={stats?.privateRepoCount || 0}
+          icon={Lock}
+        />
       </div>
     </div>
   );

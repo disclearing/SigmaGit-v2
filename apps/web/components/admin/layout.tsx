@@ -17,11 +17,16 @@ export function AdminLayout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
-        <aside className="w-64 border-r border-border bg-muted/30 min-h-screen">
+        <aside className="w-64 border-r border-border bg-card min-h-screen sticky top-0">
           <div className="p-6 border-b border-border">
             <div className="flex items-center gap-2">
-              <Shield className="size-5 text-primary" />
-              <h1 className="text-lg font-semibold">Admin Panel</h1>
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Shield className="size-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold">Admin Panel</h1>
+                <p className="text-xs text-muted-foreground">Platform Management</p>
+              </div>
             </div>
           </div>
           <nav className="p-4 space-y-1">
@@ -33,10 +38,10 @@ export function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                     isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                 >
                   <Icon className="size-4" />
@@ -46,8 +51,10 @@ export function AdminLayout() {
             })}
           </nav>
         </aside>
-        <main className="flex-1 p-8">
-          <Outlet />
+        <main className="flex-1 min-w-0">
+          <div className="p-8">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

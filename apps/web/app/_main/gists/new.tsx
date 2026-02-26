@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+import { GIST_LANGUAGES } from "@/lib/gist-languages";
+import { getLanguage } from "@sigmagit/lib";
 
 export const Route = createFileRoute("/_main/gists/new")({
   component: NewGistPage,
@@ -21,13 +23,13 @@ function NewGistPage() {
   const [formData, setFormData] = useState({
     description: "",
     visibility: "public" as "public" | "secret",
-    files: [{ filename: "", content: "" }],
+    files: [{ filename: "", content: "", language: "" }],
   });
 
   function addFile() {
     setFormData({
       ...formData,
-      files: [...formData.files, { filename: "", content: "" }],
+      files: [...formData.files, { filename: "", content: "", language: "" }],
     });
   }
 
@@ -38,10 +40,24 @@ function NewGistPage() {
     });
   }
 
-  function updateFile(index: number, field: "filename" | "content", value: string) {
+  function updateFile(index: number, field: "filename" | "content" | "language", value: string) {
+    const updatedFiles = formData.files.map((file, i) => {
+      if (i === index) {
+        const updated = { ...file, [field]: value };
+        // Auto-detect language from filename if language is empty and filename changed
+        if (field === "filename" && !updated.language && value) {
+          const detected = getLanguage(value);
+          if (detected !== "plaintext") {
+            updated.language = detected;
+          }
+        }
+        return updated;
+      }
+      return file;
+    });
     setFormData({
       ...formData,
-      files: formData.files.map((file, i) => (i === index ? { ...file, [field]: value } : file)),
+      files: updatedFiles,
     });
   }
 
@@ -58,7 +74,11 @@ function NewGistPage() {
       {
         description: formData.description || undefined,
         visibility: formData.visibility,
-        files: validFiles,
+        files: validFiles.map((f) => ({
+          filename: f.filename,
+          content: f.content,
+          language: f.language || null,
+        })),
       },
       {
         onSuccess: (data) => {
@@ -144,6 +164,24 @@ function NewGistPage() {
                 className="h-10"
                 required
               />
+              <div className="space-y-2">
+                <Label htmlFor={`language-${index}`}>Language</Label>
+                <Select
+                  value={file.language || ""}
+                  onValueChange={(value) => updateFile(index, "language", value)}
+                >
+                  <SelectTrigger id={`language-${index}`}>
+                    <SelectValue placeholder="Auto-detect" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GIST_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor={`content-${index}`}>Content</Label>
                 <Textarea

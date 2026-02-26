@@ -135,17 +135,27 @@ app.patch("/api/gists/:id", requireAuth, async (c) => {
     for (const file of body.files) {
       if (file.content === undefined) continue;
 
+      const updateData: Record<string, unknown> = {
+        content: file.content,
+        size: file.content.length,
+        updatedAt: new Date(),
+      };
+      
+      if (file.language !== undefined) {
+        updateData.language = file.language;
+      }
+      
+      if (file.filename !== undefined) {
+        updateData.filename = file.filename;
+      }
+
       await db
         .update(gistFiles)
-        .set({
-          content: file.content,
-          size: file.content.length,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(
           and(
             eq(gistFiles.gistId, id),
-            eq(gistFiles.filename, file.filename)
+            file.id ? eq(gistFiles.id, file.id) : eq(gistFiles.filename, file.filename)
           )
         );
     }

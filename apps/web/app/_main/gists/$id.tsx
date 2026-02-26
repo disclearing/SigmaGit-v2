@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CodeViewer } from "@/components/code-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, GitFork, Edit, Trash2, Send } from "lucide-react";
-import { timeAgo } from "@sigmagit/lib";
+import { timeAgo, getLanguage } from "@sigmagit/lib";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -119,15 +119,20 @@ function GistDetailPage() {
       </div>
 
       <div className="space-y-4">
-        {gist.files?.map((file) => (
-          <div key={file.id} className="border border-border bg-card rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
-              <span className="text-sm font-medium">{file.filename}</span>
-              {file.language && <span className="text-xs text-muted-foreground">{file.language}</span>}
+        {gist.files?.map((file) => {
+          const language = file.language || getLanguage(file.filename);
+          return (
+            <div key={file.id} className="border border-border bg-card rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                <span className="text-sm font-medium">{file.filename}</span>
+                {language && language !== "plaintext" && (
+                  <span className="text-xs text-muted-foreground">{language}</span>
+                )}
+              </div>
+              <CodeViewer content={file.content} language={language} />
             </div>
-            <CodeViewer content={file.content} language={file.language || "text"} />
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="border border-border bg-card rounded-lg p-6 space-y-4">

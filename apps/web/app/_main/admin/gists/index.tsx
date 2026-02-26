@@ -52,11 +52,12 @@ export const Route = createFileRoute("/_main/admin/gists/")({
 
 function AdminGists() {
   const [search, setSearch] = useState("");
-  const [visibility, setVisibility] = useState<string>("");
+  const [visibility, setVisibility] = useState<string>("all");
   const [page, setPage] = useState(0);
   const limit = 20;
 
-  const { data, isLoading, error } = useAdminGists(search, visibility, limit, page * limit);
+  const visibilityFilter = visibility === "all" ? undefined : visibility;
+  const { data, isLoading, error } = useAdminGists(search, visibilityFilter, limit, page * limit);
   const deleteGist = useDeleteAdminGist();
 
   const handleDeleteGist = async (gistId: string, gistDescription: string) => {
@@ -140,7 +141,7 @@ function AdminGists() {
             <Select
               value={visibility}
               onValueChange={(value) => {
-                setVisibility(value || "");
+                setVisibility(value);
                 setPage(0);
               }}
             >
@@ -149,7 +150,7 @@ function AdminGists() {
                 <SelectValue placeholder="All visibility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All visibility</SelectItem>
+                <SelectItem value="all">All visibility</SelectItem>
                 <SelectItem value="public">Public</SelectItem>
                 <SelectItem value="secret">Secret</SelectItem>
               </SelectContent>

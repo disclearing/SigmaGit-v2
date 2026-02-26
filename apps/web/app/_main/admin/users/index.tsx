@@ -53,11 +53,12 @@ const roleConfig = {
 
 function AdminUsers() {
   const [search, setSearch] = useState("");
-  const [role, setRole] = useState<string>("");
+  const [role, setRole] = useState<string>("all");
   const [page, setPage] = useState(0);
   const limit = 20;
 
-  const { data, isLoading, error } = useAdminUsers(search, role, limit, page * limit);
+  const roleFilter = role === "all" ? undefined : role;
+  const { data, isLoading, error } = useAdminUsers(search, roleFilter, limit, page * limit);
   const updateUser = useUpdateAdminUser();
   const deleteUser = useDeleteAdminUser();
 
@@ -167,7 +168,7 @@ function AdminUsers() {
             <SelectValue placeholder="All roles" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All roles</SelectItem>
+            <SelectItem value="all">All roles</SelectItem>
             <SelectItem value="user">User</SelectItem>
                   <SelectItem value="moderator">Moderator</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>

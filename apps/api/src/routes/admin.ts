@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { db, users, repositories, auditLogs, systemSettings, organizations, issues, pullRequests, gists, gistFiles } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
+import { repoCache } from "../cache";
+import { deletePrefix, getRepoPrefix } from "../s3";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -24,6 +26,68 @@ export async function logAuditEvent(
     metadata,
     ipAddress,
   });
+}
+
+async function cleanupRepositoryStorage(
+  repository: Pick<typeof repositories.$inferSelect, "name" | "ownerId" | "organizationId">
+) {
+  const prefixes = new Set<string>();
+  prefixes.add(getRepoPrefix(repository.ownerId, repository.name));
+  if (repository.organizationId) {
+    prefixes.add(getRepoPrefix(repository.organizationId, repository.name));
+  }
+
+  await Promise.all(
+    Array.from(prefixes).map(async (prefix) => {
+      try {
+        await deletePrefix(prefix);
+      } catch (error) {
+        console.error(`[Admin] Failed to delete repository storage prefix "${prefix}":`, error);
+      }
+    })
+  );
+}
+
+async function invalidateRepositoryCaches(
+  repository: Pick<typeof repositories.$inferSelect, "name" | "ownerId" | "organizationId">
+) {
+  const ownerNames = new Set<string>();
+
+  const owner = await db.query.users.findFirst({
+    where: eq(users.id, repository.ownerId),
+    columns: { username: true },
+  });
+
+  if (owner?.username) {
+    ownerNames.add(owner.username);
+  }
+
+  if (repository.organizationId) {
+    const org = await db.query.organizations.findFirst({
+      where: eq(organizations.id, repository.organizationId),
+      columns: { name: true },
+    });
+    if (org?.name) {
+      ownerNames.add(org.name);
+    }
+  }
+
+  await Promise.all(
+    Array.from(ownerNames).map((ownerName) => repoCache.invalidateRepo(ownerName, repository.name))
+  );
+}
+
+async function deleteRepositoryCompletely(
+  repository: Pick<typeof repositories.$inferSelect, "id" | "name" | "ownerId" | "organizationId">
+) {
+  // PR rows may reference this repository via head/base repo IDs without ON DELETE CASCADE.
+  await db
+    .delete(pullRequests)
+    .where(or(eq(pullRequests.headRepoId, repository.id), eq(pullRequests.baseRepoId, repository.id)));
+
+  await cleanupRepositoryStorage(repository);
+  await invalidateRepositoryCaches(repository);
+  await db.delete(repositories).where(eq(repositories.id, repository.id));
 }
 
 app.get("/api/admin/stats", async (c) => {
@@ -196,6 +260,37 @@ app.delete("/api/admin/users/:id", async (c) => {
     return c.json({ error: "User not found" }, 404);
   }
 
+  if (actor.id === id) {
+    return c.json({ error: "You cannot delete your own account from admin panel" }, 400);
+  }
+
+  if (existingUser.role === "admin") {
+    const [adminUsers] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, "admin"));
+
+    if (Number(adminUsers.count) <= 1) {
+      return c.json({ error: "Cannot delete the last admin user" }, 400);
+    }
+  }
+
+  // Remove non-cascading references to this user before deleting.
+  await db.update(issues).set({ closedById: null }).where(eq(issues.closedById, id));
+  await db
+    .update(pullRequests)
+    .set({ mergedById: null, closedById: null })
+    .where(or(eq(pullRequests.mergedById, id), eq(pullRequests.closedById, id)));
+
+  // Delete owned repositories explicitly so their git storage is cleaned up.
+  const userRepos = await db.query.repositories.findMany({
+    where: eq(repositories.ownerId, id),
+    columns: { id: true, name: true, ownerId: true, organizationId: true },
+  });
+  for (const repository of userRepos) {
+    await deleteRepositoryCompletely(repository);
+  }
+
   await db.delete(users).where(eq(users.id, id));
 
   await logAuditEvent(
@@ -262,7 +357,7 @@ app.delete("/api/admin/repositories/:id", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  await db.delete(repositories).where(eq(repositories.id, id));
+  await deleteRepositoryCompletely(existingRepo);
 
   await logAuditEvent(
     actor.id,
@@ -645,6 +740,16 @@ app.delete("/api/admin/organizations/:id", async (c) => {
 
   if (!existingOrg) {
     return c.json({ error: "Organization not found" }, 404);
+  }
+
+  // Delete organization repositories explicitly so git storage and cache are cleaned up.
+  const organizationRepos = await db.query.repositories.findMany({
+    where: eq(repositories.organizationId, id),
+    columns: { id: true, name: true, ownerId: true, organizationId: true },
+  });
+
+  for (const repository of organizationRepos) {
+    await deleteRepositoryCompletely(repository);
   }
 
   await db.delete(organizations).where(eq(organizations.id, id));

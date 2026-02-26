@@ -59,11 +59,12 @@ export const Route = createFileRoute("/_main/admin/repositories/")({
 
 function AdminRepositories() {
   const [search, setSearch] = useState("");
-  const [visibility, setVisibility] = useState<string>("");
+  const [visibility, setVisibility] = useState<string>("all");
   const [page, setPage] = useState(0);
   const limit = 20;
 
-  const { data, isLoading, error } = useAdminRepositories(search, visibility, limit, page * limit);
+  const visibilityFilter = visibility === "all" ? undefined : visibility;
+  const { data, isLoading, error } = useAdminRepositories(search, visibilityFilter, limit, page * limit);
   const deleteRepo = useDeleteAdminRepository();
 
   const handleDeleteRepo = async (repoId: string, repoName: string) => {
@@ -147,7 +148,7 @@ function AdminRepositories() {
         <Select
           value={visibility}
           onValueChange={(value) => {
-            setVisibility(value || "");
+            setVisibility(value ?? "all");
             setPage(0);
           }}
         >
@@ -156,7 +157,7 @@ function AdminRepositories() {
             <SelectValue placeholder="All visibility" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All visibility</SelectItem>
+            <SelectItem value="all">All visibility</SelectItem>
             <SelectItem value="public">Public</SelectItem>
             <SelectItem value="private">Private</SelectItem>
           </SelectContent>

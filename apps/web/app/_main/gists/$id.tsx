@@ -1,7 +1,7 @@
 "use client";
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useGist, useGistComments, useCreateGistComment, useToggleGistStar, useIsGistStarred, useForkGist } from "@sigmagit/hooks";
+import { useGist, useGistComments, useCreateGistComment, useToggleGistStar, useIsGistStarred, useForkGist, useDeleteGist } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeViewer } from "@/components/code-viewer";
@@ -10,6 +10,7 @@ import { Star, GitFork, Edit, Trash2, Send } from "lucide-react";
 import { timeAgo, getLanguage } from "@sigmagit/lib";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_main/gists/$id")({
   component: GistDetailPage,
@@ -18,16 +19,19 @@ export const Route = createFileRoute("/_main/gists/$id")({
 function GistDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { data: session } = useSession();
   const { data: gist, isLoading } = useGist(id);
   const { data: commentsData } = useGistComments(id);
   const { data: starredData } = useIsGistStarred(id);
   const createComment = useCreateGistComment();
   const toggleStar = useToggleGistStar();
   const forkGist = useForkGist();
+  const deleteGist = useDeleteGist();
   const [commentBody, setCommentBody] = useState("");
 
   const comments = commentsData?.comments || [];
   const isStarred = starredData?.starred || false;
+  const isOwner = session?.user && gist && session.user.id === gist.ownerId;
 
   if (isLoading) {
     return (
@@ -94,6 +98,22 @@ function GistDetailPage() {
     );
   }
 
+  function handleDelete() {
+    if (!confirm("Are you sure you want to delete this gist? This action cannot be undone.")) {
+      return;
+    }
+
+    deleteGist.mutate(id, {
+      onSuccess: () => {
+        toast.success("Gist deleted");
+        navigate({ to: "/gists" });
+      },
+      onError: (err) => {
+        toast.error(err instanceof Error ? err.message : "Failed to delete gist");
+      },
+    });
+  }
+
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
       <div className="flex items-start justify-between">
@@ -115,24 +135,50 @@ function GistDetailPage() {
             <GitFork className="size-4" />
             Fork
           </Button>
+          {isOwner && (
+            <>
+              <Link to="/gists/$id/edit" params={{ id }}>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Edit className="size-4" />
+                  Edit
+                </Button>
+              </Link>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDelete}
+                className="gap-2"
+                disabled={deleteGist.isPending}
+              >
+                <Trash2 className="size-4" />
+                Delete
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       <div className="space-y-4">
-        {gist.files?.map((file) => {
-          const language = file.language || getLanguage(file.filename);
-          return (
-            <div key={file.id} className="border border-border bg-card rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
-                <span className="text-sm font-medium">{file.filename}</span>
-                {language && language !== "plaintext" && (
-                  <span className="text-xs text-muted-foreground">{language}</span>
-                )}
+        {Array.isArray(gist.files) && gist.files.length > 0 ? (
+          gist.files.map((file) => {
+            const language = file.language || getLanguage(file.filename);
+            return (
+              <div key={file.id} className="border border-border bg-card rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                  <span className="text-sm font-medium">{file.filename}</span>
+                  {language && language !== "plaintext" && (
+                    <span className="text-xs text-muted-foreground">{language}</span>
+                  )}
+                </div>
+                <CodeViewer content={file.content} language={language} />
               </div>
-              <CodeViewer content={file.content} language={language} />
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="border border-border bg-card rounded-lg p-8 text-center">
+            <p className="text-muted-foreground">No files in this gist</p>
+          </div>
+        )}
       </div>
 
       <div className="border border-border bg-card rounded-lg p-6 space-y-4">

@@ -20,6 +20,7 @@ export const Route = createFileRoute("/_main/gists/new")({
 function NewGistPage() {
   const navigate = useNavigate();
   const createGist = useCreateGist();
+  const [fileKeys, setFileKeys] = useState<number[]>([0]);
   const [formData, setFormData] = useState({
     description: "",
     visibility: "public" as "public" | "secret",
@@ -27,6 +28,8 @@ function NewGistPage() {
   });
 
   function addFile() {
+    const newKey = Math.max(...fileKeys, 0) + 1;
+    setFileKeys([...fileKeys, newKey]);
     setFormData({
       ...formData,
       files: [...formData.files, { filename: "", content: "", language: "" }],
@@ -34,6 +37,7 @@ function NewGistPage() {
   }
 
   function removeFile(index: number) {
+    setFileKeys(fileKeys.filter((_, i) => i !== index));
     setFormData({
       ...formData,
       files: formData.files.filter((_, i) => i !== index),
@@ -70,6 +74,11 @@ function NewGistPage() {
       return;
     }
 
+    // Close any open Select dropdowns by blurring active elements
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     createGist.mutate(
       {
         description: formData.description || undefined,
@@ -83,9 +92,14 @@ function NewGistPage() {
       {
         onSuccess: (data) => {
           toast.success("Gist created!");
-          navigate({
-            to: "/gists/$id",
-            params: { id: data?.id || "" },
+          // Use requestAnimationFrame to ensure DOM updates are complete before navigation
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              navigate({
+                to: "/gists/$id",
+                params: { id: data?.id || "" },
+              });
+            }, 50);
           });
         },
         onError: (err) => {
@@ -140,7 +154,7 @@ function NewGistPage() {
           </div>
 
           {formData.files.map((file, index) => (
-            <div key={index} className="border border-border bg-card p-4 rounded-lg space-y-3">
+            <div key={fileKeys[index] ?? index} className="border border-border bg-card p-4 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor={`filename-${index}`}>Filename</Label>
                 {formData.files.length > 1 && (

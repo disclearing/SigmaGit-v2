@@ -777,6 +777,8 @@ export type ApiClient = {
     getRepositories: (search?: string, visibility?: string, limit?: number, offset?: number) => Promise<{ repositories: Repository[]; hasMore: boolean }>;
     deleteRepository: (id: string) => Promise<{ success: boolean }>;
     transferRepository: (id: string, newOwnerId: string) => Promise<{ success: boolean }>;
+    getGists: (search?: string, visibility?: string, limit?: number, offset?: number) => Promise<{ gists: Gist[]; hasMore: boolean }>;
+    deleteGist: (id: string) => Promise<{ success: boolean }>;
     getAuditLogs: (action?: string, targetType?: string, limit?: number, offset?: number) => Promise<{
       logs: Array<{
         id: string;

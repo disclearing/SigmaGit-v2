@@ -1067,6 +1067,16 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
           body: JSON.stringify({ newOwnerId }),
         }),
 
+      getGists: (search = "", visibility?: string, limit = 20, offset = 0) =>
+        apiFetch<{ gists: any[]; hasMore: boolean }>(
+          `/api/admin/gists?search=${encodeURIComponent(search)}&visibility=${visibility || ""}&limit=${limit}&offset=${offset}`
+        ),
+
+      deleteGist: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/admin/gists/${id}`, {
+          method: "DELETE",
+        }),
+
       getAuditLogs: (action?: string, targetType?: string, limit = 50, offset = 0) =>
         apiFetch<{ logs: any[]; hasMore: boolean }>(
           `/api/admin/audit-logs?action=${action || ""}&targetType=${targetType || ""}&limit=${limit}&offset=${offset}`

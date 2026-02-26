@@ -36,12 +36,12 @@ app.post("/api/gists", requireAuth, async (c) => {
     });
   }
 
-  const [filesList] = await db
+  const filesList = await db
     .select()
     .from(gistFiles)
     .where(eq(gistFiles.gistId, gist.id));
 
-  return c.json({ ...gist, files: filesList });
+  return c.json({ ...gist, files: filesList || [] });
 });
 
 app.get("/api/gists", requireAuth, async (c) => {
@@ -96,12 +96,12 @@ app.get("/api/gists/:id", async (c) => {
     .from(users)
     .where(eq(users.id, gist.ownerId));
 
-  const [filesList] = await db
+  const filesList = await db
     .select()
     .from(gistFiles)
     .where(eq(gistFiles.gistId, gist.id));
 
-  return c.json({ ...gist, owner, files: filesList });
+  return c.json({ ...gist, owner, files: filesList || [] });
 });
 
 app.patch("/api/gists/:id", requireAuth, async (c) => {
@@ -162,12 +162,12 @@ app.patch("/api/gists/:id", requireAuth, async (c) => {
   }
 
   const [updated] = await db.select().from(gists).where(eq(gists.id, id));
-  const [filesList] = await db
+  const filesList = await db
     .select()
     .from(gistFiles)
     .where(eq(gistFiles.gistId, id));
 
-  return c.json({ ...updated, files: filesList });
+  return c.json({ ...updated, files: filesList || [] });
 });
 
 app.delete("/api/gists/:id", requireAuth, async (c) => {

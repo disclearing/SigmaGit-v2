@@ -83,6 +83,11 @@ function EditGistPage() {
       return;
     }
 
+    // Close any open Select dropdowns by blurring active elements
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     updateGist.mutate(
       {
         id,
@@ -100,9 +105,14 @@ function EditGistPage() {
       {
         onSuccess: () => {
           toast.success("Gist updated!");
-          navigate({
-            to: "/gists/$id",
-            params: { id },
+          // Use requestAnimationFrame to ensure DOM updates are complete before navigation
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              navigate({
+                to: "/gists/$id",
+                params: { id },
+              });
+            }, 50);
           });
         },
         onError: (err) => {

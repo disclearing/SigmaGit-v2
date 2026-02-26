@@ -43,6 +43,7 @@ import { Route as MainAdminUsersIndexRouteImport } from './app/_main/admin/users
 import { Route as MainAdminSettingsIndexRouteImport } from './app/_main/admin/settings/index'
 import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admin/repositories/index'
 import { Route as MainAdminOrganizationsIndexRouteImport } from './app/_main/admin/organizations/index'
+import { Route as MainAdminGistsIndexRouteImport } from './app/_main/admin/gists/index'
 import { Route as MainAdminAuditLogsIndexRouteImport } from './app/_main/admin/audit-logs/index'
 import { Route as MainUsernameRepoIndexRouteImport } from './app/_main/$username/$repo/index'
 import { Route as MainGistsIdEditRouteImport } from './app/_main/gists/$id/edit'
@@ -241,6 +242,11 @@ const MainAdminOrganizationsIndexRoute =
     path: '/organizations/',
     getParentRoute: () => MainAdminRoute,
   } as any)
+const MainAdminGistsIndexRoute = MainAdminGistsIndexRouteImport.update({
+  id: '/gists/',
+  path: '/gists/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const MainAdminAuditLogsIndexRoute = MainAdminAuditLogsIndexRouteImport.update({
   id: '/audit-logs/',
   path: '/audit-logs/',
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo/': typeof MainUsernameRepoIndexRoute
   '/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/admin/gists/': typeof MainAdminGistsIndexRoute
   '/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
   '/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/admin/settings/': typeof MainAdminSettingsIndexRoute
@@ -491,6 +498,7 @@ export interface FileRoutesByTo {
   '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo': typeof MainUsernameRepoIndexRoute
   '/admin/audit-logs': typeof MainAdminAuditLogsIndexRoute
+  '/admin/gists': typeof MainAdminGistsIndexRoute
   '/admin/organizations': typeof MainAdminOrganizationsIndexRoute
   '/admin/repositories': typeof MainAdminRepositoriesIndexRoute
   '/admin/settings': typeof MainAdminSettingsIndexRoute
@@ -554,6 +562,7 @@ export interface FileRoutesById {
   '/_main/gists/$id/edit': typeof MainGistsIdEditRoute
   '/_main/$username/$repo/': typeof MainUsernameRepoIndexRoute
   '/_main/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/_main/admin/gists/': typeof MainAdminGistsIndexRoute
   '/_main/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
   '/_main/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/_main/admin/settings/': typeof MainAdminSettingsIndexRoute
@@ -617,6 +626,7 @@ export interface FileRouteTypes {
     | '/gists/$id/edit'
     | '/$username/$repo/'
     | '/admin/audit-logs/'
+    | '/admin/gists/'
     | '/admin/organizations/'
     | '/admin/repositories/'
     | '/admin/settings/'
@@ -675,6 +685,7 @@ export interface FileRouteTypes {
     | '/gists/$id/edit'
     | '/$username/$repo'
     | '/admin/audit-logs'
+    | '/admin/gists'
     | '/admin/organizations'
     | '/admin/repositories'
     | '/admin/settings'
@@ -737,6 +748,7 @@ export interface FileRouteTypes {
     | '/_main/gists/$id/edit'
     | '/_main/$username/$repo/'
     | '/_main/admin/audit-logs/'
+    | '/_main/admin/gists/'
     | '/_main/admin/organizations/'
     | '/_main/admin/repositories/'
     | '/_main/admin/settings/'
@@ -1008,6 +1020,13 @@ declare module '@tanstack/react-router' {
       path: '/organizations'
       fullPath: '/admin/organizations/'
       preLoaderRoute: typeof MainAdminOrganizationsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/gists/': {
+      id: '/_main/admin/gists/'
+      path: '/gists'
+      fullPath: '/admin/gists/'
+      preLoaderRoute: typeof MainAdminGistsIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
     '/_main/admin/audit-logs/': {
@@ -1326,6 +1345,7 @@ interface MainAdminRouteChildren {
   MainAdminIndexRoute: typeof MainAdminIndexRoute
   MainAdminUsersUserIdRoute: typeof MainAdminUsersUserIdRoute
   MainAdminAuditLogsIndexRoute: typeof MainAdminAuditLogsIndexRoute
+  MainAdminGistsIndexRoute: typeof MainAdminGistsIndexRoute
   MainAdminOrganizationsIndexRoute: typeof MainAdminOrganizationsIndexRoute
   MainAdminRepositoriesIndexRoute: typeof MainAdminRepositoriesIndexRoute
   MainAdminSettingsIndexRoute: typeof MainAdminSettingsIndexRoute
@@ -1336,6 +1356,7 @@ const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminIndexRoute: MainAdminIndexRoute,
   MainAdminUsersUserIdRoute: MainAdminUsersUserIdRoute,
   MainAdminAuditLogsIndexRoute: MainAdminAuditLogsIndexRoute,
+  MainAdminGistsIndexRoute: MainAdminGistsIndexRoute,
   MainAdminOrganizationsIndexRoute: MainAdminOrganizationsIndexRoute,
   MainAdminRepositoriesIndexRoute: MainAdminRepositoriesIndexRoute,
   MainAdminSettingsIndexRoute: MainAdminSettingsIndexRoute,

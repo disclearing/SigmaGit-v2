@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "@tanstack/react-router";
-import { Shield, LayoutDashboard, Users, FolderGit2, Building2, FileText, Settings } from "lucide-react";
+import { Shield, LayoutDashboard, Users, FolderGit2, Building2, FileText, Settings, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminLayout() {
@@ -9,6 +9,7 @@ export function AdminLayout() {
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
     { to: "/admin/users", icon: Users, label: "Users" },
     { to: "/admin/repositories", icon: FolderGit2, label: "Repositories" },
+    { to: "/admin/gists", icon: FileCode, label: "Gists" },
     { to: "/admin/organizations", icon: Building2, label: "Organizations" },
     { to: "/admin/audit-logs", icon: FileText, label: "Audit Logs" },
     { to: "/admin/settings", icon: Settings, label: "Settings" },

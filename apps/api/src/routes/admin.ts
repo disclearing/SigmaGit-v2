@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, users, repositories, auditLogs, systemSettings, organizations, issues, pullRequests, gists } from "@sigmagit/db";
+import { db, users, repositories, auditLogs, systemSettings, organizations, issues, pullRequests, gists, gistFiles } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte } from "drizzle-orm";
 import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
 
@@ -313,6 +313,97 @@ app.post("/api/admin/repositories/:id/transfer", async (c) => {
       from: existingRepo.ownerId,
       to: newOwnerId,
     },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ success: true });
+});
+
+app.get("/api/admin/gists", async (c) => {
+  const search = c.req.query("search") || "";
+  const visibility = c.req.query("visibility");
+  const limit = parseInt(c.req.query("limit") || "20", 10);
+  const offset = parseInt(c.req.query("offset") || "0", 10);
+
+  const conditions = [];
+
+  if (search) {
+    conditions.push(
+      or(
+        ilike(gists.description, `%${search}%`),
+        sql`EXISTS (
+          SELECT 1 FROM ${gistFiles} 
+          WHERE ${gistFiles.gistId} = ${gists.id} 
+          AND ${ilike(gistFiles.filename, `%${search}%`)}
+        )`
+      )
+    );
+  }
+
+  if (visibility) {
+    conditions.push(eq(gists.visibility, visibility as "public" | "secret"));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const gistsResult = await db
+    .select()
+    .from(gists)
+    .where(whereClause)
+    .orderBy(desc(gists.createdAt))
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = gistsResult.length > limit;
+  const gistsData = gistsResult.slice(0, limit);
+
+  // Get files for each gist
+  const gistsWithFiles = await Promise.all(
+    gistsData.map(async (gist) => {
+      const files = await db
+        .select()
+        .from(gistFiles)
+        .where(eq(gistFiles.gistId, gist.id));
+
+      const owner = await db.query.users.findFirst({
+        where: eq(users.id, gist.ownerId),
+        columns: { id: true, username: true, name: true },
+      });
+
+      return {
+        ...gist,
+        files,
+        owner,
+      };
+    })
+  );
+
+  return c.json({
+    gists: gistsWithFiles,
+    hasMore,
+  });
+});
+
+app.delete("/api/admin/gists/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+
+  const existingGist = await db.query.gists.findFirst({
+    where: eq(gists.id, id),
+  });
+
+  if (!existingGist) {
+    return c.json({ error: "Gist not found" }, 404);
+  }
+
+  await db.delete(gists).where(eq(gists.id, id));
+
+  await logAuditEvent(
+    actor.id,
+    "gist.delete",
+    "gist",
+    id,
+    { description: existingGist.description },
     c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
   );
 

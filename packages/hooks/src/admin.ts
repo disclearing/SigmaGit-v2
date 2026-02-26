@@ -169,3 +169,23 @@ export function useAdminAnalytics(days = 30) {
     queryFn: () => api.admin.getAnalytics(days),
   });
 }
+
+export function useAdminGists(search = "", visibility?: string, limit = 20, offset = 0) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "gists", search, visibility, limit, offset],
+    queryFn: () => api.admin.getGists(search, visibility, limit, offset),
+  });
+}
+
+export function useDeleteAdminGist() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.admin.deleteGist(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "gists"] });
+    },
+  });
+}

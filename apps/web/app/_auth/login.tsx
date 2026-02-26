@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { NostrAuthButton } from "@/components/nostr-auth-button";
 
 export const Route = createFileRoute("/_auth/login")({
   component: LoginPage,
@@ -160,7 +161,7 @@ function LoginPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Button
               type="button"
               variant="outline"
@@ -175,6 +176,12 @@ function LoginPage() {
               )}
               Passkey
             </Button>
+
+            <NostrAuthButton
+              variant="outline"
+              className="h-11"
+              onSuccess={() => navigate({ to: "/" })}
+            />
 
             <Button
               type="button"

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { config } from "../config";
 import health from "./health";
 import auth from "./auth";
+import nostrAuth from "./nostr-auth";
 import users from "./users";
 import repositories from "./repositories";
 import git from "./git";
@@ -28,6 +29,7 @@ import migrations from "./migrations";
 export function mountRoutes(app: Hono) {
   app.route("/", health);
   app.route("/", auth);
+  app.route("/", nostrAuth);
   app.route("/", users);
   app.route("/", repositories);
   app.route("/", git);

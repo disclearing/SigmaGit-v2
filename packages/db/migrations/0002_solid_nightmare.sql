@@ -1,0 +1,2 @@
+-- Empty migration - placeholder for missing 0002
+-- Schema changes were applied manually or through other means

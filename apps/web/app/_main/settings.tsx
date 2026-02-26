@@ -1,6 +1,7 @@
 import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { DeleteAccount } from "@/components/settings/delete-account";
 import { EmailForm } from "@/components/settings/email-form";
+import { NostrSettings } from "@/components/settings/nostr-settings";
 import { PasswordForm } from "@/components/settings/password-form";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { SocialLinksForm } from "@/components/settings/social-links-form";
@@ -142,6 +143,14 @@ function AccountTab() {
           <PasswordForm />
         </CardContent>
       </Card>
+
+      <NostrSettings
+        user={{
+          id: user.id,
+          nostrPublicKey: user.nostrPublicKey,
+          nostrLinkedAt: user.nostrLinkedAt,
+        }}
+      />
 
       <Card>
         <CardHeader>

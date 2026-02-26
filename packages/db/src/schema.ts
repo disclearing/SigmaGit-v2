@@ -41,6 +41,10 @@ export const users = pgTable("users", {
     linkedin?: string;
     custom?: string[];
   }>(),
+  // Nostr authentication fields
+  nostrPublicKey: text("nostr_public_key").unique(),
+  nostrLinkedAt: timestamp("nostr_linked_at"),
+  nwcConnectionString: text("nwc_connection_string"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -25,8 +25,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(({ className,
         {...props}
         onChange={handleChange}
       />
-      <div className="w-4 h-4 border-2 border-input rounded-sm bg-background peer-checked:bg-primary peer-checked:border-primary transition-colors flex items-center justify-center">
-        {props.checked && <Check className="size-3 text-primary-foreground" />}
+      <div className="w-5 h-5 border-2 border-input rounded-md bg-background peer-checked:bg-primary peer-checked:border-primary transition-all duration-200 flex items-center justify-center hover:border-primary/50">
+        {props.checked && <Check className="size-3.5 text-primary-foreground" />}
       </div>
     </label>
   );

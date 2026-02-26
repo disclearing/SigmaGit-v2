@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Star } from "lucide-react";
 import { type RepositoryWithStars, useStarRepository } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
@@ -15,31 +14,43 @@ export function StarButton({
 }) {
   const { isStarred, isLoading, starCount, toggleStar, isMutating } = useStarRepository(repository.id, repository.starCount);
 
-  function handleClick() {
-    toggleStar();
-  }
-
   if (isLoading) {
     return (
-      <div className={cn("inline-flex items-center gap-2 h-8 px-3 pr-[4px] bg-secondary/50 animate-pulse", className)}>
-        <div className="size-3 bg-muted-foreground/20" />
-        <div className="w-8 h-3 bg-muted-foreground/20" />
-        <div className="w-4 h-4 bg-foreground/5" />
+      <div className={cn(
+        "inline-flex items-center gap-2 h-9 px-3 rounded-lg bg-muted animate-pulse",
+        className
+      )}>
+        <div className="size-4 bg-muted-foreground/20 rounded" />
+        <div className="w-12 h-4 bg-muted-foreground/20 rounded" />
       </div>
     );
   }
 
   return (
     <Button
-      variant="secondary"
+      variant={isStarred ? "secondary" : "outline"}
       size="sm"
-      onClick={handleClick}
+      onClick={() => toggleStar()}
       disabled={isMutating}
-      className={cn("gap-2 pr-[4px]", isStarred && "bg-primary/20 hover:bg-primary/40", className)}
+      className={cn(
+        "gap-2 rounded-lg transition-all duration-200",
+        isStarred && "bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 hover:border-primary/30",
+        className
+      )}
     >
-      <Star fill={isStarred ? "currentColor" : "none"} className={cn("size-3", isStarred ? "text-primary" : "text-muted-foreground")} />
+      <Star
+        fill={isStarred ? "currentColor" : "none"}
+        className={cn(
+          "size-4 transition-all duration-200",
+          isStarred ? "text-primary" : "text-muted-foreground"
+        )}
+      />
       <span>{isStarred ? "Starred" : "Star"}</span>
-      <span className="font-mono text-[10px] px-1.5 py-0.5 bg-foreground/5">{starCount}</span>
+      {starCount > 0 && (
+        <span className="font-mono text-xs px-1.5 py-0.5 rounded-md bg-foreground/5">
+          {starCount}
+        </span>
+      )}
     </Button>
   );
 }

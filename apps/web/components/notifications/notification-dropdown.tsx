@@ -1,11 +1,11 @@
-import { Bell, CheckCircle2, Loader2 } from "lucide-react";
+import { Bell, CheckCircle2, Loader2, Settings } from "lucide-react";
 import {
   useNotifications,
   useUnreadNotificationCount,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from "@sigmagit/hooks";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationItem } from "./notification-item";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 
 export function NotificationDropdown() {
   const { data: notificationsData, isLoading } = useNotifications({ limit: 10 });
@@ -25,45 +26,62 @@ export function NotificationDropdown() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}>
-        <Bell className="size-4" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 size-4 bg-primary text-primary-foreground text-[10px] font-medium flex items-center justify-center">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 p-0">
-        <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-          <span className="font-medium text-sm">Notifications</span>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative rounded-lg"
+        >
+          <Bell className="size-5" />
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => markAllRead.mutate()}
-              disabled={markAllRead.isPending}
-            >
-              {markAllRead.isPending ? (
-                <Loader2 className="size-3 animate-spin mr-1" />
-              ) : (
-                <CheckCircle2 className="size-3 mr-1" />
-              )}
-              Mark all read
-            </Button>
+            <span className="absolute -top-0.5 -right-0.5 size-5 bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm animate-in zoom-in-50 duration-200">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
           )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-96 p-0 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+          <span className="font-semibold text-sm">Notifications</span>
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => markAllRead.mutate()}
+                disabled={markAllRead.isPending}
+                className="h-8 text-xs"
+              >
+                {markAllRead.isPending ? (
+                  <Loader2 className="size-3 animate-spin mr-1" />
+                ) : (
+                  <CheckCircle2 className="size-3 mr-1" />
+                )}
+                Mark all read
+              </Button>
+            )}
+            <Link to="/settings/notifications">
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Settings className="size-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-[400px] overflow-y-auto">
           {isLoading ? (
             <div className="p-8 text-center">
-              <Loader2 className="size-6 mx-auto animate-spin text-muted-foreground" />
+              <Loader2 className="size-8 mx-auto animate-spin text-muted-foreground" />
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">
-              No notifications yet
+            <div className="p-8 text-center">
+              <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                <Bell className="size-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">No notifications yet</p>
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border/50">
               {notifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
@@ -78,6 +96,17 @@ export function NotificationDropdown() {
             </div>
           )}
         </div>
+
+        {notifications.length > 0 && (
+          <div className="border-t border-border p-2 bg-muted/30">
+            <Link
+              to="/notifications"
+              className="block text-center text-sm text-muted-foreground hover:text-foreground py-2 rounded-lg hover:bg-accent transition-colors"
+            >
+              View all notifications
+            </Link>
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Globe, Loader2, Lock } from "lucide-react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { Globe, Loader2, Lock, GitBranch, BookOpen, Shield } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useCreateRepository, useCurrentUser, useOrganizations } from "@sigmagit/hooks";
 import { useSession } from "@/lib/auth-client";
@@ -16,6 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface NewRepositoryModalProps {
   open: boolean;
@@ -52,6 +54,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
         name: "",
         description: "",
         visibility: currentUser?.user.defaultRepositoryVisibility as "public" | "private" || "public",
+        organizationId: "",
       });
     }
   }, [open, currentUser?.user.defaultRepositoryVisibility]);
@@ -61,7 +64,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
   }
 
   const username = (session.user as { username?: string }).username || "";
-  const ownerUsername = formData.organizationId 
+  const ownerUsername = formData.organizationId
     ? organizations.find((o) => o.id === formData.organizationId)?.name || username
     : username;
 
@@ -77,7 +80,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
       },
       {
         onSuccess: () => {
-          toast.success("Repository created!");
+          toast.success("Repository created successfully!");
           onOpenChange(false);
           navigate({
             to: "/$username/$repo",
@@ -98,8 +101,11 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Create a new repository</DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
+          <div className="mx-auto size-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground mb-4 shadow-lg shadow-primary/20">
+            <GitBranch className="size-6" />
+          </div>
+          <DialogTitle className="text-xl font-bold text-center">Create a new repository</DialogTitle>
+          <DialogDescription className="text-center">
             A repository contains all project files, including the revision history.
           </DialogDescription>
         </DialogHeader>
@@ -108,14 +114,14 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
           <div className="space-y-4">
             {organizations.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="owner" className="text-sm font-semibold">
+                <Label htmlFor="owner" className="text-sm font-medium">
                   Owner
                 </Label>
                 <Select
                   value={formData.organizationId}
                   onValueChange={(value) => setFormData({ ...formData, organizationId: value || "" })}
                 >
-                  <SelectTrigger id="owner">
+                  <SelectTrigger id="owner" className="h-11">
                     <SelectValue placeholder="Select owner" />
                   </SelectTrigger>
                   <SelectContent>
@@ -129,8 +135,9 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
                 </Select>
               </div>
             )}
+
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-semibold">
+              <Label htmlFor="name" className="text-sm font-medium">
                 Repository name <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -140,17 +147,18 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
                 placeholder="my-awesome-project"
                 required
                 pattern="^[a-zA-Z0-9_.-]+$"
-                className="h-10 bg-background"
+                className="h-11"
                 autoFocus
               />
             </div>
+
             <p className="text-xs text-muted-foreground">
               Great repository names are short and memorable. Need inspiration? How about{" "}
-              <span className="text-success font-semibold italic">awesome-project</span>?
+              <span className="text-primary font-medium">awesome-project</span>?
             </p>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-semibold">
+              <Label htmlFor="description" className="text-sm font-medium">
                 Description <span className="text-muted-foreground font-normal">(optional)</span>
               </Label>
               <Input
@@ -158,67 +166,101 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="A short description of your project"
-                className="h-10 bg-background"
+                className="h-11"
               />
             </div>
           </div>
 
-          <div className="space-y-3 pt-4 border-t border-border">
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="radio"
-                name="visibility"
-                value="public"
-                checked={formData.visibility === "public"}
-                onChange={() => setFormData({ ...formData, visibility: "public" })}
-                className="mt-1.5 h-4 w-4 text-primary focus:ring-primary"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 font-semibold text-sm">
-                  <Globe className="size-4 text-muted-foreground" />
-                  Public
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Anyone on the internet can see this repository. You choose who can commit.</p>
-              </div>
-            </label>
+          {/* Visibility Cards */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Visibility</Label>
 
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="radio"
-                name="visibility"
-                value="private"
-                checked={formData.visibility === "private"}
-                onChange={() => setFormData({ ...formData, visibility: "private" })}
-                className="mt-1.5 h-4 w-4 text-primary focus:ring-primary"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 font-semibold text-sm">
-                  <Lock className="size-4 text-muted-foreground" />
-                  Private
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">You choose who can see and commit to this repository.</p>
+            <div
+              className={cn(
+                "relative flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                formData.visibility === "public"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/30 hover:bg-accent/50"
+              )}
+              onClick={() => setFormData({ ...formData, visibility: "public" })}
+            >
+              <div className="size-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                <Globe className="size-5 text-green-600 dark:text-green-400" />
               </div>
-            </label>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="public"
+                    checked={formData.visibility === "public"}
+                    onChange={() => setFormData({ ...formData, visibility: "public" })}
+                    className="size-4 text-primary"
+                  />
+                  <span className="font-semibold text-sm">Public</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Anyone on the internet can see this repository. You choose who can commit.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "relative flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                formData.visibility === "private"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/30 hover:bg-accent/50"
+              )}
+              onClick={() => setFormData({ ...formData, visibility: "private" })}
+            >
+              <div className="size-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                <Lock className="size-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="private"
+                    checked={formData.visibility === "private"}
+                    onChange={() => setFormData({ ...formData, visibility: "private" })}
+                    className="size-4 text-primary"
+                  />
+                  <span className="font-semibold text-sm">Private</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You choose who can see and commit to this repository.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <DialogFooter className="pt-4 border-t border-border">
+          <DialogFooter className="gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isCreating}
-              className="h-10"
+              className="h-11"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isCreating || !formData.name} className="h-9 px-6 text-sm font-semibold">
+            <Button
+              type="submit"
+              disabled={isCreating || !formData.name}
+              className="h-11 px-6"
+            >
               {isCreating ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
                   Creating...
                 </>
               ) : (
-                "Create repository"
+                <>
+                  <GitBranch className="size-4 mr-2" />
+                  Create repository
+                </>
               )}
             </Button>
           </DialogFooter>

@@ -3,6 +3,7 @@ import { eq, and, gt } from "drizzle-orm";
 import { getAuth, verifyCredentials } from "../auth";
 import { db, users, verifications, accounts } from "@sigmagit/db";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
+import { isPasswordCompromised } from "../security/pwned";
 
 const app = new Hono();
 
@@ -72,6 +73,16 @@ app.post("/api/auth/reset-password", async (c) => {
 
     if (!password || typeof password !== "string" || password.length < 8) {
       return c.json({ error: "Password must be at least 8 characters" }, 400);
+    }
+
+    if (await isPasswordCompromised(password)) {
+      return c.json(
+        {
+          code: "PASSWORD_COMPROMISED",
+          error: "Please choose a more secure password.",
+        },
+        400
+      );
     }
 
     const verification = await db.query.verifications.findFirst({

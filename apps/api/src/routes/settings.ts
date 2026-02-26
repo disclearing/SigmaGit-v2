@@ -3,6 +3,7 @@ import { db, users, repositories, accounts } from "@sigmagit/db";
 import { eq, ne, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { putObject, deleteObject, deletePrefix, getRepoPrefix } from "../s3";
+import { isPasswordCompromised } from "../security/pwned";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -327,6 +328,16 @@ app.patch("/api/settings/password", requireAuth, async (c) => {
   const valid = await Bun.password.verify(body.currentPassword, account.password);
   if (!valid) {
     return c.json({ error: "Current password is incorrect" }, 400);
+  }
+
+  if (await isPasswordCompromised(body.newPassword)) {
+    return c.json(
+      {
+        code: "PASSWORD_COMPROMISED",
+        error: "Please choose a more secure password.",
+      },
+      400
+    );
   }
 
   const newHash = await Bun.password.hash(body.newPassword, { algorithm: "bcrypt", cost: 12 });

@@ -26,7 +26,7 @@ export function NotificationDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}>
-        <Notification01Icon className="size-4" />
+        <Bell className="size-4" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 size-4 bg-primary text-primary-foreground text-[10px] font-medium flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}

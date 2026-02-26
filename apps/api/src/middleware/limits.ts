@@ -2,7 +2,11 @@ import { createMiddleware } from 'hono/factory';
 
 const MAX_REQUEST_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_RESPONSE_SIZE = 50 * 1024 * 1024; // 50MB
-const MEMORY_THRESHOLD = 0.8; // 80% of heap
+const MEMORY_THRESHOLD = 0.92; // 92% of heap
+// Don't reject based on ratio alone until the heap is meaningfully large.
+// Bun starts with a small heap that grows on demand, so heapUsed/heapTotal
+// can spike above 80% at startup even when there's no real memory pressure.
+const MIN_HEAP_TO_ENFORCE = 256 * 1024 * 1024; // 256 MB
 export const GIT_PUSH_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
 export const GIT_MAX_OBJECTS_PER_PUSH = 50000;
 export const GIT_MAX_DELTA_DEPTH = 100;
@@ -12,7 +16,9 @@ export function shouldRejectRequest(): boolean {
     const usage = process.memoryUsage();
     const total = usage.heapTotal;
     const used = usage.heapUsed;
-    return (used / total) > MEMORY_THRESHOLD;
+    // Only enforce the threshold once the heap has grown to a meaningful size,
+    // otherwise Bun's small startup heap makes the ratio always look critical.
+    return total >= MIN_HEAP_TO_ENFORCE && (used / total) > MEMORY_THRESHOLD;
   } catch {
     return false;
   }

@@ -20,7 +20,10 @@ export const getRedisClient = async (): Promise<RedisClientType | null> => {
   connectionAttempted = true;
 
   try {
-    redis = createClient({ url: config.redisUrl });
+    redis = createClient({
+      url: config.redisUrl,
+      socket: { connectTimeout: 3000, reconnectStrategy: false },
+    });
     await redis.connect();
 
     return redis;

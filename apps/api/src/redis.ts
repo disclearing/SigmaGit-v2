@@ -40,6 +40,10 @@ export const getRedis = async (): Promise<RedisClientType | null> => {
   try {
     const newClient = createClient({
       url: config.redisUrl,
+      socket: {
+        connectTimeout: 3000,
+        reconnectStrategy: false, // handled manually above
+      },
     });
 
     await newClient.connect();

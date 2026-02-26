@@ -3,6 +3,7 @@ import { db, users, repositories, repositoryWebhooks } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { createHmac } from "crypto";
+import { config } from "../config";
 
 export type WebhookEvent = "push" | "pull_request" | "issues" | "tag" | "branch";
 
@@ -27,6 +28,7 @@ export async function deliverWebhookEvent(
   event: WebhookEvent,
   payload: Record<string, unknown>
 ): Promise<void> {
+  if (!config.webhooksEnabled) return;
   try {
     const hooks = await db.query.repositoryWebhooks.findMany({
       where: and(eq(repositoryWebhooks.repositoryId, repositoryId), eq(repositoryWebhooks.active, true)),

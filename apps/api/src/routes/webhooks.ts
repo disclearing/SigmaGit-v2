@@ -6,11 +6,19 @@ const app = new Hono();
 
 const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
+let webhookClient: WebhookClient | null = null;
+
 if (!discordWebhookUrl) {
   console.warn("[Webhooks] DISCORD_WEBHOOK_URL not configured, Discord notifications disabled");
+} else {
+  try {
+    webhookClient = new WebhookClient({ url: discordWebhookUrl });
+  } catch {
+    console.warn(
+      `[Webhooks] DISCORD_WEBHOOK_URL is not a valid Discord webhook URL ("${discordWebhookUrl}"), Discord notifications disabled`
+    );
+  }
 }
-
-const webhookClient = discordWebhookUrl ? new WebhookClient({ url: discordWebhookUrl }) : null;
 
 interface DiscordWebhookData {
   type: string;

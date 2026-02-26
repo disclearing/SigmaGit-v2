@@ -104,37 +104,54 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-3 py-2 border-b border-border">
-                    <p className="text-sm font-semibold">{user?.name || session.user.name}</p>
-                    <p className="text-xs text-muted-foreground">@{(session.user as { username?: string }).username}</p>
+                <DropdownMenuContent align="end" className="w-64 p-1">
+                  <div className="flex items-center gap-3 px-3 py-3 border-b border-border/50 mb-1">
+                    <Avatar className="h-10 w-10 border border-border/50 shadow-sm">
+                      <AvatarImage src={user?.avatarUrl || undefined} />
+                      <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-sm">
+                        {(user?.name || session.user.name || "U").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-sm font-semibold truncate leading-none mb-1">
+                        {user?.name || session.user.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        @{(session.user as { username?: string }).username}
+                      </p>
+                    </div>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to="/$username"
-                      params={{
-                        username: (session.user as { username?: string }).username || "",
-                      }}
-                      className="gap-2"
-                    >
-                      <User className="size-4" />
-                      Your profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="gap-2">
-                      <Settings className="size-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  
+                  <div className="space-y-0.5">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <Link
+                        to="/$username"
+                        params={{
+                          username: (session.user as { username?: string }).username || "",
+                        }}
+                        className="flex items-center gap-3 w-full"
+                      >
+                        <User className="size-4 text-muted-foreground" />
+                        <span>Your profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <Link to="/settings" className="flex items-center gap-3 w-full">
+                        <Settings className="size-4 text-muted-foreground" />
+                        <span>Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+
+                  <DropdownMenuSeparator className="my-1 bg-border/50" />
+                  
                   <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                    className="cursor-pointer rounded-sm px-3 py-2 text-sm text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center gap-3 transition-colors"
                   >
                     <LogOut className="size-4" />
-                    Sign out
+                    <span>Sign out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

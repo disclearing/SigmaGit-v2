@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { config } from "../config";
 import health from "./health";
 import auth from "./auth";
 import users from "./users";
@@ -34,9 +35,15 @@ export function mountRoutes(app: Hono) {
   app.route("/", notifications);
   app.route("/", discussions);
   app.route("/", projects);
-  app.route("/", webhooks);
   app.route("/", discord);
   app.route("/", collaborators);
   app.route("/", branchProtection);
-  app.route("/", repoWebhooks);
+
+  if (config.webhooksEnabled) {
+    app.route("/", webhooks);
+    app.route("/", repoWebhooks);
+    console.log("[Webhooks] Webhook routes enabled");
+  } else {
+    console.log("[Webhooks] Webhook routes disabled (ENABLE_WEBHOOKS=false)");
+  }
 }

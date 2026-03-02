@@ -173,7 +173,8 @@ bun run db:migrate
 
 ```bash
 cd /home/sigmagit
-git clone https://github.com/yourusername/sigmagit.git
+git clone https://git.sigmagaming.net/SigmaGaming/SimgaGit-v2
+.git
 cd sigmagit
 ```
 

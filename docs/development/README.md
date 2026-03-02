@@ -14,7 +14,8 @@ This guide covers how to set up your development environment and contribute to S
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sigmagit.git
+   git clone https://git.sigmagaming.net/SigmaGaming/SimgaGit-v2
+.git
    cd sigmagit
    ```
 

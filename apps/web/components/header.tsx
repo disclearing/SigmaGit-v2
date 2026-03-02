@@ -1,12 +1,12 @@
 import { useState } from "react";
+import { useCurrentUserSummary } from "@sigmagit/hooks";
+import { Link, useLocation, useNavigate, useParams } from "@tanstack/react-router";
+import { Bell, BookOpen, Building2, Download, FileText, GitBranch, Inbox, LogOut, Menu, Moon, Plus, Search, Settings, Sun, User, X } from "lucide-react";
+import { useTheme } from "tanstack-theme-kit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from "@/lib/auth-client";
-import { useCurrentUserSummary } from "@sigmagit/hooks";
-import { Link, useNavigate, useLocation, useParams } from "@tanstack/react-router";
-import { Bell, BookOpen, Inbox, LogOut, Moon, Plus, Settings, Sun, User, FileText, Download, GitBranch, Search, Menu, X, Building2 } from "lucide-react";
-import { useTheme } from "tanstack-theme-kit";
 import { NewRepositoryModal } from "@/components/new-repository-modal";
 import { SearchBar } from "@/components/search";
 import { NotificationDropdown } from "@/components/notifications";
@@ -24,8 +24,8 @@ export function Header() {
   const isAdmin = (session?.user as any)?.role === "admin";
 
   const isRepoPage = location.pathname.match(/\/[^/]+\/[^/]+/);
-  const username = params.username as string | undefined;
-  const repoName = params.repo as string | undefined;
+  const username = params.username;
+  const repoName = params.repo;
 
   async function handleSignOut() {
     await signOut();

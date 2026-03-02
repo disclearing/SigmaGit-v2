@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Shield, Lock, Key, Eye } from "lucide-react";
+import { Eye, Key, Lock, Shield } from "lucide-react";
 
 export const Route = createFileRoute("/_main/security")({
   component: SecurityPage,

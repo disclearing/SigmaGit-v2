@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Edit, Trash2 } from "lucide-react";
-import { useLabels, useCreateLabel, useUpdateLabel, useDeleteLabel, useRepositoryInfo } from "@sigmagit/hooks";
+import { Edit, Plus, Trash2 } from "lucide-react";
+import { useCreateLabel, useDeleteLabel, useLabels, useRepositoryInfo, useUpdateLabel } from "@sigmagit/hooks";
 import type { Label } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

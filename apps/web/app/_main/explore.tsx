@@ -1,12 +1,12 @@
+import { usePublicRepositories, usePublicUsers } from "@sigmagit/hooks";
+import { Award, BookOpen, ChevronLeft, ChevronRight, Clock, Compass, GitBranch, Loader2, Sparkles, Users } from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { Suspense } from "react";
 import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePublicRepositories, usePublicUsers } from "@sigmagit/hooks";
-import { BookOpen, ChevronLeft, ChevronRight, Clock, Compass, GitBranch, Loader2, Sparkles, Award, Users } from "lucide-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "@/lib/hooks";
-import { Suspense } from "react";
 
 export const Route = createFileRoute("/_main/explore")({
   component: ExplorePage,

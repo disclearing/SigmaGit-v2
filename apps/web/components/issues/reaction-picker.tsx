@@ -1,7 +1,7 @@
 import { useState } from "react";
+import type { ReactionSummary } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ReactionSummary } from "@sigmagit/hooks";
 
 const REACTIONS = [
   { emoji: "+1", label: "👍" },
@@ -19,7 +19,7 @@ function getEmojiLabel(emoji: string): string {
 }
 
 interface ReactionPickerProps {
-  reactions: ReactionSummary[];
+  reactions: Array<ReactionSummary>;
   onToggle: (emoji: string) => void;
   disabled?: boolean;
 }
@@ -83,7 +83,7 @@ export function ReactionPicker({ reactions, onToggle, disabled }: ReactionPicker
   );
 }
 
-export function ReactionDisplay({ reactions }: { reactions: ReactionSummary[] }) {
+export function ReactionDisplay({ reactions }: { reactions: Array<ReactionSummary> }) {
   if (reactions.length === 0) return null;
 
   return (

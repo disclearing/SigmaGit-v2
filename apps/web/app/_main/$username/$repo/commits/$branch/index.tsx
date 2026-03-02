@@ -1,9 +1,9 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useRepositoryWithStars, useRepoCommits } from "@sigmagit/hooks";
+import { Link, createFileRoute, notFound } from "@tanstack/react-router";
+import { useRepoCommits, useRepositoryWithStars } from "@sigmagit/hooks";
+import { ChevronLeft, ChevronRight, History } from "lucide-react";
+import { getCommitTitle, timeAgo } from "@sigmagit/lib";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { History, ChevronLeft, ChevronRight } from "lucide-react";
-import { timeAgo, getCommitTitle } from "@sigmagit/lib";
 
 type CommitsSearch = {
   page?: string;

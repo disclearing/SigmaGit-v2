@@ -6,6 +6,7 @@ import { mountRoutes } from "./routes";
 import { handleWebSocketUpgrade, websocketHandlers } from "./websocket";
 import { memoryMiddleware, requestSizeMiddleware, gitLimitsMiddleware } from "./middleware/limits";
 import { startMigrationWorker } from "./workers/migration";
+import { startRunnerHealthWorker } from "./workers/runner-health";
 import "./monitoring";
 
 const app = new Hono();
@@ -63,6 +64,9 @@ mountRoutes(app);
 if (config.enableMigrations) {
   startMigrationWorker();
 }
+
+// Start runner health worker (always enabled)
+startRunnerHealthWorker();
 
 const port = config.port;
 

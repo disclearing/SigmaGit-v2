@@ -1,13 +1,13 @@
 "use client";
 
+import { useLabels, usePullRequestCount, usePullRequests } from "@sigmagit/hooks";
+import { CheckCircle2, Circle, GitMerge, Loader2, Plus, Tag } from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { usePullRequestCount, usePullRequests, useLabels } from "@sigmagit/hooks";
-import { Plus, CheckCircle2, GitMerge, Loader2, Circle, Tag } from "lucide-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
-import { Suspense, useState } from "react";
 import { PRItem } from "@/components/pulls/pr-item";
 
 export const Route = createFileRoute("/_main/$username/$repo/pulls/")({

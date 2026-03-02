@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreateIssue } from "@sigmagit/hooks";
 import { IssueForm } from "@/components/issues";
 import { authClient } from "@/lib/auth-client";

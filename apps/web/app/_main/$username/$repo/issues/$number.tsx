@@ -1,21 +1,21 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  useIssue,
-  useLabels,
-  useIssueComments,
-  useUpdateIssue,
-  useDeleteIssue,
-  useAddLabelsToIssue,
-  useRemoveLabelFromIssue,
   useAddAssignees,
-  useRemoveAssignee,
+  useAddLabelsToIssue,
   useCreateComment,
-  useToggleIssueReaction,
+  useDeleteIssue,
+  useIssue,
+  useIssueComments,
+  useLabels,
+  useRemoveAssignee,
+  useRemoveLabelFromIssue,
   useRepositoryInfo,
+  useToggleIssueReaction,
+  useUpdateIssue,
 } from "@sigmagit/hooks";
-import { IssueDetail, CommentList, CommentForm, StateBadge } from "@/components/issues";
+import { CommentForm, CommentList, IssueDetail, StateBadge } from "@/components/issues";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api/client";
 

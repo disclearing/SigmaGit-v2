@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Edit, GitMerge, Loader2, Trash2 } from "lucide-react";
+import { PRStateBadge } from "./pr-state-badge";
+import type { PullRequest } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,9 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, GitMerge, Loader2 } from "lucide-react";
-import type { PullRequest } from "@sigmagit/hooks";
-import { PRStateBadge } from "./pr-state-badge";
 
 interface PRHeaderProps {
   pullRequest: PullRequest;

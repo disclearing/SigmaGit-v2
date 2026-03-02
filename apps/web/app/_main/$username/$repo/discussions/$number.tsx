@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Loader2, CheckCircle2, Pin, Lock, ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Lock, Pin } from "lucide-react";
 import {
+  useCreateDiscussionComment,
   useDiscussion,
   useDiscussionComments,
-  useCreateDiscussionComment,
   useMarkDiscussionAnswer,
 } from "@sigmagit/hooks";
 import { formatRelativeTime } from "@sigmagit/lib";
-import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

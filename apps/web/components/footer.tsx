@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { GitBranch, Github, Twitter, Mail, Heart, ExternalLink } from "lucide-react";
+import { ExternalLink, GitBranch, Github, Heart, Mail, Twitter } from "lucide-react";
 
 export function Footer() {
   return (

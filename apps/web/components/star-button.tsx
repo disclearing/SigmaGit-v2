@@ -1,7 +1,8 @@
 "use client";
 
 import { Star } from "lucide-react";
-import { type RepositoryWithStars, useStarRepository } from "@sigmagit/hooks";
+import {  useStarRepository } from "@sigmagit/hooks";
+import type {RepositoryWithStars} from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

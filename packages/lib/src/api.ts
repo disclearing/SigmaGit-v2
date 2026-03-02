@@ -45,6 +45,11 @@ import type {
   Notification,
   SearchResult,
   SearchResultType,
+  Workflow,
+  WorkflowRun,
+  WorkflowJob,
+  WorkflowStep,
+  Runner,
 } from "@sigmagit/hooks";
 
 export interface ApiClientConfig {
@@ -1369,6 +1374,43 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
             method: "POST",
           }),
       },
+    },
+
+    workflows: {
+      list: (owner: string, repo: string) =>
+        apiFetch<{ workflows: Workflow[] }>(`/api/repositories/${owner}/${repo}/workflows`),
+
+      sync: (owner: string, repo: string) =>
+        apiFetch<{ workflows: Workflow[] }>(`/api/repositories/${owner}/${repo}/workflows/sync`, {
+          method: "POST",
+        }),
+
+      dispatch: (owner: string, repo: string, workflowId: string, data?: { ref?: string; inputs?: Record<string, string> }) =>
+        apiFetch<{ runIds: string[] }>(`/api/repositories/${owner}/${repo}/workflows/${workflowId}/dispatch`, {
+          method: "POST",
+          body: JSON.stringify(data ?? {}),
+        }),
+
+      listRuns: (owner: string, repo: string, page = 1) =>
+        apiFetch<{ runs: WorkflowRun[] }>(`/api/repositories/${owner}/${repo}/runs?page=${page}`),
+
+      getRun: (owner: string, repo: string, runId: string) =>
+        apiFetch<{ run: WorkflowRun; jobs: WorkflowJob[] }>(`/api/repositories/${owner}/${repo}/runs/${runId}`),
+
+      getJobLogs: (owner: string, repo: string, runId: string, jobId: string) =>
+        apiFetch<{ logs: string; steps: WorkflowStep[] }>(`/api/repositories/${owner}/${repo}/runs/${runId}/jobs/${jobId}/logs`),
+
+      cancelRun: (owner: string, repo: string, runId: string) =>
+        apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/runs/${runId}/cancel`, {
+          method: "POST",
+        }),
+    },
+
+    runners: {
+      list: () => apiFetch<{ runners: Runner[] }>("/api/runners"),
+
+      remove: (runnerId: string) =>
+        apiFetch<{ success: boolean }>(`/api/runners/${runnerId}`, { method: "DELETE" }),
     },
   };
 }

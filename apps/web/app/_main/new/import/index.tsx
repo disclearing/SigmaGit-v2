@@ -4,33 +4,33 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateMigration } from "@sigmagit/hooks";
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  GitBranch,
+  Github,
+  Gitlab,
+  Globe,
+  Key,
+  Link as LinkIcon,
+  Loader2,
+  Lock,
+  MessageSquare,
+  Server,
+  Shield,
+  Tag,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Download,
-  Github,
-  Gitlab,
-  Link as LinkIcon,
-  Globe,
-  Lock,
-  Loader2,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  GitBranch,
-  MessageSquare,
-  Tag,
-  ExternalLink,
-  Server,
-  Key,
-  Shield,
-  Eye,
-  EyeOff,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/new/import/")({
@@ -51,7 +51,7 @@ interface SourceConfig {
   supportsSelfHosted: boolean;
 }
 
-const sources: SourceConfig[] = [
+const sources: Array<SourceConfig> = [
   {
     id: "github",
     name: "GitHub",
@@ -297,7 +297,7 @@ function ImportRepositoryPage() {
                     <label className="flex items-center gap-2 cursor-pointer">
                       <Checkbox
                         checked={formData.requiresAuth}
-                        onCheckedChange={(checked) => setFormData({ ...formData, requiresAuth: checked as boolean })}
+                        onCheckedChange={(checked) => setFormData({ ...formData, requiresAuth: checked })}
                       />
                       <span className="text-sm text-muted-foreground">Private repository</span>
                     </label>
@@ -556,7 +556,7 @@ function ImportRepositoryPage() {
                 id="importIssues"
                 checked={formData.importIssues}
                       onCheckedChange={(checked) =>
-                        setFormData({ ...formData, importIssues: checked as boolean })
+                        setFormData({ ...formData, importIssues: checked })
                       }
               />
                     <div className="flex items-center gap-2">
@@ -569,7 +569,7 @@ function ImportRepositoryPage() {
                 id="importPRs"
                 checked={formData.importPRs}
                       onCheckedChange={(checked) =>
-                        setFormData({ ...formData, importPRs: checked as boolean })
+                        setFormData({ ...formData, importPRs: checked })
                       }
               />
                     <div className="flex items-center gap-2">
@@ -582,7 +582,7 @@ function ImportRepositoryPage() {
                 id="importLabels"
                 checked={formData.importLabels}
                       onCheckedChange={(checked) =>
-                        setFormData({ ...formData, importLabels: checked as boolean })
+                        setFormData({ ...formData, importLabels: checked })
                       }
               />
                     <div className="flex items-center gap-2">

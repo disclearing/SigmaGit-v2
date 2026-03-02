@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { CodeViewer } from "./code-viewer";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { CodeViewer } from "./code-viewer";
 import { getApiUrl } from "@/lib/utils";
 
 const CHUNK_SIZE = 64 * 1024;

@@ -1,3 +1,8 @@
+import { useCurrentUser, useUpdatePreferences, useUpdateProfile, useUpdateWordWrapPreference, useWordWrapPreference } from "@sigmagit/hooks";
+import { AlertTriangle, Check, CheckCircle2, Copy, Fingerprint, Key, Loader2, Plus, Shield, Trash2, User } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { DeleteAccount } from "@/components/settings/delete-account";
 import { EmailForm } from "@/components/settings/email-form";
@@ -16,12 +21,7 @@ import { useSession } from "@/lib/auth-client";
 import { useApiKeys, useCreateApiKey, useDeleteApiKey } from "@/lib/hooks/use-api-keys";
 import { useAddPasskey, useDeletePasskey, usePasskeys } from "@/lib/hooks/use-passkeys";
 import { getApiUrl } from "@/lib/utils";
-import { useCurrentUser, useUpdatePreferences, useUpdateProfile, useUpdateWordWrapPreference, useWordWrapPreference } from "@sigmagit/hooks";
-import { AlertTriangle, CheckCircle2, Copy, Trash2, Fingerprint, Key, Loader2, Plus, Shield, User, Check } from "lucide-react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_main/settings")({
   component: SettingsPage,

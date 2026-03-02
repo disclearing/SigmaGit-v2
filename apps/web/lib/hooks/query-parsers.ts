@@ -1,4 +1,4 @@
-export function parseAsStringLiteral<T extends string>(options: readonly T[]) {
+export function parseAsStringLiteral<T extends string>(options: ReadonlyArray<T>) {
   return {
     parse: (value: string | null): T | null => (options.includes(value as T) ? (value as T) : null),
     serialize: (value: T) => value,

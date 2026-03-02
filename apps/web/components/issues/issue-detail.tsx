@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { timeAgo } from "@sigmagit/lib";
-import { Edit, Trash2, Lock, Unlock } from "lucide-react";
-import type { Issue, Label, IssueAuthor } from "@sigmagit/hooks";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { CodeViewer } from "@/components/code-viewer";
+import { Edit, Lock, Trash2, Unlock } from "lucide-react";
 import { StateBadge } from "./state-badge";
 import { LabelBadge } from "./label-badge";
 import { ReactionPicker } from "./reaction-picker";
 import { LabelPicker } from "./label-picker";
 import { AssigneePicker } from "./assignee-picker";
 import { IssueForm } from "./issue-form";
+import type { Issue, IssueAuthor, Label } from "@sigmagit/hooks";
+import { CodeViewer } from "@/components/code-viewer";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface IssueDetailProps {
   issue: Issue;
-  labels: Label[];
-  availableAssignees: IssueAuthor[];
+  labels: Array<Label>;
+  availableAssignees: Array<IssueAuthor>;
   currentUserId?: string;
   isOwner: boolean;
   onToggleReaction: (emoji: string) => void;

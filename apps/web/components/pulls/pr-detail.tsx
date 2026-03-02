@@ -1,19 +1,20 @@
 import { useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Check, File, Loader2, MessageSquare, X } from "lucide-react";
+import { timeAgo } from "@sigmagit/lib";
+import Markdown from "react-markdown";
+import type { Label, Owner, PRDiff, PRReview, PullRequest } from "@sigmagit/hooks";
+import type {DiffViewMode} from "@/components/diff-viewer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { File, MessageSquare, Check, X, Loader2 } from "lucide-react";
-import type { PullRequest, Label, Owner, PRDiff, PRReview } from "@sigmagit/hooks";
-import { DiffViewer, DiffToolbar, type DiffViewMode } from "@/components/diff-viewer";
-import { ReactionDisplay, LabelPicker, AssigneePicker } from "@/components/issues";
-import { timeAgo } from "@sigmagit/lib";
-import Markdown from "react-markdown";
+import { DiffToolbar,  DiffViewer } from "@/components/diff-viewer";
+import { AssigneePicker, LabelPicker, ReactionDisplay } from "@/components/issues";
 
 interface PRDetailProps {
   pullRequest: PullRequest;
-  labels: Label[];
-  availableAssignees: Owner[];
+  labels: Array<Label>;
+  availableAssignees: Array<Owner>;
   diffData?: PRDiff;
   isLoadingDiff: boolean;
   currentUserId?: string;

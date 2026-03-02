@@ -1,7 +1,7 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useRepositoryWithStars, useRepoTree, useTreeCommits } from "@sigmagit/hooks";
-import { FileTree } from "@/components/file-tree";
+import { Link, createFileRoute, notFound } from "@tanstack/react-router";
+import { useRepoTree, useRepositoryWithStars, useTreeCommits } from "@sigmagit/hooks";
 import { ChevronRight, Home } from "lucide-react";
+import { FileTree } from "@/components/file-tree";
 
 export const Route = createFileRoute("/_main/$username/$repo/tree/$")({
   component: TreePage,

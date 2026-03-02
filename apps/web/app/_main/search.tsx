@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Search, Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useSearch } from "@sigmagit/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

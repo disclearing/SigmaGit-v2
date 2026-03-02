@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GitBranch, Loader2, Plus, BookOpen, User, Settings, Github, Zap, Shield, Code2, Terminal, Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Code2, GitBranch, Github, Loader2, Plus, Settings, Shield, Sparkles, Terminal, User, Zap } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCurrentUserSummary, useUserRepositories } from "@sigmagit/hooks";
 import RepositoryCard from "@/components/repository-card";

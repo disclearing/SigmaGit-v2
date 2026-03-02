@@ -1,8 +1,8 @@
-import type { IssueComment } from "@sigmagit/hooks";
 import { CommentItem } from "./comment-item";
+import type { IssueComment } from "@sigmagit/hooks";
 
 interface CommentListProps {
-  comments: IssueComment[];
+  comments: Array<IssueComment>;
   currentUserId?: string;
   onToggleReaction: (commentId: string, emoji: string) => void;
   onUpdateComment: (commentId: string, body: string) => Promise<void>;

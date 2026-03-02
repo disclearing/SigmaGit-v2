@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MessageSquare, MoreVertical } from "lucide-react";
 import { formatRelativeTime } from "@sigmagit/lib";
+import { InlineCommentForm } from "./inline-comment-form";
 import type { PRComment } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { InlineCommentForm } from "./inline-comment-form";
 
 export type InlineCommentThreadProps = {
-  comments: PRComment[];
+  comments: Array<PRComment>;
   onReply: (body: string, replyToId: string) => Promise<void>;
   onEdit?: (commentId: string, body: string) => Promise<void>;
   onDelete?: (commentId: string) => Promise<void>;
@@ -114,7 +114,7 @@ export function InlineCommentThread({
   const rootComments = comments.filter((c) => !c.replyToId);
   const replies = comments.filter((c) => c.replyToId);
 
-  function getReplies(commentId: string): PRComment[] {
+  function getReplies(commentId: string): Array<PRComment> {
     return replies.filter((r) => r.replyToId === commentId);
   }
 

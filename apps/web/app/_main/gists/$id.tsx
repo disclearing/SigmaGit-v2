@@ -1,15 +1,19 @@
 "use client";
 
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+  useCreateGistComment,
+  useDeleteGist,
+  useForkGist,
   useGist,
   useGistComments,
-  useCreateGistComment,
-  useToggleGistStar,
   useIsGistStarred,
-  useForkGist,
-  useDeleteGist,
+  useToggleGistStar,
 } from "@sigmagit/hooks";
+import { ArrowLeft, Check, Clock, Copy, Edit, FileCode2, GitFork, MessageSquare, Send, Star, Trash2 } from "lucide-react";
+import { getLanguage, timeAgo } from "@sigmagit/lib";
+import { toast } from "sonner";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeViewer } from "@/components/code-viewer";
@@ -18,11 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, GitFork, Edit, Trash2, Send, FileCode2, ArrowLeft, Clock, MessageSquare, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { timeAgo, getLanguage } from "@sigmagit/lib";
-import { toast } from "sonner";
-import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_main/gists/$id")({

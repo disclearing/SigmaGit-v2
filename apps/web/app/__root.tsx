@@ -1,10 +1,10 @@
-import { Outlet, createRootRoute, HeadContent, Scripts, Link } from "@tanstack/react-router";
-import { Toaster } from "@/components/ui/sonner";
+import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { Databuddy } from "@databuddy/sdk/react";
-import { Button } from "@/components/ui/button";
-import { Home, GitBranch } from "lucide-react";
-import appCss from "./globals.css?url";
+import { GitBranch, Home } from "lucide-react";
 import { ThemeProvider } from "tanstack-theme-kit";
+import appCss from "./globals.css?url";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFound() {
   return (

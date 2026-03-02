@@ -1,10 +1,10 @@
 "use client";
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMigrations } from "@sigmagit/hooks";
-import { Button } from "@/components/ui/button";
-import { Download, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, Download, Loader2, XCircle } from "lucide-react";
 import { timeAgo } from "@sigmagit/lib";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_main/settings/migrations")({
   component: MigrationsPage,

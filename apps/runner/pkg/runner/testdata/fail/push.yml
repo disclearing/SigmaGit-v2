@@ -1,0 +1,12 @@
+name: fail
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:16-buster-slim
+      env:
+        TEST_ENV: test-value
+    steps:
+      - run: echo ${TEST_ENV} | grep bazooka

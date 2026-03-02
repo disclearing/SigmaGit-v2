@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRepoPageData, useUpdateRepository, useDeleteRepository, useRepositoryInfo } from "@sigmagit/hooks";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useDeleteRepository, useRepoPageData, useRepositoryInfo, useUpdateRepository } from "@sigmagit/hooks";
+import { toast } from "sonner";
+import { AlertTriangle, Globe, Loader2, Lock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { Lock, Globe, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_main/$username/$repo/settings")({
   component: RepoSettingsPage,

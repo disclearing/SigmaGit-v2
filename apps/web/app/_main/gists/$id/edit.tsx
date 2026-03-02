@@ -1,16 +1,16 @@
 "use client";
 
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useGist, useUpdateGist } from "@sigmagit/hooks";
+import { ArrowLeft, Code2, FileCode2, Globe, Lock, Plus, Trash2 } from "lucide-react";
+import { getLanguage } from "@sigmagit/lib";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, FileCode2, ArrowLeft, Globe, Lock, Code2 } from "lucide-react";
 import { GIST_LANGUAGES } from "@/lib/gist-languages";
-import { getLanguage } from "@sigmagit/lib";
 import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -35,7 +35,7 @@ function EditGistPage() {
 
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"public" | "secret">("public");
-  const [files, setFiles] = useState<GistFile[]>([]);
+  const [files, setFiles] = useState<Array<GistFile>>([]);
 
   useEffect(() => {
     if (gist) {

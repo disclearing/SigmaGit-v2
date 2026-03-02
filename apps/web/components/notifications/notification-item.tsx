@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MessageSquare, AlertCircle, GitPullRequest, CheckCircle2, User, GitBranch } from "lucide-react";
+import { AlertCircle, CheckCircle2, GitBranch, GitPullRequest, MessageSquare, User } from "lucide-react";
 import { formatRelativeTime } from "@sigmagit/lib";
 import type { Notification } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

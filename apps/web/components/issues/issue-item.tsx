@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { timeAgo } from "@sigmagit/lib";
-import { MessageSquare, GitBranch } from "lucide-react";
+import { GitBranch, MessageSquare } from "lucide-react";
+import { StateBadge } from "./state-badge";
+import { LabelBadge } from "./label-badge";
 import type { Issue } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { StateBadge } from "./state-badge";
-import { LabelBadge } from "./label-badge";
 import { cn } from "@/lib/utils";
 
 interface IssueItemProps {

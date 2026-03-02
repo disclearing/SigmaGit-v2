@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useUpdateSocialLinks } from "@sigmagit/hooks";
+import { Link as LinkIcon, Loader2 } from "lucide-react";
+import { GithubIcon, LinkedInIcon, XIcon } from "../icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUpdateSocialLinks } from "@sigmagit/hooks";
-import { Loader2, Link as LinkIcon } from "lucide-react";
-import { GithubIcon, LinkedInIcon, XIcon } from "../icons";
 
 interface SocialLinksFormProps {
   socialLinks?: {
     github?: string;
     twitter?: string;
     linkedin?: string;
-    custom?: string[];
+    custom?: Array<string>;
   } | null;
 }
 
@@ -21,7 +21,7 @@ export function SocialLinksForm({ socialLinks }: SocialLinksFormProps) {
   const { mutate, isPending } = useUpdateSocialLinks();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [customLinks, setCustomLinks] = useState<string[]>([socialLinks?.custom?.[0] || "", socialLinks?.custom?.[1] || "", socialLinks?.custom?.[2] || ""]);
+  const [customLinks, setCustomLinks] = useState<Array<string>>([socialLinks?.custom?.[0] || "", socialLinks?.custom?.[1] || "", socialLinks?.custom?.[2] || ""]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Trash2, Loader2 } from "lucide-react";
+import { Camera, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useDeleteAvatar, useUpdateAvatar } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

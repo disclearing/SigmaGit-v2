@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Briefcase, Users, Zap, Heart } from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { Briefcase, Heart, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_main/careers")({

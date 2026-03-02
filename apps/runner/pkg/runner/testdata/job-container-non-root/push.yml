@@ -1,0 +1,10 @@
+name: job-container
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: catthehacker/ubuntu:runner-latest # image with user 'runner:runner' built on tag 'act-latest'
+    steps:
+      - run: echo PASS

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { LayoutGrid, Loader2, Plus } from "lucide-react";
-import { useProjects, useCreateProject } from "@sigmagit/hooks";
+import { useCreateProject, useProjects } from "@sigmagit/hooks";
 import { formatRelativeTime } from "@sigmagit/lib";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

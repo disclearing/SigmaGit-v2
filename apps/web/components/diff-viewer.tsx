@@ -3,7 +3,7 @@
 import { useTheme } from "tanstack-theme-kit";
 import { useCallback, useRef, useState } from "react";
 import { PatchDiff } from "@pierre/diffs/react";
-import { Plus, ChevronDown, ChevronUp, Maximize2, Minimize2, File, FilePlus, FileEdit, FileX, Minus } from "lucide-react";
+import { ChevronDown, ChevronUp, File, FileEdit, FilePlus, FileX, Maximize2, Minimize2, Minus, Plus } from "lucide-react";
 
 import type { FileDiff } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";

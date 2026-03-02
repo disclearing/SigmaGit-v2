@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 
 type ApiKey = {
@@ -16,7 +16,7 @@ export function useApiKeys() {
     queryFn: async () => {
       const result = await authClient.apiKey.list();
       if (result.error) throw result.error;
-      return (result.data ?? []) as unknown as ApiKey[];
+      return (result.data ?? []) as unknown as Array<ApiKey>;
     },
   });
 }

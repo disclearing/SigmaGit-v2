@@ -9,6 +9,8 @@ import { putObject, deleteObject, getObject } from "../s3";
 import { createHash } from "crypto";
 import * as zlib from "zlib";
 import { GIT_MAX_OBJECTS_PER_PUSH, GIT_MAX_DELTA_DEPTH, forceGCIfNeeded, measureMemory } from "../middleware/limits";
+import { triggerWorkflows } from "../workflows/trigger";
+import { syncWorkflows } from "../workflows/sync";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -755,6 +757,21 @@ app.post("/:owner/:name/git-receive-pack", async (c) => {
           ? update.ref.replace("refs/heads/", "")
           : update.ref;
         await repoCache.invalidateBranch(result.userId, repo.name, branch);
+      }
+
+      // Sync workflows and trigger CI — fire-and-forget
+      for (const update of updates) {
+        if (update.newOid !== "0".repeat(40) && update.ref.startsWith("refs/heads/")) {
+          const branch = update.ref.replace("refs/heads/", "");
+          syncWorkflows(repo.id).catch(() => {});
+          triggerWorkflows({
+            repoId: repo.id,
+            branch,
+            commitSha: update.newOid,
+            eventName: "push",
+            triggeredBy: currentUser?.id,
+          }).catch(() => {});
+        }
       }
     }
 

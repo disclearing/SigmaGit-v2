@@ -3,8 +3,8 @@
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
+import { ArrowDown, ArrowUp, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils"
-import { ChevronDown, Check, ArrowUp, ArrowDown } from "lucide-react";
 
 const Select = SelectPrimitive.Root
 

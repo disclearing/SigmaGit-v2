@@ -1,5 +1,5 @@
-import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
-import { Home, GitBranch } from "lucide-react";
+import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { GitBranch, Home } from "lucide-react";
 
 export const Route = createFileRoute("/_auth")({
   component: AuthLayout,

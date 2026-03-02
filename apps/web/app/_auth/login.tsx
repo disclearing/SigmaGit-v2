@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Fingerprint, Loader2, ArrowRight, Mail, Lock, Github } from "lucide-react";
+import { ArrowRight, Fingerprint, Github, Loader2, Lock, Mail } from "lucide-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClient, signIn } from "@/lib/auth-client";

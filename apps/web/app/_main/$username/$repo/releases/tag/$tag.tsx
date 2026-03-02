@@ -1,11 +1,11 @@
 "use client";
 
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useReleaseByTag, useReleaseAssets, useDeleteRelease } from "@sigmagit/hooks";
-import { Button } from "@/components/ui/button";
-import { Package, Download, Trash2, Edit } from "lucide-react";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useDeleteRelease, useReleaseAssets, useReleaseByTag } from "@sigmagit/hooks";
+import { Download, Edit, Package, Trash2 } from "lucide-react";
 import { timeAgo } from "@sigmagit/lib";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 
 export const Route = createFileRoute("/_main/$username/$repo/releases/tag/$tag")({

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Zap, Link2, Unlink, Loader2, AlertCircle, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertCircle, Check, Link2, Loader2, Unlink, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

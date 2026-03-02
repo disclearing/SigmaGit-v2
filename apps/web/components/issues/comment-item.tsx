@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { timeAgo } from "@sigmagit/lib";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ReactionPicker } from "./reaction-picker";
 import type { IssueComment } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeViewer } from "@/components/code-viewer";
-import { ReactionPicker } from "./reaction-picker";
 
 interface CommentItemProps {
   comment: IssueComment;

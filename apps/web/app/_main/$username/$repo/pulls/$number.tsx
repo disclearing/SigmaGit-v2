@@ -1,28 +1,28 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GitBranch, GitMerge } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  usePullRequest,
+  useAddPRAssignees,
+  useAddPRLabels,
+  useAddPRReviewers,
+  useCreatePRComment,
+  useDeletePullRequest,
   useLabels,
+  useMergePullRequest,
+  usePullRequest,
   usePullRequestComments,
   usePullRequestDiff,
-  useUpdatePullRequest,
-  useDeletePullRequest,
-  useMergePullRequest,
-  useAddPRLabels,
-  useRemovePRLabel,
-  useAddPRAssignees,
   useRemovePRAssignee,
-  useAddPRReviewers,
+  useRemovePRLabel,
   useRemovePRReviewer,
-  useCreatePRComment,
+  useRepositoryInfo,
   useSubmitReview,
   useTogglePRReaction,
-  useRepositoryInfo,
+  useUpdatePullRequest,
 } from "@sigmagit/hooks";
 import { PRDetail } from "@/components/pulls/pr-detail";
 import { PRHeader } from "@/components/pulls/pr-header";
-import { CommentList, CommentForm } from "@/components/issues";
+import { CommentForm, CommentList } from "@/components/issues";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api/client";
 

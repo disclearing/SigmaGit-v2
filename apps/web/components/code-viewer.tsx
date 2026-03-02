@@ -2,7 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { useTheme } from "tanstack-theme-kit";
 import { CheckCircle2, Copy } from "lucide-react";

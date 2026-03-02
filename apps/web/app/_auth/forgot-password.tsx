@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Mail, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getApiUrl } from "@/lib/utils";

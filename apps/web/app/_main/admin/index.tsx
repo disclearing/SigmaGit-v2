@@ -1,21 +1,21 @@
 "use client";
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useAdminStats } from "@sigmagit/hooks";
 import {
-  Users,
-  FolderGit2,
-  Building2,
-  CircleAlert,
-  GitPullRequest,
-  FileCode,
-  Globe,
-  Lock,
-  TrendingUp,
-  TrendingDown,
   Activity,
   ArrowRight,
+  Building2,
+  CircleAlert,
+  FileCode,
+  FolderGit2,
+  GitPullRequest,
+  Globe,
+  Lock,
   Shield,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";

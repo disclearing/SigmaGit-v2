@@ -1,30 +1,31 @@
 "use client";
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useAdminUsers, useUpdateAdminUser, useDeleteAdminUser } from "@sigmagit/hooks";
+import { useAdminUsers, useDeleteAdminUser, useUpdateAdminUser } from "@sigmagit/hooks";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  Filter,
+  MoreHorizontal,
+  Search,
+  Shield,
+  Trash2,
+  User,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Trash2,
-  MoreHorizontal,
-  Shield,
-  User,
-  Users,
-  Download,
-  Filter,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +34,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_main/admin/users/")({
   head: () => ({

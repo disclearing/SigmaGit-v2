@@ -1,4 +1,26 @@
 import { useEffect, useState } from "react";
+import {
+  useAddTeamRepo,
+  useCreateTeam,
+  useDeleteOrganization,
+  useDeleteTeam,
+  useOrganization,
+  useOrganizationMembers,
+  useOrganizationRepos,
+  useOrganizationTeams,
+  useRemoveOrgMember,
+  useRemoveTeamRepo,
+  useTeam,
+  useUpdateOrgMember,
+  useUpdateOrganization,
+  useUserProfile,
+  useUserRepositories,
+  useUserStarredRepos,
+} from "@sigmagit/hooks";
+import { toast } from "sonner";
+import { Activity, Award, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Settings, Trash2, Users } from "lucide-react";
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { formatDate, timeAgo } from "@sigmagit/lib";
 import { GithubIcon, LinkedInIcon, XIcon } from "@/components/icons";
 import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,28 +31,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/lib/auth-client";
-import {
-  useUserProfile,
-  useUserRepositories,
-  useUserStarredRepos,
-  useOrganization,
-  useOrganizationRepos,
-  useOrganizationMembers,
-  useOrganizationTeams,
-  useUpdateOrganization,
-  useDeleteOrganization,
-  useRemoveOrgMember,
-  useUpdateOrgMember,
-  useCreateTeam,
-  useDeleteTeam,
-  useTeam,
-  useAddTeamRepo,
-  useRemoveTeamRepo,
-} from "@sigmagit/hooks";
-import { toast } from "sonner";
-import { Activity, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, MapPin, Award, Users, Mail, Settings, Trash2 } from "lucide-react";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { timeAgo, formatDate } from "@sigmagit/lib";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
 const ORG_MEMBER_ROLES = ["owner", "admin", "member"] as const;

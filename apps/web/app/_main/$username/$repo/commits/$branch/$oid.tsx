@@ -1,11 +1,12 @@
-import { DiffToolbar, DiffViewer, FilePickerSidebar, useFileNavigation, type DiffViewMode } from "@/components/diff-viewer";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 import { useCommitDiff, useRepositoryWithStars } from "@sigmagit/hooks";
 import { timeAgo } from "@sigmagit/lib";
 import { GitCommit } from "lucide-react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useState } from "react";
+import type {DiffViewMode} from "@/components/diff-viewer";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DiffToolbar,  DiffViewer, FilePickerSidebar, useFileNavigation } from "@/components/diff-viewer";
 
 export const Route = createFileRoute("/_main/$username/$repo/commits/$branch/$oid")({
   component: CommitPage,

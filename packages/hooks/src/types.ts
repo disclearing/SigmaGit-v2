@@ -867,6 +867,19 @@ export type ApiClient = {
       acceptInvitation: (token: string) => Promise<{ success: boolean }>;
     };
   };
+  workflows: {
+    list: (owner: string, repo: string) => Promise<{ workflows: Workflow[] }>;
+    sync: (owner: string, repo: string) => Promise<{ workflows: Workflow[] }>;
+    dispatch: (owner: string, repo: string, workflowId: string, data?: { ref?: string; inputs?: Record<string, string> }) => Promise<{ runIds: string[] }>;
+    listRuns: (owner: string, repo: string, page?: number) => Promise<{ runs: WorkflowRun[] }>;
+    getRun: (owner: string, repo: string, runId: string) => Promise<{ run: WorkflowRun; jobs: WorkflowJob[] }>;
+    getJobLogs: (owner: string, repo: string, runId: string, jobId: string) => Promise<{ logs: string; steps: WorkflowStep[] }>;
+    cancelRun: (owner: string, repo: string, runId: string) => Promise<{ success: boolean }>;
+  };
+  runners: {
+    list: () => Promise<{ runners: Runner[] }>;
+    remove: (runnerId: string) => Promise<{ success: boolean }>;
+  };
 };
 
 export type SearchResultType = "repository" | "issue" | "pull_request" | "user";
@@ -990,4 +1003,87 @@ export type ProjectListItem = {
   description?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+// ─── Runner / Workflow types ───────────────────────────────────────────────────
+
+export type RunnerStatus = 'online' | 'offline' | 'busy';
+export type WorkflowRunStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+export type WorkflowRunConclusion = 'success' | 'failure' | 'cancelled' | 'skipped';
+export type WorkflowJobStatus = 'queued' | 'assigned' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+export type WorkflowStepStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+
+export type Runner = {
+  id: string;
+  name: string;
+  status: RunnerStatus;
+  labels: string[] | null;
+  os: string | null;
+  arch: string | null;
+  version: string | null;
+  lastSeenAt: string | null;
+  currentJobId: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+};
+
+export type Workflow = {
+  id: string;
+  repositoryId: string;
+  name: string;
+  path: string;
+  content: string;
+  triggers: {
+    push?: { branches?: string[] };
+    pull_request?: { branches?: string[] };
+    workflow_dispatch?: boolean;
+  } | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WorkflowStep = {
+  id: string;
+  jobId: string;
+  number: number;
+  name: string;
+  status: WorkflowStepStatus;
+  exitCode: number | null;
+  logOutput: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+};
+
+export type WorkflowJob = {
+  id: string;
+  runId: string;
+  name: string;
+  runnerId: string | null;
+  status: WorkflowJobStatus;
+  conclusion: WorkflowRunConclusion | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  steps?: WorkflowStep[];
+};
+
+export type WorkflowRun = {
+  id: string;
+  workflowId: string;
+  repositoryId: string;
+  commitSha: string;
+  branch: string;
+  eventName: string;
+  status: WorkflowRunStatus;
+  conclusion: WorkflowRunConclusion | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  workflowName?: string | null;
+};
+
+export type WorkflowRunDetail = WorkflowRun & {
+  jobs: WorkflowJob[];
 };

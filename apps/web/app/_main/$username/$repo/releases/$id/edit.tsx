@@ -1,9 +1,9 @@
 "use client";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useRelease, useUpdateRelease, useRepoTags } from "@sigmagit/hooks";
+import { useRelease, useRepoTags, useUpdateRelease } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

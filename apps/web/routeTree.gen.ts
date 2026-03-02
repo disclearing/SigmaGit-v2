@@ -41,6 +41,7 @@ import { Route as MainUsernameRepoRouteImport } from './app/_main/$username/$rep
 import { Route as MainNewImportIndexRouteImport } from './app/_main/new/import/index'
 import { Route as MainAdminUsersIndexRouteImport } from './app/_main/admin/users/index'
 import { Route as MainAdminSettingsIndexRouteImport } from './app/_main/admin/settings/index'
+import { Route as MainAdminRunnersIndexRouteImport } from './app/_main/admin/runners/index'
 import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admin/repositories/index'
 import { Route as MainAdminOrganizationsIndexRouteImport } from './app/_main/admin/organizations/index'
 import { Route as MainAdminGistsIndexRouteImport } from './app/_main/admin/gists/index'
@@ -51,12 +52,15 @@ import { Route as MainAdminUsersUserIdRouteImport } from './app/_main/admin/user
 import { Route as MainUsernameRepoSettingsRouteImport } from './app/_main/$username/$repo/settings'
 import { Route as MainUsernameRepoLabelsRouteImport } from './app/_main/$username/$repo/labels'
 import { Route as MainUsernameRepoCommitsRouteImport } from './app/_main/$username/$repo/commits'
+import { Route as MainUsernameRepoWorkflowsIndexRouteImport } from './app/_main/$username/$repo/workflows/index'
+import { Route as MainUsernameRepoRunsIndexRouteImport } from './app/_main/$username/$repo/runs/index'
 import { Route as MainUsernameRepoReleasesIndexRouteImport } from './app/_main/$username/$repo/releases/index'
 import { Route as MainUsernameRepoPullsIndexRouteImport } from './app/_main/$username/$repo/pulls/index'
 import { Route as MainUsernameRepoProjectsIndexRouteImport } from './app/_main/$username/$repo/projects/index'
 import { Route as MainUsernameRepoIssuesIndexRouteImport } from './app/_main/$username/$repo/issues/index'
 import { Route as MainUsernameRepoDiscussionsIndexRouteImport } from './app/_main/$username/$repo/discussions/index'
 import { Route as MainUsernameRepoTreeSplatRouteImport } from './app/_main/$username/$repo/tree/$'
+import { Route as MainUsernameRepoRunsRunIdRouteImport } from './app/_main/$username/$repo/runs/$runId'
 import { Route as MainUsernameRepoReleasesNewRouteImport } from './app/_main/$username/$repo/releases/new'
 import { Route as MainUsernameRepoPullsNewRouteImport } from './app/_main/$username/$repo/pulls/new'
 import { Route as MainUsernameRepoPullsNumberRouteImport } from './app/_main/$username/$repo/pulls/$number'
@@ -230,6 +234,11 @@ const MainAdminSettingsIndexRoute = MainAdminSettingsIndexRouteImport.update({
   path: '/settings/',
   getParentRoute: () => MainAdminRoute,
 } as any)
+const MainAdminRunnersIndexRoute = MainAdminRunnersIndexRouteImport.update({
+  id: '/runners/',
+  path: '/runners/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const MainAdminRepositoriesIndexRoute =
   MainAdminRepositoriesIndexRouteImport.update({
     id: '/repositories/',
@@ -283,6 +292,18 @@ const MainUsernameRepoCommitsRoute = MainUsernameRepoCommitsRouteImport.update({
   path: '/commits',
   getParentRoute: () => MainUsernameRepoRoute,
 } as any)
+const MainUsernameRepoWorkflowsIndexRoute =
+  MainUsernameRepoWorkflowsIndexRouteImport.update({
+    id: '/workflows/',
+    path: '/workflows/',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
+const MainUsernameRepoRunsIndexRoute =
+  MainUsernameRepoRunsIndexRouteImport.update({
+    id: '/runs/',
+    path: '/runs/',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
 const MainUsernameRepoReleasesIndexRoute =
   MainUsernameRepoReleasesIndexRouteImport.update({
     id: '/releases/',
@@ -317,6 +338,12 @@ const MainUsernameRepoTreeSplatRoute =
   MainUsernameRepoTreeSplatRouteImport.update({
     id: '/tree/$',
     path: '/tree/$',
+    getParentRoute: () => MainUsernameRepoRoute,
+  } as any)
+const MainUsernameRepoRunsRunIdRoute =
+  MainUsernameRepoRunsRunIdRouteImport.update({
+    id: '/runs/$runId',
+    path: '/runs/$runId',
     getParentRoute: () => MainUsernameRepoRoute,
   } as any)
 const MainUsernameRepoReleasesNewRoute =
@@ -442,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/admin/gists/': typeof MainAdminGistsIndexRoute
   '/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
   '/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
+  '/admin/runners/': typeof MainAdminRunnersIndexRoute
   '/admin/settings/': typeof MainAdminSettingsIndexRoute
   '/admin/users/': typeof MainAdminUsersIndexRoute
   '/new/import/': typeof MainNewImportIndexRoute
@@ -455,12 +483,15 @@ export interface FileRoutesByFullPath {
   '/$username/$repo/pulls/$number': typeof MainUsernameRepoPullsNumberRoute
   '/$username/$repo/pulls/new': typeof MainUsernameRepoPullsNewRoute
   '/$username/$repo/releases/new': typeof MainUsernameRepoReleasesNewRoute
+  '/$username/$repo/runs/$runId': typeof MainUsernameRepoRunsRunIdRoute
   '/$username/$repo/tree/$': typeof MainUsernameRepoTreeSplatRoute
   '/$username/$repo/discussions/': typeof MainUsernameRepoDiscussionsIndexRoute
   '/$username/$repo/issues/': typeof MainUsernameRepoIssuesIndexRoute
   '/$username/$repo/projects/': typeof MainUsernameRepoProjectsIndexRoute
   '/$username/$repo/pulls/': typeof MainUsernameRepoPullsIndexRoute
   '/$username/$repo/releases/': typeof MainUsernameRepoReleasesIndexRoute
+  '/$username/$repo/runs/': typeof MainUsernameRepoRunsIndexRoute
+  '/$username/$repo/workflows/': typeof MainUsernameRepoWorkflowsIndexRoute
   '/$username/$repo/commits/$branch/$oid': typeof MainUsernameRepoCommitsBranchOidRoute
   '/$username/$repo/releases/$id/edit': typeof MainUsernameRepoReleasesIdEditRoute
   '/$username/$repo/releases/tag/$tag': typeof MainUsernameRepoReleasesTagTagRoute
@@ -501,6 +532,7 @@ export interface FileRoutesByTo {
   '/admin/gists': typeof MainAdminGistsIndexRoute
   '/admin/organizations': typeof MainAdminOrganizationsIndexRoute
   '/admin/repositories': typeof MainAdminRepositoriesIndexRoute
+  '/admin/runners': typeof MainAdminRunnersIndexRoute
   '/admin/settings': typeof MainAdminSettingsIndexRoute
   '/admin/users': typeof MainAdminUsersIndexRoute
   '/new/import': typeof MainNewImportIndexRoute
@@ -513,12 +545,15 @@ export interface FileRoutesByTo {
   '/$username/$repo/pulls/$number': typeof MainUsernameRepoPullsNumberRoute
   '/$username/$repo/pulls/new': typeof MainUsernameRepoPullsNewRoute
   '/$username/$repo/releases/new': typeof MainUsernameRepoReleasesNewRoute
+  '/$username/$repo/runs/$runId': typeof MainUsernameRepoRunsRunIdRoute
   '/$username/$repo/tree/$': typeof MainUsernameRepoTreeSplatRoute
   '/$username/$repo/discussions': typeof MainUsernameRepoDiscussionsIndexRoute
   '/$username/$repo/issues': typeof MainUsernameRepoIssuesIndexRoute
   '/$username/$repo/projects': typeof MainUsernameRepoProjectsIndexRoute
   '/$username/$repo/pulls': typeof MainUsernameRepoPullsIndexRoute
   '/$username/$repo/releases': typeof MainUsernameRepoReleasesIndexRoute
+  '/$username/$repo/runs': typeof MainUsernameRepoRunsIndexRoute
+  '/$username/$repo/workflows': typeof MainUsernameRepoWorkflowsIndexRoute
   '/$username/$repo/commits/$branch/$oid': typeof MainUsernameRepoCommitsBranchOidRoute
   '/$username/$repo/releases/$id/edit': typeof MainUsernameRepoReleasesIdEditRoute
   '/$username/$repo/releases/tag/$tag': typeof MainUsernameRepoReleasesTagTagRoute
@@ -565,6 +600,7 @@ export interface FileRoutesById {
   '/_main/admin/gists/': typeof MainAdminGistsIndexRoute
   '/_main/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
   '/_main/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
+  '/_main/admin/runners/': typeof MainAdminRunnersIndexRoute
   '/_main/admin/settings/': typeof MainAdminSettingsIndexRoute
   '/_main/admin/users/': typeof MainAdminUsersIndexRoute
   '/_main/new/import/': typeof MainNewImportIndexRoute
@@ -578,12 +614,15 @@ export interface FileRoutesById {
   '/_main/$username/$repo/pulls/$number': typeof MainUsernameRepoPullsNumberRoute
   '/_main/$username/$repo/pulls/new': typeof MainUsernameRepoPullsNewRoute
   '/_main/$username/$repo/releases/new': typeof MainUsernameRepoReleasesNewRoute
+  '/_main/$username/$repo/runs/$runId': typeof MainUsernameRepoRunsRunIdRoute
   '/_main/$username/$repo/tree/$': typeof MainUsernameRepoTreeSplatRoute
   '/_main/$username/$repo/discussions/': typeof MainUsernameRepoDiscussionsIndexRoute
   '/_main/$username/$repo/issues/': typeof MainUsernameRepoIssuesIndexRoute
   '/_main/$username/$repo/projects/': typeof MainUsernameRepoProjectsIndexRoute
   '/_main/$username/$repo/pulls/': typeof MainUsernameRepoPullsIndexRoute
   '/_main/$username/$repo/releases/': typeof MainUsernameRepoReleasesIndexRoute
+  '/_main/$username/$repo/runs/': typeof MainUsernameRepoRunsIndexRoute
+  '/_main/$username/$repo/workflows/': typeof MainUsernameRepoWorkflowsIndexRoute
   '/_main/$username/$repo/commits/$branch/$oid': typeof MainUsernameRepoCommitsBranchOidRoute
   '/_main/$username/$repo/releases/$id/edit': typeof MainUsernameRepoReleasesIdEditRoute
   '/_main/$username/$repo/releases/tag/$tag': typeof MainUsernameRepoReleasesTagTagRoute
@@ -629,6 +668,7 @@ export interface FileRouteTypes {
     | '/admin/gists/'
     | '/admin/organizations/'
     | '/admin/repositories/'
+    | '/admin/runners/'
     | '/admin/settings/'
     | '/admin/users/'
     | '/new/import/'
@@ -642,12 +682,15 @@ export interface FileRouteTypes {
     | '/$username/$repo/pulls/$number'
     | '/$username/$repo/pulls/new'
     | '/$username/$repo/releases/new'
+    | '/$username/$repo/runs/$runId'
     | '/$username/$repo/tree/$'
     | '/$username/$repo/discussions/'
     | '/$username/$repo/issues/'
     | '/$username/$repo/projects/'
     | '/$username/$repo/pulls/'
     | '/$username/$repo/releases/'
+    | '/$username/$repo/runs/'
+    | '/$username/$repo/workflows/'
     | '/$username/$repo/commits/$branch/$oid'
     | '/$username/$repo/releases/$id/edit'
     | '/$username/$repo/releases/tag/$tag'
@@ -688,6 +731,7 @@ export interface FileRouteTypes {
     | '/admin/gists'
     | '/admin/organizations'
     | '/admin/repositories'
+    | '/admin/runners'
     | '/admin/settings'
     | '/admin/users'
     | '/new/import'
@@ -700,12 +744,15 @@ export interface FileRouteTypes {
     | '/$username/$repo/pulls/$number'
     | '/$username/$repo/pulls/new'
     | '/$username/$repo/releases/new'
+    | '/$username/$repo/runs/$runId'
     | '/$username/$repo/tree/$'
     | '/$username/$repo/discussions'
     | '/$username/$repo/issues'
     | '/$username/$repo/projects'
     | '/$username/$repo/pulls'
     | '/$username/$repo/releases'
+    | '/$username/$repo/runs'
+    | '/$username/$repo/workflows'
     | '/$username/$repo/commits/$branch/$oid'
     | '/$username/$repo/releases/$id/edit'
     | '/$username/$repo/releases/tag/$tag'
@@ -751,6 +798,7 @@ export interface FileRouteTypes {
     | '/_main/admin/gists/'
     | '/_main/admin/organizations/'
     | '/_main/admin/repositories/'
+    | '/_main/admin/runners/'
     | '/_main/admin/settings/'
     | '/_main/admin/users/'
     | '/_main/new/import/'
@@ -764,12 +812,15 @@ export interface FileRouteTypes {
     | '/_main/$username/$repo/pulls/$number'
     | '/_main/$username/$repo/pulls/new'
     | '/_main/$username/$repo/releases/new'
+    | '/_main/$username/$repo/runs/$runId'
     | '/_main/$username/$repo/tree/$'
     | '/_main/$username/$repo/discussions/'
     | '/_main/$username/$repo/issues/'
     | '/_main/$username/$repo/projects/'
     | '/_main/$username/$repo/pulls/'
     | '/_main/$username/$repo/releases/'
+    | '/_main/$username/$repo/runs/'
+    | '/_main/$username/$repo/workflows/'
     | '/_main/$username/$repo/commits/$branch/$oid'
     | '/_main/$username/$repo/releases/$id/edit'
     | '/_main/$username/$repo/releases/tag/$tag'
@@ -1008,6 +1059,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAdminSettingsIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
+    '/_main/admin/runners/': {
+      id: '/_main/admin/runners/'
+      path: '/runners'
+      fullPath: '/admin/runners/'
+      preLoaderRoute: typeof MainAdminRunnersIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/_main/admin/repositories/': {
       id: '/_main/admin/repositories/'
       path: '/repositories'
@@ -1078,6 +1136,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainUsernameRepoCommitsRouteImport
       parentRoute: typeof MainUsernameRepoRoute
     }
+    '/_main/$username/$repo/workflows/': {
+      id: '/_main/$username/$repo/workflows/'
+      path: '/workflows'
+      fullPath: '/$username/$repo/workflows/'
+      preLoaderRoute: typeof MainUsernameRepoWorkflowsIndexRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
+    }
+    '/_main/$username/$repo/runs/': {
+      id: '/_main/$username/$repo/runs/'
+      path: '/runs'
+      fullPath: '/$username/$repo/runs/'
+      preLoaderRoute: typeof MainUsernameRepoRunsIndexRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
+    }
     '/_main/$username/$repo/releases/': {
       id: '/_main/$username/$repo/releases/'
       path: '/releases'
@@ -1118,6 +1190,13 @@ declare module '@tanstack/react-router' {
       path: '/tree/$'
       fullPath: '/$username/$repo/tree/$'
       preLoaderRoute: typeof MainUsernameRepoTreeSplatRouteImport
+      parentRoute: typeof MainUsernameRepoRoute
+    }
+    '/_main/$username/$repo/runs/$runId': {
+      id: '/_main/$username/$repo/runs/$runId'
+      path: '/runs/$runId'
+      fullPath: '/$username/$repo/runs/$runId'
+      preLoaderRoute: typeof MainUsernameRepoRunsRunIdRouteImport
       parentRoute: typeof MainUsernameRepoRoute
     }
     '/_main/$username/$repo/releases/new': {
@@ -1286,12 +1365,15 @@ interface MainUsernameRepoRouteChildren {
   MainUsernameRepoPullsNumberRoute: typeof MainUsernameRepoPullsNumberRoute
   MainUsernameRepoPullsNewRoute: typeof MainUsernameRepoPullsNewRoute
   MainUsernameRepoReleasesNewRoute: typeof MainUsernameRepoReleasesNewRoute
+  MainUsernameRepoRunsRunIdRoute: typeof MainUsernameRepoRunsRunIdRoute
   MainUsernameRepoTreeSplatRoute: typeof MainUsernameRepoTreeSplatRoute
   MainUsernameRepoDiscussionsIndexRoute: typeof MainUsernameRepoDiscussionsIndexRoute
   MainUsernameRepoIssuesIndexRoute: typeof MainUsernameRepoIssuesIndexRoute
   MainUsernameRepoProjectsIndexRoute: typeof MainUsernameRepoProjectsIndexRoute
   MainUsernameRepoPullsIndexRoute: typeof MainUsernameRepoPullsIndexRoute
   MainUsernameRepoReleasesIndexRoute: typeof MainUsernameRepoReleasesIndexRoute
+  MainUsernameRepoRunsIndexRoute: typeof MainUsernameRepoRunsIndexRoute
+  MainUsernameRepoWorkflowsIndexRoute: typeof MainUsernameRepoWorkflowsIndexRoute
   MainUsernameRepoReleasesIdEditRoute: typeof MainUsernameRepoReleasesIdEditRoute
   MainUsernameRepoReleasesTagTagRoute: typeof MainUsernameRepoReleasesTagTagRoute
 }
@@ -1312,12 +1394,15 @@ const MainUsernameRepoRouteChildren: MainUsernameRepoRouteChildren = {
   MainUsernameRepoPullsNumberRoute: MainUsernameRepoPullsNumberRoute,
   MainUsernameRepoPullsNewRoute: MainUsernameRepoPullsNewRoute,
   MainUsernameRepoReleasesNewRoute: MainUsernameRepoReleasesNewRoute,
+  MainUsernameRepoRunsRunIdRoute: MainUsernameRepoRunsRunIdRoute,
   MainUsernameRepoTreeSplatRoute: MainUsernameRepoTreeSplatRoute,
   MainUsernameRepoDiscussionsIndexRoute: MainUsernameRepoDiscussionsIndexRoute,
   MainUsernameRepoIssuesIndexRoute: MainUsernameRepoIssuesIndexRoute,
   MainUsernameRepoProjectsIndexRoute: MainUsernameRepoProjectsIndexRoute,
   MainUsernameRepoPullsIndexRoute: MainUsernameRepoPullsIndexRoute,
   MainUsernameRepoReleasesIndexRoute: MainUsernameRepoReleasesIndexRoute,
+  MainUsernameRepoRunsIndexRoute: MainUsernameRepoRunsIndexRoute,
+  MainUsernameRepoWorkflowsIndexRoute: MainUsernameRepoWorkflowsIndexRoute,
   MainUsernameRepoReleasesIdEditRoute: MainUsernameRepoReleasesIdEditRoute,
   MainUsernameRepoReleasesTagTagRoute: MainUsernameRepoReleasesTagTagRoute,
 }
@@ -1348,6 +1433,7 @@ interface MainAdminRouteChildren {
   MainAdminGistsIndexRoute: typeof MainAdminGistsIndexRoute
   MainAdminOrganizationsIndexRoute: typeof MainAdminOrganizationsIndexRoute
   MainAdminRepositoriesIndexRoute: typeof MainAdminRepositoriesIndexRoute
+  MainAdminRunnersIndexRoute: typeof MainAdminRunnersIndexRoute
   MainAdminSettingsIndexRoute: typeof MainAdminSettingsIndexRoute
   MainAdminUsersIndexRoute: typeof MainAdminUsersIndexRoute
 }
@@ -1359,6 +1445,7 @@ const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminGistsIndexRoute: MainAdminGistsIndexRoute,
   MainAdminOrganizationsIndexRoute: MainAdminOrganizationsIndexRoute,
   MainAdminRepositoriesIndexRoute: MainAdminRepositoriesIndexRoute,
+  MainAdminRunnersIndexRoute: MainAdminRunnersIndexRoute,
   MainAdminSettingsIndexRoute: MainAdminSettingsIndexRoute,
   MainAdminUsersIndexRoute: MainAdminUsersIndexRoute,
 }

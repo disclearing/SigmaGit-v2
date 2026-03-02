@@ -1,16 +1,16 @@
 import { Suspense, useEffect, useState } from "react";
-import { createFileRoute, Link, Outlet, useLocation, useNavigate, useParams } from "@tanstack/react-router";
-import { Code, GitFork, GitPullRequest, Loader2, Circle, Settings, History, LayoutGrid, Clock, Package } from "lucide-react";
+import { Link, Outlet, createFileRoute, useLocation, useNavigate, useParams } from "@tanstack/react-router";
+import { Circle, Clock, Code, GitFork, GitPullRequest, History, LayoutGrid, Loader2, Package, PlayCircle, Settings } from "lucide-react";
 import { useForkRepository, useIssueCount, usePullRequestCount, useRepoBranches, useRepoCommitCount, useRepositoryInfo } from "@sigmagit/hooks";
+import { toast } from "sonner";
 import { BranchSelector } from "@/components/branch-selector";
 import { CloneUrl } from "@/components/clone-url";
 import { StarButton } from "@/components/star-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
 
 
 function getBranchFromPath(pathname: string, defaultBranch: string): string {
@@ -66,8 +66,21 @@ function RepoLayoutContent() {
   const isCommits = pathname.includes("/commits");
   const isReleases = pathname.includes("/releases");
   const isSettings = pathname.includes("/settings");
+  const isActions = pathname.includes("/workflows") || pathname.includes("/runs");
 
-  const currentTab = isSettings ? "settings" : isReleases ? "releases" : isCommits ? "commits" : isPulls ? "pulls" : isIssues ? "issues" : "code";
+  const currentTab = isSettings
+    ? "settings"
+    : isReleases
+      ? "releases"
+      : isCommits
+        ? "commits"
+        : isPulls
+          ? "pulls"
+          : isIssues
+            ? "issues"
+            : isActions
+              ? "actions"
+              : "code";
   const forkCount = repo?.forkCount ?? 0;
   const [isForkDialogOpen, setIsForkDialogOpen] = useState(false);
   const [forkName, setForkName] = useState("");
@@ -197,6 +210,12 @@ function RepoLayoutContent() {
                 <TabsTrigger value="releases" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
                   <Package className="size-4" />
                   <span>Releases</span>
+                </TabsTrigger>
+              </Link>
+              <Link to="/$username/$repo/workflows" params={{ username, repo: repoName }}>
+                <TabsTrigger value="actions" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                  <PlayCircle className="size-4" />
+                  <span>Actions</span>
                 </TabsTrigger>
               </Link>
               {isOwner && (

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Search, Loader2, Command, FileText, User, GitBranch, Hash } from "lucide-react";
+import { Command, FileText, GitBranch, Hash, Loader2, Search, User } from "lucide-react";
 import { useSearch } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";

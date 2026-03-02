@@ -1,11 +1,11 @@
+import { useRepoCommits, useRepoReadme, useRepoReadmeOid, useRepoTree, useRepositoryInfo, useTreeCommits } from "@sigmagit/hooks";
+import { createFileRoute } from "@tanstack/react-router";
+import { timeAgo } from "@sigmagit/lib";
+import { BookOpen, GitBranch } from "lucide-react";
 import { CloneUrl } from "@/components/clone-url";
 import { CodeViewer } from "@/components/code-viewer";
 import { FileTree } from "@/components/file-tree";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRepoCommits, useRepoReadme, useRepoReadmeOid, useRepositoryInfo, useRepoTree, useTreeCommits } from "@sigmagit/hooks";
-import { createFileRoute } from "@tanstack/react-router";
-import { timeAgo } from "@sigmagit/lib";
-import { BookOpen, GitBranch } from "lucide-react";
 
 export const Route = createFileRoute("/_main/$username/$repo/")({
   component: RepoPage,

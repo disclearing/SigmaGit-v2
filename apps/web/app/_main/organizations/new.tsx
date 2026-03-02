@@ -4,11 +4,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateOrganization } from "@sigmagit/hooks";
+import { Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_main/organizations/new")({
   component: NewOrganizationPage,

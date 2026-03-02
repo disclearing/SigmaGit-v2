@@ -25,6 +25,8 @@ import organizations from "./organizations";
 import releases from "./releases";
 import gists from "./gists";
 import migrations from "./migrations";
+import runners from "./runners";
+import workflows from "./workflows";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
@@ -50,6 +52,8 @@ export function mountRoutes(app: Hono) {
   app.route("/", releases);
   app.route("/", gists);
   app.route("/", migrations);
+  app.route("/", runners);
+  app.route("/", workflows);
 
   if (config.webhooksEnabled) {
     app.route("/", webhooks);

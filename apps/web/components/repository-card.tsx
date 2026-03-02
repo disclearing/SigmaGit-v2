@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Lock, Globe, Clock, Star, GitFork, Circle } from "lucide-react";
+import { Circle, Clock, GitFork, Globe, Lock, Star } from "lucide-react";
 import { cn, timeAgo } from "@sigmagit/lib";
-import { useStarRepository, type RepositoryWithStars } from "@sigmagit/hooks";
+import {  useStarRepository } from "@sigmagit/hooks";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import type {RepositoryWithStars} from "@sigmagit/hooks";
 
 type Repository = RepositoryWithStars & {
   updatedAt: Date | string;

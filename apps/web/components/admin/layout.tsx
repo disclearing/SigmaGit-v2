@@ -1,25 +1,26 @@
 "use client";
 
-import { Outlet, Link, useLocation } from "@tanstack/react-router";
+import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
-  Shield,
-  LayoutDashboard,
-  Users,
-  FolderGit2,
   Building2,
-  FileText,
-  Settings,
-  FileCode,
   ChevronRight,
-  LogOut,
+  FileCode,
+  FileText,
+  FolderGit2,
   Home,
+  LayoutDashboard,
+  LogOut,
+  Server,
+  Settings,
+  Shield,
+  Users,
 } from "lucide-react";
+import { useCurrentUserSummary } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession, signOut } from "@/lib/auth-client";
-import { useCurrentUserSummary } from "@sigmagit/hooks";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export function AdminLayout() {
   const location = useLocation();
@@ -33,6 +34,7 @@ export function AdminLayout() {
     { to: "/admin/organizations", icon: Building2, label: "Organizations", description: "Teams & orgs" },
     { to: "/admin/gists", icon: FileCode, label: "Gists", description: "Code snippets" },
     { to: "/admin/audit-logs", icon: FileText, label: "Audit Logs", description: "Activity tracking" },
+    { to: "/admin/runners", icon: Server, label: "Runners", description: "CI/CD runner agents" },
     { to: "/admin/settings", icon: Settings, label: "Settings", description: "System config" },
   ];
 

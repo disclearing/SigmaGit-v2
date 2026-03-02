@@ -1,34 +1,36 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Loader2, ArrowLeft, Plus, Trash2, AlertCircle, GitPullRequest, StickyNote } from "lucide-react";
+import { AlertCircle, ArrowLeft, GitPullRequest, Loader2, Plus, StickyNote, Trash2 } from "lucide-react";
 import {
   DndContext,
+  
   DragOverlay,
-  closestCorners,
+  
   KeyboardSensor,
   PointerSensor,
+  closestCorners,
   useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
+  useSensors
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  useProject,
-  useReorderProjectItems,
+  
+  
   useAddProjectItem,
   useDeleteProjectItem,
-  type ProjectItem,
-  type ProjectColumn,
+  useProject,
+  useReorderProjectItems
 } from "@sigmagit/hooks";
 import { toast } from "sonner";
+import type {ProjectColumn, ProjectItem} from "@sigmagit/hooks";
+import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -217,7 +219,7 @@ function ProjectBoardPage() {
     const activeIndex = sourceItems.findIndex((i) => i.id === activeId);
     const overIndex = destItems.findIndex((i) => i.id === overId);
 
-    let newItems: { id: string; columnId: string; position: number }[];
+    let newItems: Array<{ id: string; columnId: string; position: number }>;
 
     if (sourceColumn.id === destColumn.id) {
       const reordered = arrayMove(sourceItems, activeIndex, overIndex);

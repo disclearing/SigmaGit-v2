@@ -1,10 +1,10 @@
 "use client";
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useReleases } from "@sigmagit/hooks";
-import { Button } from "@/components/ui/button";
 import { Package, Plus } from "lucide-react";
 import { timeAgo } from "@sigmagit/lib";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_main/$username/$repo/releases/")({
   component: ReleasesPage,

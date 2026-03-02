@@ -1,19 +1,19 @@
 import { Bell, CheckCircle2, Loader2, Settings } from "lucide-react";
 import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
   useNotifications,
   useUnreadNotificationCount,
-  useMarkNotificationRead,
-  useMarkAllNotificationsRead,
 } from "@sigmagit/hooks";
+import { Link } from "@tanstack/react-router";
+import { NotificationItem } from "./notification-item";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NotificationItem } from "./notification-item";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
 
 export function NotificationDropdown() {
   const { data: notificationsData, isLoading } = useNotifications({ limit: 10 });

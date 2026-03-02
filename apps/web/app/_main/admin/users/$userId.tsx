@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute  } from "@tanstack/react-router";
 import { useAdminUser, useUpdateAdminUser } from "@sigmagit/hooks";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_main/admin/users/$userId")({
   head: () => ({

@@ -1,12 +1,12 @@
-import { useSession } from "@/lib/auth-client";
 import { useRepoFile, useRepositoryWithStars, useWordWrapPreference } from "@sigmagit/hooks";
 import { getLanguage } from "@sigmagit/lib";
 import { ChevronRight, Code, Home } from "lucide-react";
 import {
   File
 } from '@pierre/diffs/react';
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useTheme } from "tanstack-theme-kit";
+import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_main/$username/$repo/blob/$")({
   component: BlobPage,

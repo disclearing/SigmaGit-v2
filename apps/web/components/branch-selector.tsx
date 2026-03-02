@@ -1,4 +1,4 @@
-import { ChevronDown, CheckCircle2, GitBranch } from "lucide-react";
+import { CheckCircle2, ChevronDown, GitBranch } from "lucide-react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { buttonVariants } from "./ui/button";
 import { cn } from "@/lib/utils";

@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { timeAgo } from "@sigmagit/lib";
-import { MessageSquare, GitBranch, GitMerge } from "lucide-react";
+import { GitBranch, GitMerge, MessageSquare } from "lucide-react";
+import { PRStateBadge } from "./pr-state-badge";
 import type { PullRequest } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PRStateBadge } from "./pr-state-badge";
 import { LabelBadge } from "@/components/issues/label-badge";
 
 interface PRItemProps {

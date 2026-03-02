@@ -1,28 +1,28 @@
 "use client";
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { useAdminSettings, useUpdateAdminSettings, useToggleMaintenance } from "@sigmagit/hooks";
+import { useEffect, useState } from "react";
+import { useAdminSettings, useToggleMaintenance, useUpdateAdminSettings } from "@sigmagit/hooks";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  Globe,
+  Mail,
+  Power,
+  Save,
+  Settings,
+  Type,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import {
-  Settings,
-  AlertTriangle,
-  Globe,
-  Mail,
-  Type,
-  FileText,
-  Save,
-  Power,
-  CheckCircle2,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_main/admin/settings/")({
   head: () => ({

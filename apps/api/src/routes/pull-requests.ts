@@ -16,6 +16,7 @@ import { eq, sql, and, desc, or } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, squashMerge, rebaseMerge, repoCache } from "../git";
 import { deliverWebhookEvent } from "./repo-webhooks";
+import { triggerWorkflows } from "../workflows/trigger";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -434,6 +435,17 @@ app.post("/api/repositories/:owner/:name/pulls", requireAuth, async (c) => {
   }
 
   const enriched = await enrichPullRequest(inserted, user.id);
+
+  // Trigger pull_request workflows — fire-and-forget
+  triggerWorkflows({
+    repoId: repoAccess.repoId,
+    branch: body.headBranch,
+    commitSha: headOid,
+    eventName: 'pull_request',
+    eventPayload: { action: 'opened', pullRequestId: inserted.id, number: inserted.number },
+    triggeredBy: user.id,
+  }).catch(() => {});
+
   return c.json(enriched);
 });
 

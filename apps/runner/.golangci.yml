@@ -1,0 +1,56 @@
+# Minimum golangci-lint version required: v1.46.0
+run:
+  timeout: 3m
+
+issues:
+  exclude-dirs:
+    - report # megalinter results+fixes
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters-settings:
+  gocyclo:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 20
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+  importas:
+    alias:
+      - pkg: 'github.com/sirupsen/logrus'
+        alias: log
+      - pkg: 'github.com/stretchr/testify/assert'
+        alias: assert
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: github.com/pkg/errors
+            desc: Please use "errors" package from standard library
+          - pkg: gotest.tools/v3
+            desc: Please keep tests unified using only github.com/stretchr/testify
+          - pkg: log
+            desc: Please keep logging unified using only github.com/sirupsen/logrus
+linters:
+  enable:
+    - gosimple
+    - staticcheck
+    - unused
+    - govet
+    - revive
+    - gocyclo
+    - gosec
+    - unconvert
+    - dupl
+    - nakedret
+    - prealloc
+    - copyloopvar
+    - gocritic
+    - goimports
+    - whitespace
+    - misspell
+    - depguard
+    - importas
+    - contextcheck
+    - nolintlint
+    - revive

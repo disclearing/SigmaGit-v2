@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Tag, Plus, Check } from "lucide-react";
+import { Check, Plus, Tag } from "lucide-react";
+import { LabelBadge } from "./label-badge";
 import type { Label } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LabelBadge } from "./label-badge";
 
 interface LabelPickerProps {
-  labels: Label[];
-  selectedIds: string[];
+  labels: Array<Label>;
+  selectedIds: Array<string>;
   onToggle: (labelId: string) => void;
   isLoading?: boolean;
 }

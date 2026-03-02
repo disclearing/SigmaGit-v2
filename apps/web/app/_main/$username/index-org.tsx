@@ -1,12 +1,12 @@
 "use client";
 
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useOrganization, useOrganizationRepos, useOrganizationMembers, useOrganizationTeams } from "@sigmagit/hooks";
+import { useOrganization, useOrganizationMembers, useOrganizationRepos, useOrganizationTeams } from "@sigmagit/hooks";
+import { BookOpen, Building2, GitBranch, Globe, Mail, MapPin, Users } from "lucide-react";
+import { formatDate, timeAgo } from "@sigmagit/lib";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, BookOpen, Users, GitBranch, Globe, MapPin, Mail } from "lucide-react";
 import RepositoryCard from "@/components/repository-card";
-import { timeAgo, formatDate } from "@sigmagit/lib";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
 export const Route = createFileRoute("/_main/$username/index-org")({

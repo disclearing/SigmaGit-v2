@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Globe, Loader2, Lock, GitBranch } from "lucide-react";
+import { GitBranch, Globe, Loader2, Lock } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useCreateRepository, useCurrentUser, useOrganizations } from "@sigmagit/hooks";

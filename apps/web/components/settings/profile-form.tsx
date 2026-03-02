@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { User, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, User } from "lucide-react";
+import { useUpdateProfile } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUpdateProfile } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
 
 interface ProfileFormProps {

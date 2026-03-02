@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { MessageSquare, Pin, CheckCircle2, Loader2, Plus } from "lucide-react";
+import { CheckCircle2, Loader2, MessageSquare, Pin, Plus } from "lucide-react";
 import { useDiscussions } from "@sigmagit/hooks";
 import { formatRelativeTime } from "@sigmagit/lib";
 import { Button } from "@/components/ui/button";

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, AlertCircle, GitPullRequest, User, GitBranch, Hash } from "lucide-react";
+import { AlertCircle, BookOpen, GitBranch, GitPullRequest, Hash, User } from "lucide-react";
 import { formatRelativeTime } from "@sigmagit/lib";
 import type { SearchResult } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -92,7 +92,7 @@ export function SearchResultItem({ result }: { result: SearchResult }) {
   );
 }
 
-export function SearchResultsList({ results }: { results: SearchResult[] }) {
+export function SearchResultsList({ results }: { results: Array<SearchResult> }) {
   if (results.length === 0) {
     return (
       <div className="p-12 text-center">

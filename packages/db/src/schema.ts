@@ -1590,3 +1590,184 @@ export const prReactionRelations = relations(prReactions, ({ one }) => ({
 
 import { discordLinks, linkTokens } from './discord';
 export { discordLinks, linkTokens };
+
+// ─── Runner System ─────────────────────────────────────────────────────────────
+
+export const runners = pgTable(
+  "runners",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    token: text("token").notNull().unique(),
+    labels: jsonb("labels").$type<string[]>().default([]),
+    status: text("status", { enum: ["online", "offline", "busy"] }).notNull().default("offline"),
+    lastSeenAt: timestamp("last_seen_at"),
+    currentJobId: uuid("current_job_id"),
+    ipAddress: text("ip_address"),
+    os: text("os"),
+    arch: text("arch"),
+    version: text("version"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("runners_status_idx").on(table.status),
+    index("runners_token_idx").on(table.token),
+  ]
+);
+
+export const workflows = pgTable(
+  "workflows",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    path: text("path").notNull(),
+    content: text("content").notNull(),
+    triggers: jsonb("triggers").$type<{
+      push?: { branches?: string[] };
+      pull_request?: { branches?: string[] };
+      workflow_dispatch?: boolean;
+    }>(),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("workflows_repository_id_idx").on(table.repositoryId)]
+);
+
+export const workflowRuns = pgTable(
+  "workflow_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workflowId: uuid("workflow_id")
+      .notNull()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    repositoryId: uuid("repository_id")
+      .notNull()
+      .references(() => repositories.id, { onDelete: "cascade" }),
+    triggeredBy: text("triggered_by").references(() => users.id, { onDelete: "set null" }),
+    commitSha: text("commit_sha").notNull(),
+    branch: text("branch").notNull(),
+    eventName: text("event_name").notNull(),
+    eventPayload: jsonb("event_payload").$type<Record<string, unknown>>(),
+    status: text("status", {
+      enum: ["queued", "in_progress", "completed", "failed", "cancelled"],
+    })
+      .notNull()
+      .default("queued"),
+    conclusion: text("conclusion", { enum: ["success", "failure", "cancelled", "skipped"] }),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("workflow_runs_repository_id_idx").on(table.repositoryId),
+    index("workflow_runs_workflow_id_idx").on(table.workflowId),
+    index("workflow_runs_status_idx").on(table.status),
+  ]
+);
+
+export const workflowJobs = pgTable(
+  "workflow_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => workflowRuns.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    runnerId: uuid("runner_id").references(() => runners.id, { onDelete: "set null" }),
+    status: text("status", {
+      enum: ["queued", "assigned", "in_progress", "completed", "failed", "cancelled"],
+    })
+      .notNull()
+      .default("queued"),
+    conclusion: text("conclusion", { enum: ["success", "failure", "cancelled", "skipped"] }),
+    workflowDefinition: jsonb("workflow_definition").$type<Record<string, unknown>>(),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("workflow_jobs_run_id_idx").on(table.runId),
+    index("workflow_jobs_status_idx").on(table.status),
+    index("workflow_jobs_runner_id_idx").on(table.runnerId),
+  ]
+);
+
+export const workflowSteps = pgTable(
+  "workflow_steps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => workflowJobs.id, { onDelete: "cascade" }),
+    number: integer("number").notNull(),
+    name: text("name").notNull(),
+    status: text("status", {
+      enum: ["queued", "in_progress", "completed", "failed", "cancelled"],
+    })
+      .notNull()
+      .default("queued"),
+    exitCode: integer("exit_code"),
+    logOutput: text("log_output"),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [index("workflow_steps_job_id_idx").on(table.jobId)]
+);
+
+// Relations
+export const runnersRelations = relations(runners, ({ one, many }) => ({
+  currentJob: one(workflowJobs, {
+    fields: [runners.currentJobId],
+    references: [workflowJobs.id],
+  }),
+  jobs: many(workflowJobs),
+}));
+
+export const workflowsRelations = relations(workflows, ({ one, many }) => ({
+  repository: one(repositories, {
+    fields: [workflows.repositoryId],
+    references: [repositories.id],
+  }),
+  runs: many(workflowRuns),
+}));
+
+export const workflowRunsRelations = relations(workflowRuns, ({ one, many }) => ({
+  workflow: one(workflows, {
+    fields: [workflowRuns.workflowId],
+    references: [workflows.id],
+  }),
+  repository: one(repositories, {
+    fields: [workflowRuns.repositoryId],
+    references: [repositories.id],
+  }),
+  triggeredByUser: one(users, {
+    fields: [workflowRuns.triggeredBy],
+    references: [users.id],
+  }),
+  jobs: many(workflowJobs),
+}));
+
+export const workflowJobsRelations = relations(workflowJobs, ({ one, many }) => ({
+  run: one(workflowRuns, {
+    fields: [workflowJobs.runId],
+    references: [workflowRuns.id],
+  }),
+  runner: one(runners, {
+    fields: [workflowJobs.runnerId],
+    references: [runners.id],
+  }),
+  steps: many(workflowSteps),
+}));
+
+export const workflowStepsRelations = relations(workflowSteps, ({ one }) => ({
+  job: one(workflowJobs, {
+    fields: [workflowSteps.jobId],
+    references: [workflowJobs.id],
+  }),
+}));

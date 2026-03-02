@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Lock, CheckCircle2, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Lock } from "lucide-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getApiUrl } from "@/lib/utils";

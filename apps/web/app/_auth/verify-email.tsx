@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, CheckCircle2, AlertCircle, Mail } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { getApiUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

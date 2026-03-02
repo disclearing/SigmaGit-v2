@@ -1,13 +1,13 @@
 "use client";
 
+import { useIssueCount, useIssues, useLabels } from "@sigmagit/hooks";
+import { CheckCircle2, Circle, Loader2, Plus, Tag } from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { useIssueCount, useIssues, useLabels } from "@sigmagit/hooks";
-import { Plus, CheckCircle2, Loader2, Circle, Tag } from "lucide-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
-import { Suspense, useState } from "react";
 import { IssueItem } from "@/components/issues/issue-item";
 
 export const Route = createFileRoute("/_main/$username/$repo/issues/")({

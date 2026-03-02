@@ -1,0 +1,10 @@
+{
+  "name": "@sigmagit/ssh-key-helper",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cargo build --release",
+    "check": "cargo check",
+    "start": "cargo run --release --"
+  }
+}

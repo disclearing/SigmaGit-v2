@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, users, repositories } from "@sigmagit/db";
+import { db, users, repositories, repositoryCollaborators } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, type AuthUser, type AuthVariables } from "../middleware/auth";
 import { createGitStore, getRefsAdvertisement, repoCache } from "../git";
@@ -170,6 +170,38 @@ async function getRepoAndStore(owner: string, name: string) {
   };
 }
 
+async function canReadRepository(repo: { id: string; ownerId: string; visibility: string }, currentUser: AuthUser | null): Promise<boolean> {
+  if (repo.visibility === "public") {
+    return true;
+  }
+  if (!currentUser) {
+    return false;
+  }
+  if (currentUser.id === repo.ownerId) {
+    return true;
+  }
+
+  const collaborator = await db.query.repositoryCollaborators.findFirst({
+    where: and(eq(repositoryCollaborators.repositoryId, repo.id), eq(repositoryCollaborators.userId, currentUser.id)),
+  });
+  return Boolean(collaborator);
+}
+
+async function canWriteRepository(repo: { id: string; ownerId: string }, currentUser: AuthUser | null): Promise<boolean> {
+  if (!currentUser) {
+    return false;
+  }
+  if (currentUser.id === repo.ownerId) {
+    return true;
+  }
+
+  const collaborator = await db.query.repositoryCollaborators.findFirst({
+    where: and(eq(repositoryCollaborators.repositoryId, repo.id), eq(repositoryCollaborators.userId, currentUser.id)),
+  });
+
+  return collaborator?.permission === "write" || collaborator?.permission === "admin";
+}
+
 function unauthorizedBasic(): Response {
   return new Response("Unauthorized", {
     status: 401,
@@ -197,11 +229,11 @@ app.get("/:owner/:name/info/refs", async (c) => {
   const { repo, store } = result;
 
   if (service === "git-receive-pack") {
-    if (!currentUser || currentUser.id !== repo.ownerId) {
+    if (!(await canWriteRepository(repo, currentUser))) {
       return unauthorizedBasic();
     }
-  } else if (repo.visibility === "private") {
-    if (!currentUser || currentUser.id !== repo.ownerId) {
+  } else {
+    if (!(await canReadRepository(repo, currentUser))) {
       return unauthorizedBasic();
     }
   }
@@ -239,10 +271,8 @@ app.post("/:owner/:name/git-upload-pack", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private") {
-    if (!currentUser || currentUser.id !== repo.ownerId) {
-      return unauthorizedBasic();
-    }
+  if (!(await canReadRepository(repo, currentUser))) {
+    return unauthorizedBasic();
   }
 
   try {
@@ -919,7 +949,7 @@ app.post("/:owner/:name/git-receive-pack", async (c) => {
 
   const { repo, store } = result;
 
-  if (!currentUser || currentUser.id !== repo.ownerId) {
+  if (!(await canWriteRepository(repo, currentUser))) {
     return unauthorizedBasic();
   }
 

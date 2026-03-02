@@ -6,6 +6,11 @@ export default defineConfig({
   lang: 'en-US',
   lastUpdated: true,
   cleanUrls: true,
+  vite: {
+    server: {
+      allowedHosts: ['docs.sigmagit.com'],
+    },
+  },
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },

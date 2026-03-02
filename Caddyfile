@@ -1,17 +1,12 @@
 {
     # Global options
-    email your-email@example.com
+    email bh@sigmagaming.net
 }
 
 # Replace with your actual domain or localhost for testing
 sigmagit.com {
     # API requests
-    handle_path /api/* {
-        reverse_proxy localhost:3001
-    }
-
-    # Auth requests (Better Auth)
-    handle_path /api/auth/* {
+    handle /api/* {
         reverse_proxy localhost:3001
     }
 
@@ -30,7 +25,7 @@ sigmagit.com {
 
     # Logging
     log {
-        output file /var/log/caddy/sigmagit.log
+        output stdout
     }
 }
 
@@ -43,6 +38,6 @@ docs.sigmagit.com {
 
     # Logging
     log {
-        output file /var/log/caddy/sigmagit-docs.log
+        output stdout
     }
 }

@@ -113,7 +113,7 @@ function AdminGists() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gists</h1>
           <p className="text-muted-foreground mt-2">
@@ -172,8 +172,8 @@ function AdminGists() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-border overflow-hidden">
-            <table className="w-full">
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="w-full min-w-[1000px]">
               <thead>
                 <tr className="bg-muted/50 border-b border-border">
                   <th className="text-left p-4 font-semibold text-sm">Gist</th>

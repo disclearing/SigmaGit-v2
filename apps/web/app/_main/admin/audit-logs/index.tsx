@@ -80,36 +80,38 @@ function AdminAuditLogs() {
         <p className="text-muted-foreground mt-2">Track system events and actions</p>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Filter by action..."
-            value={action}
-            onChange={(e) => {
-              setAction(e.target.value);
-              setPage(0);
-            }}
-            className="pl-9"
-          />
+      <Card>
+        <div className="grid gap-3 p-4 sm:grid-cols-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by action..."
+              value={action}
+              onChange={(e) => {
+                setAction(e.target.value);
+                setPage(0);
+              }}
+              className="h-11 pl-9"
+            />
+          </div>
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by target type..."
+              value={targetType}
+              onChange={(e) => {
+                setTargetType(e.target.value);
+                setPage(0);
+              }}
+              className="h-11 pl-9"
+            />
+          </div>
         </div>
-        <div className="relative flex-1 max-w-sm">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Filter by target type..."
-            value={targetType}
-            onChange={(e) => {
-              setTargetType(e.target.value);
-              setPage(0);
-            }}
-            className="pl-9"
-          />
-        </div>
-      </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-4 font-semibold text-sm">Time</th>

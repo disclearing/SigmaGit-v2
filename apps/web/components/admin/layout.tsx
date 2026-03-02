@@ -42,9 +42,9 @@ export function AdminLayout() {
     <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-72 border-r border-border bg-card min-h-screen sticky top-0 flex flex-col">
+        <aside className="w-64 xl:w-72 border-r border-border bg-card min-h-screen sticky top-0 flex flex-col">
           {/* Header */}
-          <div className="p-6 border-b border-border">
+          <div className="p-5 xl:p-6 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-gradient-to-br from-primary to-primary/70 p-2.5 shadow-lg shadow-primary/20">
                 <Shield className="size-5 text-primary-foreground" />
@@ -57,7 +57,7 @@ export function AdminLayout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-3 xl:p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.to || (item.to !== "/admin" && location.pathname.startsWith(item.to));
@@ -132,7 +132,7 @@ export function AdminLayout() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <div className="p-8 max-w-7xl mx-auto">
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
         </main>

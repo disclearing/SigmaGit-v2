@@ -58,7 +58,7 @@ function AdminUserDetail() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex items-center gap-4">
         <Link to="/admin/users">
           <Button variant="ghost" size="sm">
@@ -69,7 +69,7 @@ function AdminUserDetail() {
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <Avatar className="h-20 w-20">
             <AvatarImage src={user.avatarUrl || undefined} />
             <AvatarFallback className="text-2xl">{user.name.charAt(0)}</AvatarFallback>
@@ -80,7 +80,7 @@ function AdminUserDetail() {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2 lg:gap-6">
           <div className="rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-semibold mb-4">Account Information</h2>
             <div className="space-y-4">

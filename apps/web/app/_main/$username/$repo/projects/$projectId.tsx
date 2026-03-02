@@ -69,7 +69,7 @@ function SortableCard({ item, onDelete }: { item: ProjectItem; onDelete: () => v
             <GitPullRequest className="size-4 text-purple-500 mt-0.5 shrink-0" />
           )}
           {item.type === "note" && (
-            <StickyNote01 className="size-4 text-yellow-500 mt-0.5 shrink-0" />
+            <StickyNote className="size-4 text-yellow-500 mt-0.5 shrink-0" />
           )}
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">

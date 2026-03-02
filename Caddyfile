@@ -5,6 +5,12 @@
 
 # Replace with your actual domain or localhost for testing
 sigmagit.com {
+    # Git smart HTTP requests (clone/fetch/push)
+    @git path_regexp git ^/[^/]+/[^/]+\.git(/.*)?$
+    handle @git {
+        reverse_proxy localhost:3001
+    }
+
     # API requests
     handle /api/* {
         reverse_proxy localhost:3001

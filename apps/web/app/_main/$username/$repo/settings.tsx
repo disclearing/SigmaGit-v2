@@ -40,6 +40,12 @@ function RepoSettingsPage() {
     });
   }, [repo]);
 
+  const hasChanges =
+    !!repo &&
+    (formData.name !== repo.name ||
+      formData.description !== (repo.description || "") ||
+      formData.visibility !== repo.visibility);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!repo) return;
@@ -83,7 +89,7 @@ function RepoSettingsPage() {
 
   if (isLoading || isLoadingInfo) {
     return (
-      <div className="container max-w-6xl px-4">
+      <div className="container mx-auto max-w-[1280px] px-4 py-6">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="size-8 animate-spin text-muted-foreground" />
         </div>
@@ -93,8 +99,8 @@ function RepoSettingsPage() {
 
   if (!repo || !isOwner) {
     return (
-      <div className="container max-w-6xl px-4">
-        <Card>
+      <div className="container mx-auto max-w-[1280px] px-4 py-6">
+        <Card className="mx-auto max-w-2xl">
           <CardContent className="p-12 text-center">
             <AlertTriangle className="size-12 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
@@ -109,11 +115,17 @@ function RepoSettingsPage() {
   }
 
   return (
-    <div className="container max-w-6xl px-4 space-y-8">
+    <div className="container mx-auto max-w-[1280px] space-y-6 px-4 py-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Repository settings</h1>
+        <p className="text-sm text-muted-foreground">
+          Manage details and visibility for <span className="font-mono">{username}/{repo.name}</span>.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
+      <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/20">
             <CardTitle>General</CardTitle>
             <CardDescription>Basic repository information</CardDescription>
           </CardHeader>
@@ -144,8 +156,10 @@ function RepoSettingsPage() {
               <Label>Visibility</Label>
               <div className="space-y-2">
                 <label
-                  className={`flex items-start gap-3 p-3 border cursor-pointer transition-colors ${
-                    formData.visibility === "public" ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/50"
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                    formData.visibility === "public"
+                      ? "border-primary/40 bg-primary/5"
+                      : "border-border hover:border-muted-foreground/50"
                   }`}
                 >
                   <input
@@ -164,8 +178,10 @@ function RepoSettingsPage() {
                 </label>
 
                 <label
-                  className={`flex items-start gap-3 p-3 border cursor-pointer transition-colors ${
-                    formData.visibility === "private" ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/50"
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                    formData.visibility === "private"
+                      ? "border-primary/40 bg-primary/5"
+                      : "border-border hover:border-muted-foreground/50"
                   }`}
                 >
                   <input
@@ -186,23 +202,22 @@ function RepoSettingsPage() {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving || !hasChanges}>
                 {saving && <Loader2 className="size-4 mr-2 animate-spin" />}
                 Save changes
               </Button>
             </div>
           </CardContent>
         </Card>
-      </form>
 
-      <Card className="border-destructive/50">
-        <CardHeader>
+        <Card className="border-destructive/40">
+          <CardHeader className="border-b border-destructive/20 bg-destructive/5">
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Irreversible actions that can affect your repository</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-4 border border-destructive/30 bg-destructive/5">
-            <div>
+          <div className="flex flex-col gap-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
               <p className="font-medium">Delete this repository</p>
               <p className="text-sm text-muted-foreground">Once deleted, it cannot be recovered</p>
             </div>
@@ -243,7 +258,8 @@ function RepoSettingsPage() {
             </Dialog>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </form>
     </div>
   );
 }

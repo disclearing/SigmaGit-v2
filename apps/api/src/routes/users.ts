@@ -67,7 +67,7 @@ app.get("/api/users/public", async (c) => {
       repoCount: sql<number>`(
         SELECT COUNT(*)::int
         FROM ${repositories}
-        WHERE ${repositories.ownerId} = ${users.id}
+        WHERE ${repositories.ownerId} = ${users.id}::text
         AND ${repositories.visibility} = 'public'
       )`.as("repo_count"),
     })

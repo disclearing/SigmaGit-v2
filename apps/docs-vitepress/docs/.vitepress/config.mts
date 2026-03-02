@@ -61,6 +61,6 @@ export default defineConfig({
     search: {
       provider: 'local',
     },
-    socialLinks: [{ icon: 'github', link: 'https://github.com/sigmagit/sigmagit' }],
+    socialLinks: [{ icon: 'github', link: 'https://git.sigmagaming.net/SigmaGaming/SimgaGit-v2' }],
   },
 });

@@ -50,7 +50,7 @@ sigmagitv2/
 │   ├── api/              # Hono API server (Bun)
 │   ├── web/              # TanStack Start web application
 │   ├── mobile/           # Expo React Native mobile app
-│   ├── docs/             # Next.js documentation site
+│   ├── docs-vitepress/   # VitePress documentation site
 │   ├── discord-bot/      # Discord integration bot
 │   └── runner/           # Go-based CI runner agent
 ├── packages/
@@ -66,22 +66,22 @@ sigmagitv2/
 
 ### Getting Started
 - [Quick Start](/README.md) - This file
-- [API Documentation](docs/api/README.md) - API endpoints and usage
-- [Web App](docs/web/README.md) - Web app development
-- [Mobile App](docs/mobile/README.md) - Mobile app development
-- [Discord Bot](docs/discord-bot/README.md) - Discord integration
-- [Architecture](docs/architecture/README.md) - System architecture
-- [Development](docs/development/README.md) - Development workflow
-- [Deployment](docs/deployment/README.md) - Deployment guides
-- [Features](docs/features/README.md) - Feature documentation
-- [Security](docs/security/README.md) - Security best practices
+- [API Documentation](apps/docs-vitepress/docs/api/index.md) - API endpoints and usage
+- [Web App](apps/docs-vitepress/docs/web/index.md) - Web app development
+- [Mobile App](apps/docs-vitepress/docs/mobile/index.md) - Mobile app development
+- [Discord Bot](apps/docs-vitepress/docs/discord-bot/index.md) - Discord integration
+- [Architecture](apps/docs-vitepress/docs/architecture/index.md) - System architecture
+- [Development](apps/docs-vitepress/docs/development/index.md) - Development workflow
+- [Deployment](apps/docs-vitepress/docs/deployment/index.md) - Deployment guides
+- [Features](apps/docs-vitepress/docs/features/index.md) - Feature documentation
+- [Security](apps/docs-vitepress/docs/security/index.md) - Security best practices
 
 ### Technical Documentation
-- [Git Operations](docs/features/git/README.md) - Git hosting features
-- [Authentication](docs/features/auth/README.md) - User authentication
-- [Storage](docs/features/storage/README.md) - Git object storage
-- [Webhooks](docs/features/webhooks/README.md) - Webhook notifications
-- [Account Linking](docs/features/account-linking/README.md) - Discord account linking
+- [Git Operations](apps/docs-vitepress/docs/features/git/index.md) - Git hosting features
+- [Authentication](apps/docs-vitepress/docs/features/auth/index.md) - User authentication
+- [Storage](apps/docs-vitepress/docs/features/storage/index.md) - Git object storage
+- [Webhooks](apps/docs-vitepress/docs/features/webhooks/index.md) - Webhook notifications
+- [Account Linking](apps/docs-vitepress/docs/features/account-linking/index.md) - Discord account linking
 
 ## 🛠 Tech Stack
 
@@ -122,61 +122,61 @@ See [Environment Variables](#environment-variables) section below) for required 
 The API server provides REST endpoints for all Sigmagit functionality.
 
 - Base URL: `http://localhost:3001` (configurable)
-- Documentation: [API Documentation](docs/api/README.md)
+- Documentation: [API Documentation](apps/docs-vitepress/docs/api/index.md)
 
 ## 🌐 Web App
 
 Modern React-based web application with file-based routing.
 
 - Base URL: `http://localhost:3000` (configurable)
-- Documentation: [Web App](docs/web/README.md)
+- Documentation: [Web App](apps/docs-vitepress/docs/web/index.md)
 
 ## 📱 Mobile App
 
 React Native mobile application built with Expo.
 
-- Documentation: [Mobile App](docs/mobile/README.md)
+- Documentation: [Mobile App](apps/docs-vitepress/docs/mobile/index.md)
 
 ## 🤖 Discord Bot
 
 Discord integration for notifications and repository management.
 
-- Documentation: [Discord Bot](docs/discord-bot/README.md)
-- Feature Details: [Account Linking](docs/features/account-linking/README.md)
+- Documentation: [Discord Bot](apps/docs-vitepress/docs/discord-bot/index.md)
+- Feature Details: [Account Linking](apps/docs-vitepress/docs/features/account-linking/index.md)
 
 ## 🔐 Architecture
 
 System architecture and data flow.
 
-- Documentation: [Architecture](docs/architecture/README.md)
+- Documentation: [Architecture](apps/docs-vitepress/docs/architecture/index.md)
 
 ## 🛠 Development
 
 Development setup, workflow, and best practices.
 
-- Documentation: [Development](docs/development/README.md)
+- Documentation: [Development](apps/docs-vitepress/docs/development/index.md)
 
 ## 🚢 Deployment
 
 Production deployment guides for various platforms.
 
-- Documentation: [Deployment](docs/deployment/README.md)
+- Documentation: [Deployment](apps/docs-vitepress/docs/deployment/index.md)
 
 ## 🔐 Features
 
 Detailed feature documentation.
 
-- [Git Operations](docs/features/git/README.md)
-- [Authentication](docs/features/auth/README.md)
-- [Storage](docs/features/storage/README.md)
-- [Webhooks](docs/features/webhooks/README.md)
-- [Account Linking](docs/features/account-linking/README.md)
+- [Git Operations](apps/docs-vitepress/docs/features/git/index.md)
+- [Authentication](apps/docs-vitepress/docs/features/auth/index.md)
+- [Storage](apps/docs-vitepress/docs/features/storage/index.md)
+- [Webhooks](apps/docs-vitepress/docs/features/webhooks/index.md)
+- [Account Linking](apps/docs-vitepress/docs/features/account-linking/index.md)
 
 ## 🔒 Security
 
 Security best practices and guidelines.
 
-- Documentation: [Security](docs/security/README.md)
+- Documentation: [Security](apps/docs-vitepress/docs/security/index.md)
 
 ## 📞 Environment Variables
 

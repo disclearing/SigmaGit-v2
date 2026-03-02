@@ -33,3 +33,16 @@ sigmagit.com {
         output file /var/log/caddy/sigmagit.log
     }
 }
+
+# Documentation site
+docs.sigmagit.com {
+    reverse_proxy localhost:3003
+
+    # Compression
+    encode zstd gzip
+
+    # Logging
+    log {
+        output file /var/log/caddy/sigmagit-docs.log
+    }
+}

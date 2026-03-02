@@ -24,9 +24,10 @@
   "scripts": {
     "dev:web": "turbo dev --filter=@sigmagit/web --filter=@sigmagit/api",
     "dev:mobile": "turbo dev --filter=@sigmagit/mobile --filter=@sigmagit/api --filter=@sigmagit/discord-bot",
-    "dev:docs": "turbo dev --filter=@sigmagit/docs",
+    "dev:docs": "turbo dev --filter=@sigmagit/docs-vitepress",
     "dev:discord": "turbo dev --filter=@sigmagit/discord-bot",
     "build": "turbo build",
+    "build:docs": "turbo build --filter=@sigmagit/docs-vitepress",
     "lint": "turbo lint",
     "db:migrate:discord": "cd packages/db && bun run db:migrate:discord",
     "discord:register": "cd apps/discord-bot && bun run register",

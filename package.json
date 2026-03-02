@@ -1,9 +1,9 @@
 {
   "name": "sigmagit",
   "devDependencies": {
-    "prettier": "^3.8.0",
-    "turbo": "^2.7.2",
-    "typescript": "^5"
+    "prettier": "^3.8.1",
+    "turbo": "^2.8.12",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "better-auth": "^1.4.12",

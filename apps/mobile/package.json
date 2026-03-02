@@ -7,9 +7,9 @@
     "start": "expo start -c",
     "android": "expo start -c --android",
     "ios": "expo start -c --ios",
-    "build": "eas build --profile production",
-    "build:ios": "eas build -p ios --profile production",
-    "build:android": "eas build -p android --profile production"
+    "build": "bunx eas-cli build --profile production",
+    "build:ios": "bunx eas-cli build -p ios --profile production",
+    "build:android": "bunx eas-cli build -p android --profile production"
   },
   "dependencies": {
     "@better-auth/expo": "^1.4.12",

@@ -1014,8 +1014,11 @@ app.post("/api/invitations/:token/accept", requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
-app.get("/api/user/organizations", requireAuth, async (c) => {
-  const user = c.get("user")!;
+app.get("/api/user/organizations", async (c) => {
+  const user = c.get("user");
+  if (!user) {
+    return c.json({ organizations: [] });
+  }
 
   const orgs = await db
     .select({

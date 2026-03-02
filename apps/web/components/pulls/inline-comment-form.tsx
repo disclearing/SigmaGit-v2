@@ -52,7 +52,7 @@ export function InlineCommentForm({
           onClick={onCancel}
           disabled={isLoading}
         >
-          <Cancel01Icon className="size-4 mr-1" />
+          <X className="size-4 mr-1" />
           Cancel
         </Button>
         <Button

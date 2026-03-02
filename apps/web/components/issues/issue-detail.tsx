@@ -144,7 +144,7 @@ export function IssueDetail({
             {canEdit && (
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setIsEditing(true)}>
-                  <Edit02Icon className="size-4" />
+                  <Edit className="size-4" />
                 </Button>
                 {canDelete && (
                   <Button
@@ -154,7 +154,7 @@ export function IssueDetail({
                     onClick={handleDelete}
                     disabled={isSubmitting}
                   >
-                    <Delete02Icon className="size-4" />
+                    <Trash2 className="size-4" />
                   </Button>
                 )}
               </div>

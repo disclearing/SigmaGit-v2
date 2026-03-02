@@ -92,7 +92,7 @@ function CommentItem({
             onClick={() => setIsEditing(true)}
             title="Edit"
           >
-            <MoreVerticalIcon className="size-4" />
+            <MoreVertical className="size-4" />
           </Button>
         </div>
       )}
@@ -170,7 +170,7 @@ export function InlineCommentThread({
             onClick={() => setIsReplying(true)}
             className="text-muted-foreground"
           >
-            <Message01Icon className="size-4 mr-1" />
+            <MessageSquare className="size-4 mr-1" />
             Reply
           </Button>
         </div>

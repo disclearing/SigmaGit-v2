@@ -76,7 +76,7 @@ export function CommentItem({ comment, currentUserId, onToggleReaction, onUpdate
               className="h-6 w-6 p-0"
               onClick={() => setShowMenu(!showMenu)}
             >
-              <MoreHorizontalIcon className="size-4" />
+              <MoreHorizontal className="size-4" />
             </Button>
             {showMenu && (
               <>
@@ -89,7 +89,7 @@ export function CommentItem({ comment, currentUserId, onToggleReaction, onUpdate
                     }}
                     className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-secondary transition-colors"
                   >
-                    <Edit02Icon className="size-4" />
+                    <Edit className="size-4" />
                     Edit
                   </button>
                   <button
@@ -99,7 +99,7 @@ export function CommentItem({ comment, currentUserId, onToggleReaction, onUpdate
                     }}
                     className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-500 hover:bg-secondary transition-colors"
                   >
-                    <Delete02Icon className="size-4" />
+                    <Trash2 className="size-4" />
                     Delete
                   </button>
                 </div>

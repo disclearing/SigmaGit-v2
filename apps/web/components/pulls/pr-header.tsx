@@ -78,7 +78,7 @@ export function PRHeader({
             <span className="text-2xl text-muted-foreground">#{pullRequest.number}</span>
             {canEdit && (
               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setIsEditing(true)}>
-                <Edit02Icon className="size-4" />
+                <Edit className="size-4" />
               </Button>
             )}
           </div>
@@ -115,7 +115,7 @@ export function PRHeader({
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="icon" className="text-red-600 hover:text-red-700">
-                <Delete02Icon className="size-4" />
+                <Trash2 className="size-4" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>

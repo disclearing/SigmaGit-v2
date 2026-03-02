@@ -29,7 +29,7 @@ export function LabelPicker({ labels, selectedIds, onToggle, isLoading }: LabelP
             onClick={() => setIsOpen(!isOpen)}
             disabled={isLoading}
           >
-            <Add01Icon className="size-3.5" />
+            <Plus className="size-3.5" />
           </Button>
           {isOpen && (
             <>
@@ -52,7 +52,7 @@ export function LabelPicker({ labels, selectedIds, onToggle, isLoading }: LabelP
                         />
                         <span className="flex-1 text-left truncate">{label.name}</span>
                         {isSelected && (
-                          <Tick02Icon className="size-4 text-primary" />
+                          <Check className="size-4 text-primary" />
                         )}
                       </button>
                     );

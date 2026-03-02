@@ -184,13 +184,13 @@ function PullRequestDetailPage() {
         isMerging={mergePR.isPending}
       />
 
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+      <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <GitBranch className="size-4" />
-        <span className="font-mono">
+        <span className="min-w-0 break-all font-mono">
           {pr.headRepo?.owner.username}:{pr.headBranch}
         </span>
         <GitMerge className="size-4" />
-        <span className="font-mono">
+        <span className="min-w-0 break-all font-mono">
           {pr.baseRepo?.owner.username}:{pr.baseBranch}
         </span>
       </div>

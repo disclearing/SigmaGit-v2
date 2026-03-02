@@ -69,11 +69,11 @@ export function PRDetail({
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full justify-start mb-4">
             <TabsTrigger value="conversation" className="gap-2">
-              <Comment01Icon className="size-4" />
+              <MessageSquare className="size-4" />
               Conversation
             </TabsTrigger>
             <TabsTrigger value="files" className="gap-2">
-              <File01Icon className="size-4" />
+              <File className="size-4" />
               Files changed
               {diffData && (
                 <span className="ml-1 text-muted-foreground">({diffData.stats.filesChanged})</span>
@@ -169,7 +169,7 @@ export function PRDetail({
                       onClick={() => handleSubmitReview("approved")}
                       disabled={isSubmittingReview}
                     >
-                      <Tick02Icon className="size-4 mr-1" />
+                      <Check className="size-4 mr-1" />
                       Approve
                     </Button>
                     <Button
@@ -179,7 +179,7 @@ export function PRDetail({
                       onClick={() => handleSubmitReview("changes_requested")}
                       disabled={isSubmittingReview}
                     >
-                      <Cancel01Icon className="size-4 mr-1" />
+                      <X className="size-4 mr-1" />
                       Request changes
                     </Button>
                     <Button

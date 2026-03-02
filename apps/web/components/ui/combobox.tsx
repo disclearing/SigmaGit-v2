@@ -31,7 +31,7 @@ function ComboboxTrigger({
       {...props}
     >
       {children}
-      <ArrowDown01Icon className="text-muted-foreground size-4 pointer-events-none" />
+      <ChevronDown className="text-muted-foreground size-4 pointer-events-none" />
     </ComboboxPrimitive.Trigger>
   )
 }
@@ -44,7 +44,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       className={cn(className)}
       {...props}
     >
-      <Cancel01Icon className="pointer-events-none" />
+      <X className="pointer-events-none" />
     </ComboboxPrimitive.Clear>
   )
 }
@@ -149,7 +149,7 @@ function ComboboxItem({
       <ComboboxPrimitive.ItemIndicator
         render={<span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />}
       >
-        <Tick02Icon className="pointer-events-none" />
+        <Check className="pointer-events-none" />
       </ComboboxPrimitive.ItemIndicator>
     </ComboboxPrimitive.Item>
   )
@@ -245,7 +245,7 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
         >
-          <Cancel01Icon className="pointer-events-none" />
+          <X className="pointer-events-none" />
         </ComboboxPrimitive.ChipRemove>
       )}
     </ComboboxPrimitive.Chip>

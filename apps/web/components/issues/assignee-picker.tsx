@@ -51,7 +51,7 @@ export function AssigneePicker({
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
       >
-        <Add01Icon className="size-3.5 mr-1" />
+        <Plus className="size-3.5 mr-1" />
         {label || "Assign"}
       </Button>
       {isOpen && (
@@ -75,7 +75,7 @@ export function AssigneePicker({
                     </Avatar>
                     <span className="flex-1 text-left truncate">{user.username}</span>
                     {isSelected && (
-                      <Tick02Icon className="size-4 text-primary" />
+                      <Check className="size-4 text-primary" />
                     )}
                   </button>
                 );

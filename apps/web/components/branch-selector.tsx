@@ -104,7 +104,7 @@ export function BranchSelector({
       <DropdownMenuTrigger className={buttonVariants({ variant: "outline", size: "default" })}>
         <GitBranch className="size-4 text-primary" />
         <span className="font-mono max-w-[120px] truncate">{currentBranch}</span>
-        <ArrowDown01Icon className="size-3 text-muted-foreground" />
+        <ChevronDown className="size-3 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[240px]">
         <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">Switch branch</div>

@@ -23,6 +23,9 @@ import { useAddPasskey, useDeletePasskey, usePasskeys } from "@/lib/hooks/use-pa
 import { getApiUrl } from "@/lib/utils";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
+const tabTriggerClassName =
+  "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground";
+
 export const Route = createFileRoute("/_main/settings")({
   component: SettingsPage,
 });
@@ -768,20 +771,20 @@ function SettingsPage() {
         <h1 className="text-3xl font-semibold mb-8">Settings</h1>
         <Tabs value={tab} onValueChange={(value) => setTab(value === "profile" ? null : (value as "account" | "security" | "tokens"))}>
           <div className="mb-8 overflow-x-auto">
-            <TabsList variant="line" className="h-auto min-w-max bg-transparent p-0">
-            <TabsTrigger value="profile" className="gap-2 px-4 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+            <TabsList variant="line" className="h-auto min-w-max gap-1 bg-transparent p-0">
+            <TabsTrigger value="profile" className={tabTriggerClassName}>
               <User className="size-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="account" className="gap-2 px-4 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+            <TabsTrigger value="account" className={tabTriggerClassName}>
               <Shield className="size-4" />
               Account
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2 px-4 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+            <TabsTrigger value="security" className={tabTriggerClassName}>
               <Fingerprint className="size-4" />
               Security
             </TabsTrigger>
-            <TabsTrigger value="tokens" className="gap-2 px-4 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+            <TabsTrigger value="tokens" className={tabTriggerClassName}>
               <Key className="size-4" />
               Access Tokens
             </TabsTrigger>

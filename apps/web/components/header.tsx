@@ -10,6 +10,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { NewRepositoryModal } from "@/components/new-repository-modal";
 import { SearchBar } from "@/components/search";
 import { NotificationDropdown } from "@/components/notifications";
+import { cn } from "@/lib/utils";
 
 export function Header() {
   const navigate = useNavigate();
@@ -95,7 +96,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Mobile menu button */}
           <Button
             variant="ghost"
@@ -275,35 +276,38 @@ export function Header() {
       </div>
 
       {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
-          <nav className="container py-4 flex flex-col gap-2">
+      <div
+        className={cn(
+          "md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl overflow-hidden transition-all duration-300",
+          mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        )}
+      >
+        <nav className="container py-4 flex flex-col gap-2">
+          <Link
+            to="/explore"
+            className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Explore
+          </Link>
+          <Link
+            to="/gists"
+            className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Gists
+          </Link>
+          {isAdmin && (
             <Link
-              to="/explore"
+              to="/admin"
               className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Explore
+              Admin
             </Link>
-            <Link
-              to="/gists"
-              className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Gists
-            </Link>
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="px-4 py-3 rounded-xl text-foreground hover:bg-accent transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Admin
-              </Link>
-            )}
-          </nav>
-        </div>
-      )}
+          )}
+        </nav>
+      </div>
 
       <NewRepositoryModal open={newRepoModalOpen} onOpenChange={setNewRepoModalOpen} />
     </header>

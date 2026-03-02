@@ -79,18 +79,19 @@ export function FileTree({ files, username, repoName, branch, basePath, commits,
 
   return (
     <div className="divide-y divide-border">
-      {sortedFiles.map((file) => {
+      {sortedFiles.map((file, index) => {
         const Icon = getFileIcon(file.name, file.type);
         const route = file.type === "tree" ? ("/$username/$repo/tree/$" as const) : ("/$username/$repo/blob/$" as const);
         const splat = `${branch}/${file.path}`;
         const commit = commitsByPath[file.path];
 
+        const isLast = index === sortedFiles.length - 1;
         return (
           <Link
             key={file.oid + file.name}
             to={route}
             params={{ username, repo: repoName, _splat: splat }}
-            className="flex items-center gap-3 px-5 py-3 hover:bg-muted/50 transition-colors group"
+            className={cn("flex items-center gap-3 px-5 py-3 hover:bg-muted/50 transition-colors group", isLast && "rounded-b-lg")}
           >
             <Icon className={cn("size-4 shrink-0 text-muted-foreground")} />
             <span className={cn("text-sm min-w-0 truncate flex-1 sm:flex-none sm:w-[200px]")}>{file.name}</span>

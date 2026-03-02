@@ -132,10 +132,10 @@ function GistsPage() {
                     {/* Code Preview */}
                     {firstFile?.content && (
                       <div className="relative mb-4">
-                        <div className="bg-muted/50 rounded-lg p-3 font-mono text-xs text-muted-foreground line-clamp-4 overflow-hidden">
+                        <div className="bg-muted/50 rounded-lg p-3 pb-5 font-mono text-xs text-muted-foreground line-clamp-4 overflow-hidden">
                           <pre className="m-0">{firstFile.content}</pre>
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-muted/50 to-transparent rounded-b-lg" />
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent rounded-b-lg" />
                       </div>
                     )}
 

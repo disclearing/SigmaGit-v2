@@ -74,9 +74,9 @@ function RepositoriesTab({ username }: { username: string }) {
           <div className="text-sm text-muted-foreground mt-1">Total stars</div>
         </div>
       </div>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border">
+      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
         {repos.map((repo) => (
-          <RepositoryCard key={repo.id} repository={repo} />
+          <RepositoryCard key={repo.id} repository={repo} variant="list" />
         ))}
       </div>
     </>
@@ -110,9 +110,9 @@ function StarredTab({ username }: { username: string }) {
           <div className="text-sm text-muted-foreground mt-1">Starred repositories</div>
         </div>
       </div>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border">
+      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
         {repos.map((repo) => (
-          <RepositoryCard key={repo.id} repository={repo} showOwner />
+          <RepositoryCard key={repo.id} repository={repo} showOwner variant="list" />
         ))}
       </div>
     </>
@@ -156,9 +156,9 @@ function OrganizationRepositoriesTab({ orgName }: { orgName: string }) {
           <div className="text-sm text-muted-foreground mt-1">Repositories</div>
         </div>
       </div>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border">
+      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
         {repos.map((repo) => (
-          <RepositoryCard key={repo.id} repository={repo} />
+          <RepositoryCard key={repo.id} repository={repo} variant="list" />
         ))}
       </div>
     </>

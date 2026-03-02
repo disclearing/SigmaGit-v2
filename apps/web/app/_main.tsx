@@ -12,7 +12,7 @@ function MainLayout() {
     <QueryProvider>
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1">
+        <main className="flex-1 py-6 md:py-8">
           <Outlet />
         </main>
         <Footer />

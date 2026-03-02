@@ -4,7 +4,7 @@ import { ExternalLink, GitBranch, Github, Heart, Mail, Twitter } from "lucide-re
 export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-muted/30 mt-auto">
-      <div className="container py-12 lg:py-16">
+      <div className="container py-8 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-4">

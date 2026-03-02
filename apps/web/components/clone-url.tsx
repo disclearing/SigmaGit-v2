@@ -29,9 +29,9 @@ export function CloneUrl({ username, repoName, className }: CloneUrlProps) {
   }
 
   return (
-    <div className={cn("flex w-full items-center gap-2", className)}>
+    <div className={cn("flex w-full items-stretch gap-2", className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger className={buttonVariants({ variant: "outline", size: "default", className: "shrink-0" })}>
+        <DropdownMenuTrigger className={cn(buttonVariants({ variant: "outline", size: "default", className: "shrink-0" }), "h-10")}>
           {protocol.toUpperCase()}
           <ChevronDown className="size-3" />
         </DropdownMenuTrigger>
@@ -41,7 +41,7 @@ export function CloneUrl({ username, repoName, className }: CloneUrlProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       <div className="relative min-w-0 flex-1">
-        <Input value={url} readOnly className="pr-10 font-mono text-xs bg-muted/50" />
+        <Input value={url} readOnly className="pr-10 font-mono text-xs bg-muted/50 h-10" />
         <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 size-7 -translate-y-1/2" onClick={copyToClipboard}>
           {copied ? <CheckCircle2 className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
         </Button>

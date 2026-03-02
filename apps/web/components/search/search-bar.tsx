@@ -97,7 +97,7 @@ export function SearchBar({ className }: { className?: string }) {
       </form>
 
       {isOpen && query.length >= 2 && data?.results && data.results.length > 0 && (
-        <div className="absolute top-full mt-2 w-full bg-popover border border-border rounded-xl shadow-2xl max-h-[400px] overflow-y-auto z-50 p-2">
+        <div className="absolute top-full mt-2 w-full bg-popover border border-border rounded-xl shadow-2xl max-h-[400px] overflow-y-auto z-[60] p-2">
           <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Results
           </div>
@@ -146,7 +146,7 @@ export function SearchBar({ className }: { className?: string }) {
       )}
 
       {isOpen && query.length >= 2 && data?.results?.length === 0 && !isLoading && (
-        <div className="absolute top-full mt-2 w-full bg-popover border border-border rounded-xl shadow-2xl z-50 p-6 text-center">
+        <div className="absolute top-full mt-2 w-full bg-popover border border-border rounded-xl shadow-2xl z-[60] p-6 text-center">
           <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
             <Search className="size-6 text-muted-foreground" />
           </div>

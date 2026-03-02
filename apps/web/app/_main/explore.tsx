@@ -56,9 +56,9 @@ function RepoGrid({
 
   return (
     <>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border">
+      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
         {repos.map((repo) => (
-          <RepositoryCard key={repo.id} repository={repo} showOwner={true} />
+          <RepositoryCard key={repo.id} repository={repo} showOwner={true} variant="list" />
         ))}
       </div>
 
@@ -225,7 +225,7 @@ function ExploreContent() {
   const perPage = 20;
 
   return (
-    <div className="container max-w-[1280px] mx-auto py-6">
+    <div className="container mx-auto">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Compass className="size-7 text-primary" />

@@ -7,9 +7,9 @@ export const Route = createFileRoute("/_auth")({
 
 function AuthLayout() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-start px-4 py-8 sm:justify-center">
+    <div className="relative flex min-h-screen flex-col items-center justify-start px-4 py-12 sm:py-0 sm:justify-center">
       <div className="relative z-10 flex flex-col items-center w-full max-w-[400px]">
-        <Link to="/" className="flex items-center gap-3 mb-10 group">
+        <Link to="/" className="flex items-center gap-3 mb-6 sm:mb-10 group">
           <div className="relative">
             <GitBranch className="size-10 text-foreground transition-transform group-hover:scale-110" />
           </div>

@@ -44,15 +44,22 @@ const languageColors: Record<string, string> = {
   default: "bg-primary",
 };
 
-export default function RepositoryCard({ repository, showOwner = false }: { repository: Repository; showOwner?: boolean }) {
+export default function RepositoryCard({ repository, showOwner = false, variant = "default" }: { repository: Repository; showOwner?: boolean; variant?: "default" | "list" }) {
   const { isStarred, isLoading, starCount, toggleStar, isMutating } = useStarRepository(repository.id, repository.starCount);
   const ownerUsername = repository.owner.username;
   const isPrivate = repository.visibility === "private";
 
   const languageColor = repository.language ? languageColors[repository.language] || languageColors.default : languageColors.default;
 
+  const isListVariant = variant === "list";
+
   return (
-    <div className="group relative p-5 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-border hover:shadow-lg transition-all duration-300">
+    <div className={cn(
+      "group relative transition-all duration-300",
+      isListVariant 
+        ? "p-5 border-b border-border last:border-b-0 hover:bg-muted/30" 
+        : "p-5 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-border hover:shadow-lg"
+    )}>
       <Link to="/$username/$repo" params={{ username: ownerUsername, repo: repository.name }} className="absolute inset-0 rounded-xl" />
       <span className="sr-only">View {repository.name}</span>
 
@@ -62,22 +69,22 @@ export default function RepositoryCard({ repository, showOwner = false }: { repo
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
                 {showOwner ? (
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 min-w-0">
                     <Link
                       to="/$username"
                       params={{ username: ownerUsername }}
                       onClick={(e) => e.stopPropagation()}
-                    className="z-10 text-muted-foreground hover:text-primary font-normal transition-colors"
+                    className="z-10 text-muted-foreground hover:text-primary font-normal transition-colors truncate"
                     >
                       {ownerUsername}
                     </Link>
-                  <span className="text-muted-foreground/50">/</span>
-                  <span className="text-foreground group-hover:text-primary transition-colors">{repository.name}</span>
+                  <span className="text-muted-foreground/50 shrink-0">/</span>
+                  <span className="text-foreground group-hover:text-primary transition-colors truncate">{repository.name}</span>
                 </span>
                 ) : (
-                <span className="flex items-center gap-2">
-                  <GitFork className="size-4 text-muted-foreground" />
-                  {repository.name}
+                <span className="flex items-center gap-2 min-w-0">
+                  <GitFork className="size-4 text-muted-foreground shrink-0" />
+                  <span className="truncate">{repository.name}</span>
                 </span>
               )}
             </h3>

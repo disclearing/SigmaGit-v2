@@ -44,14 +44,14 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
   const repos = data?.repos || [];
 
   return (
-    <div className="container py-8">
+    <div className="container">
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
         <aside className="lg:w-72 shrink-0 space-y-6">
           {/* User Card */}
           <Card className="overflow-hidden">
-            <div className="h-20 bg-gradient-to-br from-primary/20 to-primary/5" />
-            <CardContent className="-mt-10 pb-6">
+            <div className="h-24 bg-gradient-to-br from-primary/20 to-primary/5" />
+            <CardContent className="-mt-12 pb-6">
           {userLoading ? (
                 <div className="animate-pulse">
                   <div className="size-20 rounded-full bg-muted mb-3" />
@@ -92,7 +92,7 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">Quick Links</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1">
+            <CardContent className="space-y-1.5">
               <QuickLink icon={<BookOpen className="size-4" />} label="Your repositories" href="/$username" params={{ username }} />
               <QuickLink icon={<Zap className="size-4" />} label="Explore" href="/explore" />
               <QuickLink icon={<Sparkles className="size-4" />} label="Starred" href="/$username?tab=stars" params={{ username }} />
@@ -211,13 +211,13 @@ function LandingPage() {
             {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link to="/register">
-                <Button size="lg" className="h-14 px-8 text-lg gap-2">
+                <Button size="lg" className="h-14 px-8 text-lg gap-2 w-full sm:w-auto">
                   Get started for free
                   <ArrowRight className="size-5" />
                 </Button>
             </Link>
             <Link to="/login">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg">
+                <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto">
                   Sign in
                 </Button>
             </Link>
@@ -339,12 +339,12 @@ function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/register">
-                  <Button size="lg" className="h-14 px-8 text-lg">
+                  <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto">
                     Create your account
                   </Button>
             </Link>
             <Link to="/explore">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto">
                     Explore repositories
                   </Button>
             </Link>

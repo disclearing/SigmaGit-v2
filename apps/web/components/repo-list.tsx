@@ -10,7 +10,7 @@ export function RepoList({ repos }: { repos: Array<Repository> }) {
   return (
     <div className="divide-y divide-border border-t border-border">
       {repos.map((repo) => (
-        <RepositoryCard key={repo.id} repository={repo} showOwner={false} />
+        <RepositoryCard key={repo.id} repository={repo} showOwner={false} variant="list" />
       ))}
     </div>
   );

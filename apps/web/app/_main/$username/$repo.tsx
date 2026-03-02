@@ -156,7 +156,8 @@ function RepoLayoutContent() {
         )}
 
         <div className="space-y-3 border-b border-border pb-3">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto relative">
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
             <Tabs value={currentTab}>
               <TabsList variant="line" className="h-auto min-w-max gap-1 bg-transparent p-0">
               <Link to="/$username/$repo" params={{ username, repo: repoName }}>

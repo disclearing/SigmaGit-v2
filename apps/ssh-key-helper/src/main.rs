@@ -21,6 +21,10 @@ struct SshKeyRecord {
     user_id: String,
     #[serde(rename = "publicKey")]
     public_key: String,
+    /// SHA-256 fingerprint — not used in authorized_keys output but useful for
+    /// diagnostic logging when a key is skipped.
+    #[serde(rename = "fingerprintSha256")]
+    fingerprint_sha256: String,
 }
 
 fn required_env(name: &str) -> String {
@@ -45,6 +49,28 @@ fn sanitize_tag(value: &str) -> Option<String> {
     } else {
         None
     }
+}
+
+/// Strip all CR/LF characters from a public key string and validate it is a
+/// single non-empty line. Returns `None` if the result is empty or if it
+/// contains characters that would break the authorized_keys format (backslash,
+/// double-quote). The public key is the last space-separated field on the line
+/// so it must not introduce line breaks.
+fn sanitize_public_key(raw: &str) -> Option<String> {
+    // Remove every CR and LF — these are the only characters that could split
+    // the output line and inject additional authorized_keys entries.
+    let cleaned: String = raw.chars().filter(|&c| c != '\n' && c != '\r').collect();
+    let trimmed = cleaned.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    // A well-formed SSH public key line is "<algo> <base64> [comment]" with no
+    // embedded double-quotes or backslashes (those only appear inside the
+    // command= option, not the key material).
+    if trimmed.contains('"') || trimmed.contains('\\') {
+        return None;
+    }
+    Some(trimmed.to_string())
 }
 
 fn join_url(base: &str, path: &str) -> String {
@@ -72,6 +98,13 @@ fn main() {
     let internal_token = required_env("SIGMAGIT_INTERNAL_TOKEN");
     let shell_path = env::var("SIGMAGIT_SHELL_PATH").unwrap_or_else(|_| DEFAULT_SHELL_PATH.to_string());
     let lookup_path = env::var("SIGMAGIT_LOOKUP_PATH").unwrap_or_else(|_| DEFAULT_LOOKUP_PATH.to_string());
+
+    // The shell path is embedded inside command="..." — a double-quote inside it
+    // would break the authorized_keys format and create an injection surface.
+    if shell_path.contains('"') {
+        eprintln!("SIGMAGIT_SHELL_PATH must not contain double-quote characters");
+        process::exit(1);
+    }
     let timeout_secs = env::var("SIGMAGIT_LOOKUP_TIMEOUT_SECONDS")
         .ok()
         .and_then(|v| v.parse::<u64>().ok())
@@ -80,7 +113,7 @@ fn main() {
     let lookup_url = format!(
         "{}?username={}",
         join_url(&api_url, &lookup_path),
-        allowed_user
+        lookup_user
     );
 
     let agent = ureq::AgentBuilder::new()
@@ -115,7 +148,7 @@ fn main() {
         let safe_key_id = match sanitize_tag(&key.key_id) {
             Some(value) => value,
             None => {
-                eprintln!("skipping key with invalid key_id");
+                eprintln!("skipping key with invalid key_id: {:?}", key.key_id);
                 continue;
             }
         };
@@ -123,7 +156,20 @@ fn main() {
         let safe_user_id = match sanitize_tag(&key.user_id) {
             Some(value) => value,
             None => {
-                eprintln!("skipping key with invalid user_id");
+                eprintln!("skipping key with invalid user_id: {:?}", key.user_id);
+                continue;
+            }
+        };
+
+        // Sanitize the public key: strip newlines and reject keys containing
+        // characters that could break the authorized_keys line format.
+        let safe_public_key = match sanitize_public_key(&key.public_key) {
+            Some(value) => value,
+            None => {
+                eprintln!(
+                    "skipping key with invalid public_key (key_id={safe_key_id}, fp={})",
+                    key.fingerprint_sha256
+                );
                 continue;
             }
         };
@@ -131,8 +177,7 @@ fn main() {
         let forced_command =
             format!("{shell_path} --key-id={safe_key_id} --user-id={safe_user_id}");
         let line = format!(
-            "command=\"{forced_command}\",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding {}\n",
-            key.public_key
+            "command=\"{forced_command}\",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding {safe_public_key}\n",
         );
 
         if let Err(err) = out.write_all(line.as_bytes()) {

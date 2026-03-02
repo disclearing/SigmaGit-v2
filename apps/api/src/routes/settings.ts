@@ -583,19 +583,11 @@ app.get("/api/internal/ssh/authorized-keys", async (c) => {
       userId: userSshKeys.userId,
       publicKey: userSshKeys.publicKey,
       fingerprintSha256: userSshKeys.fingerprintSha256,
-      revokedAt: userSshKeys.revokedAt,
     })
     .from(userSshKeys)
     .where(isNull(userSshKeys.revokedAt));
 
-  return c.json({
-    keys: keys.map((key) => ({
-      keyId: key.keyId,
-      userId: key.userId,
-      publicKey: key.publicKey,
-      fingerprintSha256: key.fingerprintSha256,
-    })),
-  });
+  return c.json({ keys });
 });
 
 app.delete("/api/settings/account", requireAuth, async (c) => {

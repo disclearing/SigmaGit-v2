@@ -14,8 +14,26 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
 }
 
-function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
-  return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
+function DropdownMenuTrigger({
+  asChild,
+  children,
+  ...props
+}: MenuPrimitive.Trigger.Props & { asChild?: boolean }) {
+  if (asChild && React.isValidElement(children)) {
+    return (
+      <MenuPrimitive.Trigger
+        data-slot="dropdown-menu-trigger"
+        render={children}
+        {...props}
+      />
+    )
+  }
+
+  return (
+    <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props}>
+      {children}
+    </MenuPrimitive.Trigger>
+  )
 }
 
 function DropdownMenuContent({
@@ -69,23 +87,42 @@ function DropdownMenuLabel({
 function DropdownMenuItem({
   className,
   inset,
+  asChild,
+  children,
   ...props
 }: MenuPrimitive.Item.Props & {
   inset?: boolean
+  asChild?: boolean
 }) {
+  const sharedClassName = cn(
+    "relative flex cursor-pointer select-none items-center rounded-lg px-2.5 py-2 text-sm outline-none transition-colors duration-150",
+    "focus:bg-accent focus:text-accent-foreground",
+    "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+    inset && "pl-8",
+    className
+  )
+
+  if (asChild && React.isValidElement(children)) {
+    return (
+      <MenuPrimitive.Item
+        data-slot="dropdown-menu-item"
+        data-inset={inset}
+        className={sharedClassName}
+        render={children}
+        {...props}
+      />
+    )
+  }
+
   return (
     <MenuPrimitive.Item
       data-slot="dropdown-menu-item"
       data-inset={inset}
-      className={cn(
-        "relative flex cursor-pointer select-none items-center rounded-lg px-2.5 py-2 text-sm outline-none transition-colors duration-150",
-        "focus:bg-accent focus:text-accent-foreground",
-        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        inset && "pl-8",
-        className
-      )}
+      className={sharedClassName}
       {...props}
-    />
+    >
+      {children}
+    </MenuPrimitive.Item>
   )
 }
 

@@ -56,7 +56,10 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const databuddyClientId = import.meta.env.VITE_DATABUDDY_CLIENT_ID;
-  const enableDatabuddy = Boolean(databuddyClientId);
+  const enableDatabuddy =
+    import.meta.env.PROD
+    && import.meta.env.VITE_ENABLE_DATABUDDY === "true"
+    && Boolean(databuddyClientId);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -70,12 +73,13 @@ function RootLayout() {
           {enableDatabuddy ? (
             <Databuddy
               clientId={databuddyClientId!}
-              trackErrors
-              trackPerformance
-              trackWebVitals
-              trackAttributes
-              trackHashChanges
-              trackOutgoingLinks
+              trackHashChanges={true}
+              trackAttributes={true}
+              trackOutgoingLinks={true}
+              trackInteractions={true}
+              trackScrollDepth={true}
+              trackWebVitals={true}
+              trackErrors={true}
             />
           ) : null}
         </ThemeProvider>

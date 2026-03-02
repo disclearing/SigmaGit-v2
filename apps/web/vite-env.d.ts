@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly MODE: string;
   readonly VITE_API_URL?: string;
   readonly VITE_DATABUDDY_CLIENT_ID?: string;
+  readonly VITE_ENABLE_DATABUDDY?: string;
 }
 
 interface ImportMeta {

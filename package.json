@@ -31,7 +31,10 @@
     "lint": "turbo lint",
     "db:migrate:discord": "cd packages/db && bun run db:migrate:discord",
     "discord:register": "cd apps/discord-bot && bun run register",
-    "build:runner": "cd apps/runner && make build-agent"
+    "build:runner": "cd apps/runner && make build-agent",
+    "users:list": "cd packages/db && bun run manage-users.ts list",
+    "users:admin": "cd packages/db && bun run manage-users.ts promote",
+    "users:help": "cd packages/db && bun run manage-users.ts help"
   },
   "workspaces": [
     "apps/*",

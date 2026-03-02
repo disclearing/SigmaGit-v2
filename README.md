@@ -32,13 +32,13 @@ cp .env.example .env
 # Run database migrations
 bun run db:push
 
-# Start API server
-bun run dev:api
-
-# Start web app (in another terminal)
+# Start web app + API server
 bun run dev:web
 
-# Start Discord bot (optional)
+# Start mobile app + API server (optional)
+bun run dev:mobile
+
+# Start Discord bot only (optional)
 bun run dev:discord
 ```
 
@@ -47,16 +47,19 @@ bun run dev:discord
 ```
 sigmagitv2/
 ├── apps/
+│   ├── api/              # Hono API server (Bun)
 │   ├── web/              # TanStack Start web application
 │   ├── mobile/           # Expo React Native mobile app
-│   ├── api/               # Hono API server (Bun)
-│   └── discord-bot/      # Discord integration bot
+│   ├── docs/             # Next.js documentation site
+│   ├── discord-bot/      # Discord integration bot
+│   └── runner/           # Go-based CI runner agent
 ├── packages/
-│   ├── db/                # Drizzle ORM database schema
-│   ├── lib/               # Shared utilities
-│   └── hooks/             # React Query hooks
-├── docs/                   # Documentation (this directory)
-└── .env.example           # Environment variables template
+│   ├── db/               # Drizzle ORM schema + migrations
+│   ├── lib/              # Shared utilities + API client
+│   └── hooks/            # Shared React Query hooks/types
+├── docs/                 # Markdown technical docs
+├── turbo.json            # Turbo monorepo pipeline config
+└── .env.example          # Environment variables template
 ```
 
 ## 📚 Documentation

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_auth")({
 
 function AuthLayout() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-start px-4 py-8 sm:justify-center">
       <div className="relative z-10 flex flex-col items-center w-full max-w-[400px]">
         <Link to="/" className="flex items-center gap-3 mb-10 group">
           <div className="relative">

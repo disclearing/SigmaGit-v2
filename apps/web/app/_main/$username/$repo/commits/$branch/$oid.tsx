@@ -152,7 +152,7 @@ function CommitPage() {
 
       <div className="flex gap-4">
         {showSidebar && files.length > 0 && (
-          <div className="w-72 shrink-0 sticky top-18 self-start max-h-[calc(100vh-8rem)]">
+          <div className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-72 shrink-0 self-start lg:block">
             <FilePickerSidebar
               files={files}
               selectedFile={selectedFile}

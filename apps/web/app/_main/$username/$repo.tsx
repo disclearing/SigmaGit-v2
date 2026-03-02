@@ -126,7 +126,7 @@ function RepoLayoutContent() {
 
   return (
     <div className="bg-background">
-      <div className="container mx-auto max-w-[1280px] space-y-5 px-4 py-6">
+      <div className="container mx-auto max-w-[1280px] space-y-5 py-6">
         {isLoadingInfo || !repo ? (
           <RepoHeaderSkeleton />
         ) : (
@@ -348,7 +348,7 @@ function RepoHeaderSkeleton() {
 
 function RepoLayoutSkeleton() {
   return (
-    <div className="container max-w-[1280px] px-4 py-6 space-y-4">
+    <div className="container max-w-[1280px] py-6 space-y-4">
       <RepoHeaderSkeleton />
       <div className="space-y-3 border-b border-border/40 pb-3 animate-pulse">
         <div className="flex items-center gap-1 overflow-x-auto">

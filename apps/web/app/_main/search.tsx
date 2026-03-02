@@ -50,7 +50,7 @@ function SearchPage() {
   }
 
   return (
-    <div className="container max-w-[1280px] mx-auto px-4 py-8">
+    <div className="container max-w-[1280px] mx-auto py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold mb-2">Search</h1>

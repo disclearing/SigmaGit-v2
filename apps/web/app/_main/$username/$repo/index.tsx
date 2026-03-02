@@ -31,7 +31,7 @@ function RepoPage() {
   const lastCommit = commitData?.commits?.[0];
 
   return (
-    <div className="container max-w-[1280px] mx-auto px-4 py-6 space-y-6">
+    <div className="container max-w-[1280px] mx-auto py-6 space-y-6">
       {isLoadingLastCommit ? <LastCommitBarSkeleton /> : <LastCommitBar lastCommit={lastCommit} />}
 
       {isLoadingTree ? (

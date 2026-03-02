@@ -767,7 +767,8 @@ function SettingsPage() {
       <div className="max-w-[896px] mx-auto">
         <h1 className="text-3xl font-semibold mb-8">Settings</h1>
         <Tabs value={tab} onValueChange={(value) => setTab(value === "profile" ? null : (value as "account" | "security" | "tokens"))}>
-          <TabsList variant="line" className="w-full mb-8 h-auto bg-transparent p-0">
+          <div className="mb-8 overflow-x-auto">
+            <TabsList variant="line" className="h-auto min-w-max bg-transparent p-0">
             <TabsTrigger value="profile" className="gap-2 px-4 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
               <User className="size-4" />
               Profile
@@ -784,7 +785,8 @@ function SettingsPage() {
               <Key className="size-4" />
               Access Tokens
             </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
 
         <TabsContent value="profile" className="mt-0">
           <ProfileTab />

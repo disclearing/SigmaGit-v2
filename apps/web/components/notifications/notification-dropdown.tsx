@@ -40,7 +40,10 @@ export function NotificationDropdown() {
         )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 p-0 overflow-hidden">
+      <DropdownMenuContent
+        align="end"
+        className="w-[min(24rem,calc(100vw-1rem))] p-0 overflow-hidden"
+      >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
           <span className="font-semibold text-sm">Notifications</span>
           <div className="flex items-center gap-1">

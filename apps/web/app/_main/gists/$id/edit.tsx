@@ -88,7 +88,7 @@ function EditGistPage() {
 
   if (!gist) {
     return (
-      <div className="container max-w-3xl mx-auto px-4 py-6 text-center py-12">
+      <div className="container max-w-3xl mx-auto px-4 py-12 text-center">
         <h3 className="text-lg font-semibold mb-2">Gist not found</h3>
         <Link to="/gists">
           <Button variant="outline">Back to gists</Button>
@@ -102,7 +102,7 @@ function EditGistPage() {
 
   if (!isOwner) {
     return (
-      <div className="container max-w-3xl mx-auto px-4 py-6 text-center py-12">
+      <div className="container max-w-3xl mx-auto px-4 py-12 text-center">
         <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
         <p className="text-muted-foreground mb-4">You don't have permission to edit this gist.</p>
         <Link to="/gists/$id" params={{ id }}>

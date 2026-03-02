@@ -225,7 +225,7 @@ function ExploreContent() {
   const perPage = 20;
 
   return (
-    <div className="container max-w-[1280px] mx-auto py-6 px-4">
+    <div className="container max-w-[1280px] mx-auto py-6">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Compass className="size-7 text-primary" />

@@ -42,7 +42,7 @@ export function AdminLayout() {
     <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 xl:w-72 border-r border-border bg-card min-h-screen sticky top-0 flex flex-col">
+        <aside className="sticky top-0 hidden min-h-screen w-64 flex-col border-r border-border bg-card lg:flex xl:w-72">
           {/* Header */}
           <div className="p-5 xl:p-6 border-b border-border">
             <div className="flex items-center gap-3">

@@ -1,11 +1,202 @@
 import { Hono } from "hono";
 import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers } from "@sigmagit/db";
 import { eq, sql, desc, and } from "drizzle-orm";
+import git from "isomorphic-git";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { putObject, deletePrefix, getRepoPrefix, copyPrefix, listObjects } from "../s3";
 import { repoCache } from "../cache";
+import { createGitStore } from "../git";
 
 const app = new Hono<{ Variables: AuthVariables }>();
+
+const LICENSES = [
+  "mit",
+  "apache-2.0",
+  "gpl-3.0",
+  "agpl-3.0",
+  "lgpl-3.0",
+  "mpl-2.0",
+  "bsd-3-clause",
+  "unlicense",
+] as const;
+type LicenseType = (typeof LICENSES)[number];
+
+function getLicenseTemplate(license: LicenseType, year: number, holder: string): string {
+  if (license === "mit") {
+    return `MIT License
+
+Copyright (c) ${year} ${holder}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+`;
+  }
+
+  if (license === "apache-2.0") {
+    return `Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
+
+Copyright ${year} ${holder}
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+`;
+  }
+
+  if (license === "gpl-3.0") {
+    return `GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) ${year} ${holder}
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+`;
+  }
+
+  if (license === "agpl-3.0") {
+    return `GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) ${year} ${holder}
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+`;
+  }
+
+  if (license === "lgpl-3.0") {
+    return `GNU LESSER GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) ${year} ${holder}
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library. If not, see <https://www.gnu.org/licenses/>.
+`;
+  }
+
+  if (license === "mpl-2.0") {
+    return `Mozilla Public License Version 2.0
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+Copyright (c) ${year} ${holder}
+`;
+  }
+
+  if (license === "bsd-3-clause") {
+    return `BSD 3-Clause License
+
+Copyright (c) ${year}, ${holder}
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+`;
+  }
+
+  return `This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+`;
+}
 
 app.use("*", authMiddleware);
 
@@ -64,12 +255,17 @@ app.post("/api/repositories", requireAuth, async (c) => {
     description?: string;
     visibility: string;
     organizationId?: string;
+    license?: LicenseType;
   }>();
 
   const normalizedName = body.name.toLowerCase().replace(/ /g, "-");
 
   if (!/^[a-zA-Z0-9_.-]+$/.test(normalizedName)) {
     return c.json({ error: "Invalid repository name" }, 400);
+  }
+
+  if (body.license && !LICENSES.includes(body.license)) {
+    return c.json({ error: "Unsupported license type" }, 400);
   }
 
   // If organizationId is provided, verify user has permission
@@ -121,6 +317,38 @@ app.post("/api/repositories", requireAuth, async (c) => {
   await putObject(`${repoPrefix}/HEAD`, "ref: refs/heads/main\n");
   await putObject(`${repoPrefix}/config`, "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = true\n");
   await putObject(`${repoPrefix}/description`, "Unnamed repository; edit this file to name the repository.\n");
+
+  if (body.license) {
+    const store = createGitStore(storageOwnerId, normalizedName);
+    const now = new Date();
+    const holder = user.name || user.username || "repository owner";
+    const licenseContent = getLicenseTemplate(body.license, now.getFullYear(), holder);
+    const licenseBlobOid = await git.writeBlob({
+      fs: store.fs,
+      dir: store.dir,
+      blob: new TextEncoder().encode(licenseContent),
+    });
+    const rootTreeOid = await git.writeTree({
+      fs: store.fs,
+      dir: store.dir,
+      tree: [{ path: "LICENSE", mode: "100644", type: "blob", oid: licenseBlobOid }],
+    });
+    const timestamp = Math.floor(now.getTime() / 1000);
+    const timezoneOffset = now.getTimezoneOffset();
+    const authorEmail = user.gitEmail || user.email;
+    const initialCommitOid = await git.writeCommit({
+      fs: store.fs,
+      dir: store.dir,
+      commit: {
+        message: `Add ${body.license.toUpperCase()} license`,
+        tree: rootTreeOid,
+        parent: [],
+        author: { name: holder, email: authorEmail, timestamp, timezoneOffset },
+        committer: { name: holder, email: authorEmail, timestamp, timezoneOffset },
+      },
+    });
+    await store.fs.promises.writeFile("refs/heads/main", `${initialCommitOid}\n`);
+  }
 
   return c.json(repo);
 });

@@ -86,7 +86,21 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
   return {
     repositories: {
-      create: (data: { name: string; description?: string; visibility: "public" | "private"; organizationId?: string }) =>
+      create: (data: {
+        name: string;
+        description?: string;
+        visibility: "public" | "private";
+        organizationId?: string;
+        license?:
+          | "mit"
+          | "apache-2.0"
+          | "gpl-3.0"
+          | "agpl-3.0"
+          | "lgpl-3.0"
+          | "mpl-2.0"
+          | "bsd-3-clause"
+          | "unlicense";
+      }) =>
         apiFetch<Repository>("/api/repositories", {
           method: "POST",
           body: JSON.stringify(data),

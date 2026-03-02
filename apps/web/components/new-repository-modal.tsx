@@ -18,6 +18,18 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+const LICENSE_OPTIONS = [
+  { value: "none", label: "No license" },
+  { value: "mit", label: "MIT License" },
+  { value: "apache-2.0", label: "Apache License 2.0" },
+  { value: "gpl-3.0", label: "GNU GPL v3.0" },
+  { value: "agpl-3.0", label: "GNU AGPL v3.0" },
+  { value: "lgpl-3.0", label: "GNU LGPL v3.0" },
+  { value: "mpl-2.0", label: "Mozilla Public License 2.0" },
+  { value: "bsd-3-clause", label: "BSD 3-Clause" },
+  { value: "unlicense", label: "The Unlicense" },
+] as const;
+
 interface NewRepositoryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,6 +46,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
     description: "",
     visibility: "public" as "public" | "private",
     organizationId: "personal" as string,
+    license: "none" as (typeof LICENSE_OPTIONS)[number]["value"],
   });
 
   const organizations = orgsData?.organizations || [];
@@ -54,6 +67,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
         description: "",
         visibility: currentUser?.user.defaultRepositoryVisibility as "public" | "private" || "public",
         organizationId: "personal",
+        license: "none",
       });
     }
   }, [open, currentUser?.user.defaultRepositoryVisibility]);
@@ -80,6 +94,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
         description: formData.description || undefined,
         visibility: formData.visibility,
         organizationId: formData.organizationId === "personal" ? undefined : formData.organizationId,
+        license: formData.license === "none" ? undefined : formData.license,
       },
       {
         onSuccess: () => {
@@ -171,6 +186,32 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
                 placeholder="A short description of your project"
                 className="h-11"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="license" className="text-sm font-medium">
+                License <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Select
+                value={formData.license}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    license: value as (typeof LICENSE_OPTIONS)[number]["value"],
+                  })
+                }
+              >
+                <SelectTrigger id="license" className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LICENSE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

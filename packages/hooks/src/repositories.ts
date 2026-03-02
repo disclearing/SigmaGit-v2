@@ -142,7 +142,21 @@ export function useCreateRepository() {
   const api = useApi();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; visibility: "public" | "private"; organizationId?: string }) => api.repositories.create(data),
+    mutationFn: (data: {
+      name: string;
+      description?: string;
+      visibility: "public" | "private";
+      organizationId?: string;
+      license?:
+        | "mit"
+        | "apache-2.0"
+        | "gpl-3.0"
+        | "agpl-3.0"
+        | "lgpl-3.0"
+        | "mpl-2.0"
+        | "bsd-3-clause"
+        | "unlicense";
+    }) => api.repositories.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
     },

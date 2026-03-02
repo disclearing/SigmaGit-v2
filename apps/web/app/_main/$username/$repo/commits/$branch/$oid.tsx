@@ -76,7 +76,7 @@ function CommitPage() {
       <div className="mb-6">
         <div className="border border-border overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 bg-card border-b border-border">
-            <GitCommitIcon className="size-4 text-muted-foreground" />
+            <GitCommit className="size-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Commit</span>
             <code className="text-xs font-mono bg-muted px-2 py-0.5">{oid.slice(0, 7)}</code>
           </div>

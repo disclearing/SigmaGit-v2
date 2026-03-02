@@ -35,7 +35,7 @@ export function PRStateBadge({ state, merged, isDraft, className }: PRStateBadge
           className
         )}
       >
-        <GitPullRequestClosedIcon className="size-3.5" />
+        <GitPullRequestClosed className="size-3.5" />
         Closed
       </span>
     );
@@ -49,7 +49,7 @@ export function PRStateBadge({ state, merged, isDraft, className }: PRStateBadge
           className
         )}
       >
-        <GitPullRequestDraftIcon className="size-3.5" />
+        <GitPullRequestDraft className="size-3.5" />
         Draft
       </span>
     );
@@ -62,7 +62,7 @@ export function PRStateBadge({ state, merged, isDraft, className }: PRStateBadge
         className
       )}
     >
-      <GitPullRequestIcon className="size-3.5" />
+      <GitPullRequest className="size-3.5" />
       Open
     </span>
   );

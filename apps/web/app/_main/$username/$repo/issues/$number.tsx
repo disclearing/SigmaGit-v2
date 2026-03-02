@@ -153,7 +153,7 @@ function IssueDetailPage() {
             <StateBadge state={issue.state} />
             {issue.locked && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-                <LockIcon className="size-3" />
+                <Lock className="size-3" />
                 Locked
               </span>
             )}
@@ -203,7 +203,7 @@ function IssueDetailPage() {
 
         {issue.locked && (
           <div className="text-center py-6 border border-border bg-secondary/30">
-            <LockIcon className="size-8 mx-auto mb-2 text-muted-foreground" />
+            <Lock className="size-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-muted-foreground">This conversation has been locked.</p>
           </div>
         )}

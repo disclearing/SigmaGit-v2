@@ -7,6 +7,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
+  // Load .env from monorepo root so root-level deployment config is respected.
+  envDir: "../..",
   server: {
     port: 3000,
     allowedHosts: ["sigmagit.com"],

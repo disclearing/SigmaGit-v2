@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useDeleteRepository, useRepoPageData, useRepositoryInfo, useUpdateRepository } from "@sigmagit/hooks";
 import { toast } from "sonner";
@@ -31,18 +31,16 @@ function RepoSettingsPage() {
     description: "",
     visibility: "public" as "public" | "private",
   });
-  const [initialized, setInitialized] = useState(false);
-
-  if (!initialized && repo) {
+  useEffect(() => {
+    if (!repo) return;
     setFormData({
       name: repo.name,
       description: repo.description || "",
       visibility: repo.visibility,
     });
-    setInitialized(true);
-  }
+  }, [repo]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!repo) return;
 
@@ -98,7 +96,7 @@ function RepoSettingsPage() {
       <div className="container max-w-6xl px-4">
         <Card>
           <CardContent className="p-12 text-center">
-            <Alert01Icon className="size-12 mx-auto mb-4 text-muted-foreground" />
+            <AlertTriangle className="size-12 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
             <p className="text-muted-foreground mb-6">You don't have permission to access this page</p>
             <Link to="/$username/$repo" params={{ username, repo: repoName }}>
@@ -178,7 +176,7 @@ function RepoSettingsPage() {
                     onChange={() => setFormData({ ...formData, visibility: "private" })}
                     className="sr-only"
                   />
-                  <LockKeyIcon className="size-5 text-muted-foreground mt-0.5" />
+                  <Lock className="size-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Private</p>
                     <p className="text-sm text-muted-foreground">Only you can see this repository</p>
@@ -209,9 +207,9 @@ function RepoSettingsPage() {
               <p className="text-sm text-muted-foreground">Once deleted, it cannot be recovered</p>
             </div>
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <DialogTrigger>
+              <DialogTrigger asChild>
                 <Button variant="destructive" size="sm">
-                  <Delete01Icon className="size-4 mr-2" />
+                  <Trash2 className="size-4 mr-2" />
                   Delete
                 </Button>
               </DialogTrigger>

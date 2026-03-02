@@ -810,7 +810,7 @@ export async function getRefsAdvertisement(
     const refs: string[] = [];
     const capabilities =
       service === "git-upload-pack"
-        ? "multi_ack thin-pack side-band side-band-64k ofs-delta shallow deepen-since deepen-not deepen-relative no-progress include-tag multi_ack_detailed symref=HEAD:refs/heads/main agent=sigmagit/1.0"
+        ? "symref=HEAD:refs/heads/main agent=sigmagit/1.0"
         : "report-status report-status-v2 delete-refs quiet atomic ofs-delta push-options object-format=sha1 agent=sigmagit/1.0";
 
     const branches = await git.listBranches({ fs, dir });

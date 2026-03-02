@@ -246,7 +246,25 @@ app.post("/:owner/:name/git-upload-pack", async (c) => {
   }
 
   try {
-    return new Response("0008NAK\n", {
+    const body = await c.req.arrayBuffer();
+    const requestData = Buffer.from(body);
+    const uploadRequest = parseUploadPackRequest(requestData);
+
+    if (uploadRequest.wants.length === 0) {
+      return new Response("0008NAK\n", {
+        status: 200,
+        headers: {
+          "Content-Type": "application/x-git-upload-pack-result",
+          "Cache-Control": "no-cache",
+        },
+      });
+    }
+
+    const objects = await collectReachableObjects(store.fs, store.dir, uploadRequest.wants);
+    const pack = buildPackFile(objects);
+    const response = Buffer.concat([Buffer.from("0008NAK\n", "ascii"), pack]);
+
+    return new Response(response, {
       status: 200,
       headers: {
         "Content-Type": "application/x-git-upload-pack-result",
@@ -307,6 +325,19 @@ interface PackObject {
   baseOffset?: number;
 }
 
+interface UploadPackRequest {
+  wants: string[];
+  haves: string[];
+  done: boolean;
+  capabilities: Set<string>;
+}
+
+interface UploadObject {
+  oid: string;
+  type: "commit" | "tree" | "blob" | "tag";
+  data: Buffer;
+}
+
 function readPackVarInt(buf: Buffer, offset: number): { value: number; type: number; bytesRead: number } {
   let byte = buf[offset];
   const type = (byte >> 4) & 0x7;
@@ -336,6 +367,218 @@ function readOfsOffset(buf: Buffer, offset: number): { value: number; bytesRead:
   }
 
   return { value, bytesRead };
+}
+
+function parsePktLinesAll(data: Buffer): Array<string | null> {
+  const lines: Array<string | null> = [];
+  let offset = 0;
+
+  while (offset + 4 <= data.length) {
+    const lenHex = data.slice(offset, offset + 4).toString("utf8");
+    if (!/^[0-9a-fA-F]{4}$/.test(lenHex)) {
+      break;
+    }
+
+    const len = parseInt(lenHex, 16);
+    if (len === 0) {
+      lines.push(null);
+      offset += 4;
+      continue;
+    }
+
+    if (len < 4 || offset + len > data.length) {
+      break;
+    }
+
+    const content = data.slice(offset + 4, offset + len).toString("utf8");
+    lines.push(content);
+    offset += len;
+  }
+
+  return lines;
+}
+
+function parseUploadPackRequest(data: Buffer): UploadPackRequest {
+  const packets = parsePktLinesAll(data);
+  const wants: string[] = [];
+  const haves: string[] = [];
+  const capabilities = new Set<string>();
+  let done = false;
+  let firstWant = true;
+
+  for (const packet of packets) {
+    if (packet === null) {
+      continue;
+    }
+
+    const line = packet.trim();
+    if (!line) {
+      continue;
+    }
+
+    if (line === "done") {
+      done = true;
+      continue;
+    }
+
+    if (line.startsWith("want ")) {
+      const parts = line.split(/\s+/);
+      const oid = parts[1];
+      if (oid && /^[0-9a-f]{40}$/i.test(oid)) {
+        wants.push(oid);
+      }
+
+      if (firstWant && parts.length > 2) {
+        for (let i = 2; i < parts.length; i++) {
+          capabilities.add(parts[i]);
+        }
+      }
+      firstWant = false;
+      continue;
+    }
+
+    if (line.startsWith("have ")) {
+      const parts = line.split(/\s+/);
+      const oid = parts[1];
+      if (oid && /^[0-9a-f]{40}$/i.test(oid)) {
+        haves.push(oid);
+      }
+    }
+  }
+
+  return {
+    wants: [...new Set(wants)],
+    haves: [...new Set(haves)],
+    done,
+    capabilities,
+  };
+}
+
+function toObjectBuffer(object: unknown): Buffer {
+  if (Buffer.isBuffer(object)) {
+    return object;
+  }
+  if (object instanceof Uint8Array) {
+    return Buffer.from(object);
+  }
+  if (typeof object === "string") {
+    return Buffer.from(object, "utf8");
+  }
+  return Buffer.from([]);
+}
+
+async function collectReachableObjects(fs: any, dir: string, startOids: string[]): Promise<UploadObject[]> {
+  const queued = new Set<string>(startOids);
+  const stack = [...startOids];
+  const visited = new Set<string>();
+  const objects: UploadObject[] = [];
+
+  const enqueue = (oid: string | undefined) => {
+    if (!oid || !/^[0-9a-f]{40}$/i.test(oid)) {
+      return;
+    }
+    if (visited.has(oid) || queued.has(oid)) {
+      return;
+    }
+    queued.add(oid);
+    stack.push(oid);
+  };
+
+  while (stack.length > 0) {
+    const oid = stack.pop()!;
+    queued.delete(oid);
+
+    if (visited.has(oid)) {
+      continue;
+    }
+    visited.add(oid);
+
+    let objectType: "commit" | "tree" | "blob" | "tag";
+    let objectData: Buffer;
+
+    try {
+      const read = await git.readObject({ fs, dir, oid, format: "content" });
+      if (read.type !== "commit" && read.type !== "tree" && read.type !== "blob" && read.type !== "tag") {
+        continue;
+      }
+      objectType = read.type;
+      objectData = toObjectBuffer(read.object);
+      objects.push({ oid, type: objectType, data: objectData });
+    } catch {
+      continue;
+    }
+
+    try {
+      if (objectType === "commit") {
+        const { commit } = await git.readCommit({ fs, dir, oid });
+        enqueue(commit.tree);
+        for (const parent of commit.parent) {
+          enqueue(parent);
+        }
+      } else if (objectType === "tree") {
+        const { tree } = await git.readTree({ fs, dir, oid });
+        for (const entry of tree) {
+          enqueue(entry.oid);
+        }
+      } else if (objectType === "tag") {
+        const { tag } = await git.readTag({ fs, dir, oid });
+        enqueue(tag.object);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return objects;
+}
+
+function encodePackObjectHeader(type: number, size: number): Buffer {
+  const bytes: number[] = [];
+
+  let first = ((type & 0x7) << 4) | (size & 0x0f);
+  size >>>= 4;
+  if (size > 0) {
+    first |= 0x80;
+  }
+  bytes.push(first);
+
+  while (size > 0) {
+    let next = size & 0x7f;
+    size >>>= 7;
+    if (size > 0) {
+      next |= 0x80;
+    }
+    bytes.push(next);
+  }
+
+  return Buffer.from(bytes);
+}
+
+function buildPackFile(objects: UploadObject[]): Buffer {
+  const chunks: Buffer[] = [];
+  const typeMap: Record<UploadObject["type"], number> = {
+    commit: OBJ_COMMIT,
+    tree: OBJ_TREE,
+    blob: OBJ_BLOB,
+    tag: OBJ_TAG,
+  };
+
+  const header = Buffer.alloc(12);
+  header.write("PACK", 0, "ascii");
+  header.writeUInt32BE(2, 4);
+  header.writeUInt32BE(objects.length, 8);
+  chunks.push(header);
+
+  for (const object of objects) {
+    const type = typeMap[object.type];
+    const objectHeader = encodePackObjectHeader(type, object.data.length);
+    const compressed = zlib.deflateSync(object.data);
+    chunks.push(objectHeader, compressed);
+  }
+
+  const packWithoutTrailer = Buffer.concat(chunks);
+  const trailer = createHash("sha1").update(packWithoutTrailer).digest();
+  return Buffer.concat([packWithoutTrailer, trailer]);
 }
 
 function applyDelta(base: Buffer, delta: Buffer): Buffer {

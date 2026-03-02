@@ -1,12 +1,67 @@
 import { Hono } from "hono";
 import { db, gists, gistFiles, gistComments, gistStars, gistForks, users } from "@sigmagit/db";
-import { eq, and, sql, desc, count, or, ilike } from "drizzle-orm";
+import { eq, and, sql, desc, count, or, ilike, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { randomUUID } from "crypto";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
+
+function groupFilesByGistId(files: Array<{ gistId: string }>) {
+  const filesByGistId = new Map<string, Array<(typeof files)[number]>>();
+  for (const file of files) {
+    if (!filesByGistId.has(file.gistId)) {
+      filesByGistId.set(file.gistId, []);
+    }
+    filesByGistId.get(file.gistId)!.push(file);
+  }
+  return filesByGistId;
+}
+
+async function attachFilesToGists<T extends { id: string }>(gistsList: T[]) {
+  if (gistsList.length === 0) return gistsList.map((gist) => ({ ...gist, files: [] as unknown[] }));
+
+  const gistIds = gistsList.map((gist) => gist.id);
+  const files = await db.select().from(gistFiles).where(inArray(gistFiles.gistId, gistIds));
+  const filesByGistId = groupFilesByGistId(files);
+
+  return gistsList.map((gist) => ({
+    ...gist,
+    files: filesByGistId.get(gist.id) || [],
+  }));
+}
+
+async function attachFilesAndOwnersToGists<T extends { id: string; ownerId: string }>(gistsList: T[]) {
+  if (gistsList.length === 0) {
+    return gistsList.map((gist) => ({ ...gist, files: [] as unknown[], owner: null as unknown }));
+  }
+
+  const gistIds = gistsList.map((gist) => gist.id);
+  const ownerIds = [...new Set(gistsList.map((gist) => gist.ownerId))];
+
+  const [files, owners] = await Promise.all([
+    db.select().from(gistFiles).where(inArray(gistFiles.gistId, gistIds)),
+    db
+      .select({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        avatarUrl: users.avatarUrl,
+      })
+      .from(users)
+      .where(inArray(users.id, ownerIds)),
+  ]);
+
+  const filesByGistId = groupFilesByGistId(files);
+  const ownersById = new Map(owners.map((owner) => [owner.id, owner]));
+
+  return gistsList.map((gist) => ({
+    ...gist,
+    files: filesByGistId.get(gist.id) || [],
+    owner: ownersById.get(gist.ownerId) || null,
+  }));
+}
 
 app.post("/api/gists", requireAuth, async (c) => {
   const user = c.get("user")!;
@@ -53,7 +108,9 @@ app.get("/api/gists", requireAuth, async (c) => {
     .where(eq(gists.ownerId, user.id))
     .orderBy(desc(gists.updatedAt));
 
-  return c.json({ gists: gistsList });
+  const gistsWithFiles = await attachFilesToGists(gistsList);
+
+  return c.json({ gists: gistsWithFiles });
 });
 
 app.get("/api/gists/public", async (c) => {
@@ -71,7 +128,9 @@ app.get("/api/gists/public", async (c) => {
   const hasMore = gistsList.length > limit;
   const gistsData = gistsList.slice(0, limit);
 
-  return c.json({ gists: gistsData, hasMore });
+  const gistsWithFilesAndOwners = await attachFilesAndOwnersToGists(gistsData);
+
+  return c.json({ gists: gistsWithFilesAndOwners, hasMore });
 });
 
 app.get("/api/gists/:id", async (c) => {
@@ -438,7 +497,9 @@ app.get("/api/users/:username/gists", async (c) => {
   const hasMore = gistsList.length > limit;
   const gistsData = gistsList.slice(0, limit);
 
-  return c.json({ gists: gistsData, hasMore });
+  const gistsWithFiles = await attachFilesToGists(gistsData);
+
+  return c.json({ gists: gistsWithFiles, hasMore });
 });
 
 export default app;

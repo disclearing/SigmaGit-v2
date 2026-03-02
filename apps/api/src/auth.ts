@@ -172,6 +172,9 @@ export const initAuth = async () => {
         }),
         apiKey({
           defaultPrefix: 'sigmagit_',
+          rateLimit: {
+            enabled: false,
+          },
         }),
         expo(),
         passkey({

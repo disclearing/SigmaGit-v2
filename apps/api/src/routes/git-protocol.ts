@@ -40,6 +40,48 @@ async function resolveBasicAuthUser(authHeader: string | undefined): Promise<Aut
     return null;
   }
 
+  const auth = getAuth();
+
+  try {
+    const tokenResult: any = await (auth.api as any).verifyApiKey({
+      body: { key: password },
+      headers: new Headers(),
+    });
+
+    if (tokenResult?.valid && tokenResult?.key?.userId) {
+      const tokenUserRow = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          username: users.username,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(users)
+        .where(eq(users.id, tokenResult.key.userId))
+        .limit(1);
+
+      const tokenUser = tokenUserRow[0];
+      if (tokenUser) {
+        const identifierMatches = identifier.includes("@")
+          ? tokenUser.email.toLowerCase() === identifier.toLowerCase()
+          : tokenUser.username.toLowerCase() === identifier.toLowerCase();
+
+        if (identifierMatches) {
+          return {
+            id: tokenUser.id,
+            name: tokenUser.name,
+            email: tokenUser.email,
+            username: tokenUser.username,
+            avatarUrl: tokenUser.avatarUrl,
+          };
+        }
+      }
+    }
+  } catch {
+    // Fall back to password auth when token verification fails.
+  }
+
   let email = identifier;
   if (!identifier.includes("@")) {
     const userRow = await db
@@ -61,7 +103,6 @@ async function resolveBasicAuthUser(authHeader: string | undefined): Promise<Aut
     email = userRow[0].email;
   }
 
-  const auth = getAuth();
   try {
     const result: any = await auth.api.signInEmail({
       body: {

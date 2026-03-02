@@ -172,6 +172,14 @@ export type UserSummary = {
   avatarUrl: string | null;
 };
 
+export type PlatformStats = {
+  developers: number;
+  repositories: number;
+  organizations: number;
+  uptimeSeconds: number;
+  generatedAt: string;
+};
+
 export type Label = {
   id: string;
   name: string;
@@ -589,6 +597,7 @@ export type ApiClient = {
   users: {
     getProfile: (username: string) => Promise<UserProfile>;
     getSummary: () => Promise<UserSummary>;
+    getPlatformStats: () => Promise<PlatformStats>;
     getStarred: (username: string) => Promise<{ repos: RepositoryWithStars[] }>;
     getAvatarByUsername: (username: string) => Promise<{ avatarUrl: string | null }>;
     getPublic: (sortBy: "newest" | "oldest", limit: number, offset: number) => Promise<{ users: PublicUser[]; hasMore: boolean }>;

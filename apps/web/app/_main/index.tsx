@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, BookOpen, Code2, GitBranch, Github, Loader2, Plus, Settings, Shield, Sparkles, Terminal, User, Zap } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useCurrentUserSummary, useUserRepositories } from "@sigmagit/hooks";
+import { useCurrentUserSummary, usePlatformStats, useUserRepositories } from "@sigmagit/hooks";
 import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -184,6 +184,31 @@ function RepositoryCardSkeleton() {
 }
 
 function LandingPage() {
+  const { data: platformStats, isLoading: statsLoading } = usePlatformStats();
+
+  const stats = [
+    {
+      number:
+        statsLoading && !platformStats ? "..." : formatCompactNumber(platformStats?.repositories ?? 0),
+      label: "Public Repositories",
+    },
+    {
+      number:
+        statsLoading && !platformStats ? "..." : formatCompactNumber(platformStats?.developers ?? 0),
+      label: "Developers",
+    },
+    {
+      number:
+        statsLoading && !platformStats ? "..." : formatCompactNumber(platformStats?.organizations ?? 0),
+      label: "Organizations",
+    },
+    {
+      number:
+        statsLoading && !platformStats ? "..." : formatUptime(platformStats?.uptimeSeconds ?? 0),
+      label: "Server Uptime",
+    },
+  ];
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -319,10 +344,9 @@ function LandingPage() {
       <section className="py-20 lg:py-32">
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCard number="10M+" label="Repositories" />
-            <StatCard number="50M+" label="Developers" />
-            <StatCard number="100+" label="Countries" />
-            <StatCard number="99.9%" label="Uptime" />
+            {stats.map((stat) => (
+              <StatCard key={stat.label} number={stat.number} label={stat.label} />
+            ))}
           </div>
         </div>
       </section>
@@ -382,3 +406,16 @@ function StatCard({ number, label }: { number: string; label: string }) {
   );
 }
 
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function formatUptime(seconds: number) {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  return `${Math.floor(seconds / 86400)}d`;
+}

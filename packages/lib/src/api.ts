@@ -16,6 +16,7 @@ import type {
   PRDiff,
   PRFilters,
   PRReview,
+  PlatformStats,
   PublicUser,
   PullRequest,
   RepoInfo,
@@ -303,6 +304,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     users: {
       getProfile: (username: string) => apiFetch<UserProfile>(`/api/users/${username}/profile`),
       getSummary: () => apiFetch<UserSummary>(`/api/users/me/summary`),
+      getPlatformStats: () => apiFetch<PlatformStats>("/api/stats/platform"),
       getStarred: (username: string) => apiFetch<{ repos: RepositoryWithStars[] }>(`/api/users/${username}/starred`),
       getAvatarByUsername: (username: string) => apiFetch<{ avatarUrl: string | null }>(`/api/users/${username}/avatar`),
       getPublic: (sortBy: "newest" | "oldest" = "newest", limit = 20, offset = 0) =>

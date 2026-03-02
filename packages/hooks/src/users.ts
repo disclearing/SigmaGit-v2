@@ -10,6 +10,16 @@ export function useCurrentUserSummary(enabled = true) {
   });
 }
 
+export function usePlatformStats() {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["platform", "stats"],
+    queryFn: () => api.users.getPlatformStats(),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+}
+
 export function useUserProfile(username: string) {
   const api = useApi();
   return useQuery({

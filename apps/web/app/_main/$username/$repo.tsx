@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { Link, Outlet, createFileRoute, useLocation, useNavigate, useParams } from "@tanstack/react-router";
-import { Circle, Clock, Code, GitFork, GitPullRequest, History, LayoutGrid, Loader2, Package, PlayCircle, Settings } from "lucide-react";
+import { Circle, Code, GitFork, GitPullRequest, History, LayoutGrid, Loader2, Package, PlayCircle, Settings } from "lucide-react";
 import { useForkRepository, useIssueCount, usePullRequestCount, useRepoBranches, useRepoCommitCount, useRepositoryInfo } from "@sigmagit/hooks";
 import { toast } from "sonner";
 import { BranchSelector } from "@/components/branch-selector";
@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const tabTriggerClassName =
+  "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground";
 
 
 function getBranchFromPath(pathname: string, defaultBranch: string): string {
@@ -123,11 +126,11 @@ function RepoLayoutContent() {
 
   return (
     <div className="bg-background">
-      <div className="container max-w-[1280px] mx-auto px-4 py-6 space-y-4">
+      <div className="container mx-auto max-w-[1280px] space-y-5 px-4 py-6">
         {isLoadingInfo || !repo ? (
           <RepoHeaderSkeleton />
         ) : (
-          <>
+          <div className="space-y-2">
             <RepoHeader
               repo={repo}
               forkCount={forkCount}
@@ -135,7 +138,7 @@ function RepoLayoutContent() {
               isForking={forkMutation.isPending}
             />
             {repo.description && (
-              <p className="text-base text-muted-foreground">{repo.description}</p>
+              <p className="max-w-3xl text-sm text-muted-foreground md:text-base">{repo.description}</p>
             )}
             {repo.forkedFrom && (
               <p className="text-xs text-muted-foreground">
@@ -149,20 +152,21 @@ function RepoLayoutContent() {
                 </Link>
               </p>
             )}
-          </>
+          </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-b border-border">
-          <Tabs value={currentTab}>
-            <TabsList variant="line" className="h-auto gap-1 bg-transparent p-0">
+        <div className="space-y-3 border-b border-border pb-3">
+          <div className="overflow-x-auto">
+            <Tabs value={currentTab}>
+              <TabsList variant="line" className="h-auto min-w-max gap-1 bg-transparent p-0">
               <Link to="/$username/$repo" params={{ username, repo: repoName }}>
-                <TabsTrigger value="code" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="code" className={tabTriggerClassName}>
                   <Code className="size-4" />
                   <span>Code</span>
                 </TabsTrigger>
               </Link>
               <Link to="/$username/$repo/issues" params={{ username, repo: repoName }}>
-                <TabsTrigger value="issues" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="issues" className={tabTriggerClassName}>
                   <Circle className="size-4" />
                   <span>Issues</span>
                   {openIssueCount > 0 && (
@@ -173,7 +177,7 @@ function RepoLayoutContent() {
                 </TabsTrigger>
               </Link>
               <Link to="/$username/$repo/pulls" params={{ username, repo: repoName }}>
-                <TabsTrigger value="pulls" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="pulls" className={tabTriggerClassName}>
                   <GitPullRequest className="size-4" />
                   <span>Pull requests</span>
                   {openPRCount > 0 && (
@@ -187,7 +191,7 @@ function RepoLayoutContent() {
                 to="/$username/$repo/commits/$branch"
                 params={{ username, repo: repoName, branch: currentBranch }}
               >
-                <TabsTrigger value="commits" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="commits" className={tabTriggerClassName}>
                   <History className="size-4" />
                   <span>Commits</span>
                   {commitCount > 0 && (
@@ -201,37 +205,38 @@ function RepoLayoutContent() {
                 to="/$username/$repo/projects"
                 params={{ username, repo: repoName }}
               >
-                <TabsTrigger value="projects" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="projects" className={tabTriggerClassName}>
                   <LayoutGrid className="size-4" />
                   <span>Projects</span>
                 </TabsTrigger>
               </Link>
               <Link to="/$username/$repo/releases" params={{ username, repo: repoName }}>
-                <TabsTrigger value="releases" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="releases" className={tabTriggerClassName}>
                   <Package className="size-4" />
                   <span>Releases</span>
                 </TabsTrigger>
               </Link>
               <Link to="/$username/$repo/workflows" params={{ username, repo: repoName }}>
-                <TabsTrigger value="actions" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                <TabsTrigger value="actions" className={tabTriggerClassName}>
                   <PlayCircle className="size-4" />
                   <span>Actions</span>
                 </TabsTrigger>
               </Link>
               {isOwner && (
                 <Link to="/$username/$repo/settings" params={{ username, repo: repoName }}>
-                  <TabsTrigger value="settings" className="gap-1.5 text-sm px-3 py-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none">
+                  <TabsTrigger value="settings" className={tabTriggerClassName}>
                     <Settings className="size-4" />
                     <span>Settings</span>
                   </TabsTrigger>
                 </Link>
               )}
-            </TabsList>
-          </Tabs>
+              </TabsList>
+            </Tabs>
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
             {isLoadingBranches || isLoadingInfo ? (
-              <div className="h-8 w-24 bg-secondary/50 animate-pulse " />
+              <div className="h-9 w-full animate-pulse bg-secondary/50 sm:w-24" />
             ) : (
               <BranchSelector
                 branches={branches}
@@ -241,7 +246,7 @@ function RepoLayoutContent() {
                 repoName={repo?.name || repoName}
               />
             )}
-            <CloneUrl username={username} repoName={repo?.name || repoName} />
+            <CloneUrl username={username} repoName={repo?.name || repoName} className="w-full sm:max-w-[430px]" />
           </div>
         </div>
       </div>
@@ -293,7 +298,7 @@ function RepoHeader({
   isForking: boolean;
 }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
       <div className="flex items-center gap-3 min-w-0">
         <h1 className="text-2xl font-semibold tracking-tight truncate">{repo.name}</h1>
         <span className="px-2 py-0.5 text-xs font-medium uppercase tracking-wider border border-border rounded-md text-muted-foreground shrink-0">
@@ -335,17 +340,17 @@ function RepoHeaderSkeleton() {
 
 function RepoLayoutSkeleton() {
   return (
-    <div className="container max-w-6xl px-4 py-4 space-y-4">
+    <div className="container max-w-[1280px] px-4 py-6 space-y-4">
       <RepoHeaderSkeleton />
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border/40 animate-pulse">
-        <div className="flex items-center gap-1">
+      <div className="space-y-3 border-b border-border/40 pb-3 animate-pulse">
+        <div className="flex items-center gap-1 overflow-x-auto">
           <div className="h-8 w-16 bg-secondary/50 " />
           <div className="h-8 w-16 bg-secondary/50 " />
           <div className="h-8 w-20 bg-secondary/50 " />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <div className="h-8 w-24 bg-secondary/50 " />
-          <div className="h-8 w-32 bg-secondary/50 " />
+          <div className="h-8 w-full bg-secondary/50 sm:w-72" />
         </div>
       </div>
       <div className="flex items-center justify-center py-12">

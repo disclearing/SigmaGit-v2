@@ -5,16 +5,21 @@ import { CheckCircle2, ChevronDown, Copy } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { getApiUrl } from "@/lib/utils";
+import { cn, getApiUrl } from "@/lib/utils";
 
-export function CloneUrl({ username, repoName }: { username: string; repoName: string }) {
+interface CloneUrlProps {
+  username: string;
+  repoName: string;
+  className?: string;
+}
+
+export function CloneUrl({ username, repoName, className }: CloneUrlProps) {
   const [copied, setCopied] = useState(false);
   const [protocol, setProtocol] = useState<"https" | "ssh">("https");
 
   const httpsUrl = `${getApiUrl()}/${username}/${repoName}.git`;
   const sshUrl = `git@sigmagit.com:${username}/${repoName}.git`;
 
-  // const url = httpsUrl;
   const url = protocol === "https" ? httpsUrl : sshUrl;
 
   async function copyToClipboard() {
@@ -24,11 +29,10 @@ export function CloneUrl({ username, repoName }: { username: string; repoName: s
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex w-full items-center gap-2", className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger className={buttonVariants({ variant: "outline", size: "default" })}>
-          {/* {protocol.toUpperCase()} */}
-          HTTPS
+        <DropdownMenuTrigger className={buttonVariants({ variant: "outline", size: "default", className: "shrink-0" })}>
+          {protocol.toUpperCase()}
           <ChevronDown className="size-3" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -36,9 +40,9 @@ export function CloneUrl({ username, repoName }: { username: string; repoName: s
           <DropdownMenuItem onClick={() => setProtocol("ssh")}>SSH</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <div className="relative flex-1 min-w-[280px]">
-        <Input value={url} readOnly className="pr-10 font-mono text-xs bg-muted" />
-        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={copyToClipboard}>
+      <div className="relative min-w-0 flex-1">
+        <Input value={url} readOnly className="pr-10 font-mono text-xs bg-muted/50" />
+        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 size-7 -translate-y-1/2" onClick={copyToClipboard}>
           {copied ? <CheckCircle2 className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
         </Button>
       </div>

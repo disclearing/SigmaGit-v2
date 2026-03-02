@@ -131,16 +131,18 @@ function LastCommitBar({ lastCommit }: { lastCommit: any }) {
 
 function EmptyRepoState({ username, repoName }: { username: string; repoName: string }) {
   return (
-    <div className="border border-dashed border-border p-12 text-center space-y-6">
-      <div className="w-16 h-16 mx-auto bg-primary/10 flex items-center justify-center">
-        <GitBranch className="size-8 text-primary" />
+    <div className="rounded-xl border border-dashed border-border/70 bg-card/50 px-6 py-10 text-center shadow-sm md:px-10">
+      <div className="mx-auto flex size-14 items-center justify-center rounded-lg bg-primary/10">
+        <GitBranch className="size-7 text-primary" />
       </div>
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">This repository is empty</h2>
-        <p className="text-muted-foreground max-w-md mx-auto">Get started by cloning this repository and pushing your first commit.</p>
+      <div className="mx-auto mt-5 max-w-xl space-y-2">
+        <h2 className="text-xl font-semibold tracking-tight">This repository is empty</h2>
+        <p className="text-sm text-muted-foreground md:text-base">
+          Clone this repository locally, add files, then push your first commit to get started.
+        </p>
       </div>
-      <div className="max-w-lg mx-auto">
-        <CloneUrl username={username} repoName={repoName} />
+      <div className="mx-auto mt-6 flex max-w-2xl justify-center">
+        <CloneUrl username={username} repoName={repoName} className="w-full max-w-xl" />
       </div>
     </div>
   );

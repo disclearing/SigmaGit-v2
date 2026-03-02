@@ -1,8 +1,8 @@
 "use client";
 
 import { Star } from "lucide-react";
-import {  useStarRepository } from "@sigmagit/hooks";
-import type {RepositoryWithStars} from "@sigmagit/hooks";
+import { useStarRepository } from "@sigmagit/hooks";
+import type { RepositoryWithStars } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export function StarButton({
   if (isLoading) {
     return (
       <div className={cn(
-        "inline-flex items-center gap-2 h-9 px-3 rounded-lg bg-muted animate-pulse",
+        "inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted/40 px-3 animate-pulse",
         className
       )}>
         <div className="size-4 bg-muted-foreground/20 rounded" />
@@ -29,13 +29,13 @@ export function StarButton({
 
   return (
     <Button
-      variant={isStarred ? "secondary" : "outline"}
+      variant="outline"
       size="sm"
       onClick={() => toggleStar()}
       disabled={isMutating}
       className={cn(
-        "gap-2 rounded-lg transition-all duration-200",
-        isStarred && "bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 hover:border-primary/30",
+        "h-8 gap-2 rounded-md border-border bg-background px-3 text-muted-foreground transition-colors",
+        isStarred && "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15",
         className
       )}
     >
@@ -46,9 +46,9 @@ export function StarButton({
           isStarred ? "text-primary" : "text-muted-foreground"
         )}
       />
-      <span>{isStarred ? "Starred" : "Star"}</span>
+      <span className="text-sm">{isStarred ? "Starred" : "Star"}</span>
       {starCount > 0 && (
-        <span className="font-mono text-xs px-1.5 py-0.5 rounded-md bg-foreground/5">
+        <span className="rounded border border-border/70 bg-muted/60 px-1.5 py-0.5 font-mono text-[11px] leading-none text-foreground/80">
           {starCount}
         </span>
       )}

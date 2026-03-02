@@ -308,11 +308,19 @@ function RepoHeader({
 
       <div className="flex items-center gap-2 shrink-0">
         <StarButton repository={repo} />
-        <Button variant="secondary" size="sm" className="gap-1.5 pr-[4px]" onClick={onFork} disabled={isForking}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-2 rounded-md border-border bg-background px-3 text-muted-foreground"
+          onClick={onFork}
+          disabled={isForking}
+        >
           <GitFork className="size-3.5" />
-          <span>Fork</span>
+          <span className="text-sm">{isForking ? "Forking..." : "Fork"}</span>
           {forkCount > 0 && (
-            <span className="font-mono text-[10px] px-1.5 py-0.5 bg-foreground/5 rounded">{forkCount}</span>
+            <span className="rounded border border-border/70 bg-muted/60 px-1.5 py-0.5 font-mono text-[11px] leading-none text-foreground/80">
+              {forkCount}
+            </span>
           )}
         </Button>
       </div>

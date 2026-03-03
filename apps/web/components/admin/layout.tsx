@@ -45,10 +45,10 @@ export function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
+    <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-0 flex-1">
         {/* Sidebar */}
-        <aside className="sticky top-0 hidden min-h-screen w-64 flex-col border-r border-border bg-card lg:flex xl:w-72">
+        <aside className="sticky top-0 hidden h-full min-h-screen w-64 flex-shrink-0 flex-col border-r border-border bg-card lg:flex xl:w-72">
           {/* Header */}
           <div className="p-5 xl:p-6 border-b border-border">
             <div className="flex items-center gap-3">

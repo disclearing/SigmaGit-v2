@@ -26,15 +26,16 @@ export function useUserProfile(username: string) {
     queryKey: ["user", username, "profile"],
     queryFn: () => api.users.getProfile(username),
     enabled: !!username,
+    staleTime: 30_000, // 30s so repeat visits feel instant
   });
 }
 
-export function useUserStarredRepos(username: string) {
+export function useUserStarredRepos(username: string, options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["user", username, "starred"],
     queryFn: () => api.users.getStarred(username),
-    enabled: !!username,
+    enabled: options?.enabled ?? !!username,
   });
 }
 

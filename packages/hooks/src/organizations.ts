@@ -16,33 +16,34 @@ export function useOrganization(org: string) {
     queryKey: ["organization", org],
     queryFn: () => api.organizations?.get?.(org) ?? Promise.resolve(undefined),
     enabled: !!org,
+    staleTime: 30_000, // 30s so repeat visits feel instant
   });
 }
 
-export function useOrganizationMembers(org: string) {
+export function useOrganizationMembers(org: string, options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["organization", org, "members"],
     queryFn: () => api.organizations?.getMembers?.(org) ?? Promise.resolve({ members: [] }),
-    enabled: !!org,
+    enabled: options?.enabled ?? !!org,
   });
 }
 
-export function useOrganizationTeams(org: string) {
+export function useOrganizationTeams(org: string, options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["organization", org, "teams"],
     queryFn: () => api.organizations?.getTeams?.(org) ?? Promise.resolve({ teams: [] }),
-    enabled: !!org,
+    enabled: options?.enabled ?? !!org,
   });
 }
 
-export function useOrganizationRepos(org: string) {
+export function useOrganizationRepos(org: string, options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["organization", org, "repos"],
     queryFn: () => api.organizations?.getRepositories?.(org) ?? Promise.resolve({ repositories: [] }),
-    enabled: !!org,
+    enabled: options?.enabled ?? !!org,
   });
 }
 

@@ -30,12 +30,12 @@ export function useRepositoryWithStars(owner: string, name: string) {
   });
 }
 
-export function useUserRepositories(username: string) {
+export function useUserRepositories(username: string, options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["repositories", "user", username],
     queryFn: () => api.repositories.getUserRepos(username),
-    enabled: !!username,
+    enabled: options?.enabled ?? !!username,
   });
 }
 

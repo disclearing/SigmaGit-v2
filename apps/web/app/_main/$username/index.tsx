@@ -878,31 +878,35 @@ function ProfilePage() {
   const { username } = Route.useParams();
   const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "members", "teams", "settings"]).withDefault("repositories"));
   const { data: session } = useSession();
-  
-  // Check for organization first
+
+  // Resolve profile type with only 2 requests; secondary data is fetched after we know org vs user
   const { data: org, isLoading: isLoadingOrg, error: orgError } = useOrganization(username);
-  const { data: orgReposData } = useOrganizationRepos(username);
-  const { data: orgMembersData } = useOrganizationMembers(username);
-  const { data: orgTeamsData } = useOrganizationTeams(username);
-  
-  // Fall back to user if not an org
   const { data: user, isLoading: isLoadingUser, error: userError } = useUserProfile(username);
-  const { data: reposData } = useUserRepositories(username);
-  const { data: starredData } = useUserStarredRepos(username);
+
+  const isOrg = !!org && !orgError;
+  const isUser = !!user && !userError;
+
+  const { data: orgReposData } = useOrganizationRepos(username, { enabled: isOrg });
+  const { data: orgMembersData } = useOrganizationMembers(username, { enabled: isOrg });
+  const { data: orgTeamsData } = useOrganizationTeams(username, { enabled: isOrg });
+  const { data: reposData } = useUserRepositories(username, { enabled: isUser });
+  const { data: starredData } = useUserStarredRepos(username, { enabled: isUser });
 
   const isLoading = isLoadingOrg || isLoadingUser;
-  const isOrg = !!org && !orgError;
   const currentUsername = (session?.user as { username?: string } | undefined)?.username;
-  const currentOrgMembership = orgMembersData?.members?.find(
-    (member) => (member as any)?.user?.username === currentUsername
-  );
+  const orgMembers = orgMembersData?.members ?? [];
+  const orgRepos = orgReposData?.repositories ?? [];
+  const orgTeams = orgTeamsData?.teams ?? [];
+  const userRepos = reposData?.repos ?? [];
+  const starredRepos = starredData?.repos ?? [];
+  const currentOrgMembership = orgMembers.find((member) => (member as any).user?.username === currentUsername);
   const isOrgOwner = currentOrgMembership?.role === "owner";
   const canManageMembers = isOrgOwner;
   
-  const repoCount = isOrg ? (orgReposData?.repositories?.length || 0) : (reposData?.repos?.length || 0);
-  const starredCount = starredData?.repos?.length || 0;
-  const memberCount = orgMembersData?.members?.length || 0;
-  const teamCount = orgTeamsData?.teams?.length || 0;
+  const repoCount = isOrg ? orgRepos.length : userRepos.length;
+  const starredCount = starredRepos.length;
+  const memberCount = orgMembers.length;
+  const teamCount = orgTeams.length;
 
   if (isLoading) {
     return (
@@ -923,7 +927,7 @@ function ProfilePage() {
   }
 
   // If it's an organization, render org profile
-  if (isOrg && org) {
+  if (isOrg) {
     return (
       <div className="container max-w-[1280px] mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-12 items-start">

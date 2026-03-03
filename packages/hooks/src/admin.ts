@@ -10,6 +10,15 @@ export function useAdminStats() {
   });
 }
 
+export function useAdminSystemStats() {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "system-stats"],
+    queryFn: () => api.admin.getSystemStats(),
+    refetchInterval: 30_000, // refresh every 30s for uptime
+  });
+}
+
 export function useAdminUsers(search = "", role?: string, limit = 20, offset = 0) {
   const api = useApi();
   return useQuery({

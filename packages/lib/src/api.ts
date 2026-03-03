@@ -1086,6 +1086,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
     admin: {
       getStats: () => apiFetch<any>("/api/admin/stats"),
+      getSystemStats: () => apiFetch<any>("/api/admin/system-stats"),
 
       getUsers: (search = "", role?: string, limit = 20, offset = 0) =>
         apiFetch<{ users: any[]; hasMore: boolean }>(

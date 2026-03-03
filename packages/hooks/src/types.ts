@@ -812,6 +812,25 @@ export type ApiClient = {
       adminCount: number;
       moderatorCount: number;
     }>;
+    getSystemStats: () => Promise<{
+      appUptimeSeconds: number;
+      apiUptimeSeconds: number;
+      postgres: {
+        version: string | null;
+        connections: number | null;
+        databaseSizeBytes: number | null;
+        cacheHitRatio: number | null;
+        transactionsCommitted: number | null;
+        transactionsRolledBack: number | null;
+        rowsReturned: number | null;
+        rowsFetched: number | null;
+        rowsInserted: number | null;
+        rowsUpdated: number | null;
+        rowsDeleted: number | null;
+        error: string | null;
+      };
+      generatedAt: string;
+    }>;
     getUsers: (search?: string, role?: string, limit?: number, offset?: number) => Promise<{ users: UserProfile[]; hasMore: boolean }>;
     getUser: (id: string) => Promise<UserProfile & { repoCount: number }>;
     updateUser: (id: string, data: { role?: string }) => Promise<{ success: boolean }>;

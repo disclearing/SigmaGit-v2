@@ -40,6 +40,7 @@ import { Route as MainUsernameIndexOrgRouteImport } from './app/_main/$username/
 import { Route as MainUsernameRepoRouteImport } from './app/_main/$username/$repo'
 import { Route as MainNewImportIndexRouteImport } from './app/_main/new/import/index'
 import { Route as MainAdminUsersIndexRouteImport } from './app/_main/admin/users/index'
+import { Route as MainAdminStatsIndexRouteImport } from './app/_main/admin/stats/index'
 import { Route as MainAdminSettingsIndexRouteImport } from './app/_main/admin/settings/index'
 import { Route as MainAdminRunnersIndexRouteImport } from './app/_main/admin/runners/index'
 import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admin/repositories/index'
@@ -227,6 +228,11 @@ const MainNewImportIndexRoute = MainNewImportIndexRouteImport.update({
 const MainAdminUsersIndexRoute = MainAdminUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminStatsIndexRoute = MainAdminStatsIndexRouteImport.update({
+  id: '/stats/',
+  path: '/stats/',
   getParentRoute: () => MainAdminRoute,
 } as any)
 const MainAdminSettingsIndexRoute = MainAdminSettingsIndexRouteImport.update({
@@ -471,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/admin/runners/': typeof MainAdminRunnersIndexRoute
   '/admin/settings/': typeof MainAdminSettingsIndexRoute
+  '/admin/stats/': typeof MainAdminStatsIndexRoute
   '/admin/users/': typeof MainAdminUsersIndexRoute
   '/new/import/': typeof MainNewImportIndexRoute
   '/$username/$repo/blob/$': typeof MainUsernameRepoBlobSplatRoute
@@ -534,6 +541,7 @@ export interface FileRoutesByTo {
   '/admin/repositories': typeof MainAdminRepositoriesIndexRoute
   '/admin/runners': typeof MainAdminRunnersIndexRoute
   '/admin/settings': typeof MainAdminSettingsIndexRoute
+  '/admin/stats': typeof MainAdminStatsIndexRoute
   '/admin/users': typeof MainAdminUsersIndexRoute
   '/new/import': typeof MainNewImportIndexRoute
   '/$username/$repo/blob/$': typeof MainUsernameRepoBlobSplatRoute
@@ -602,6 +610,7 @@ export interface FileRoutesById {
   '/_main/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/_main/admin/runners/': typeof MainAdminRunnersIndexRoute
   '/_main/admin/settings/': typeof MainAdminSettingsIndexRoute
+  '/_main/admin/stats/': typeof MainAdminStatsIndexRoute
   '/_main/admin/users/': typeof MainAdminUsersIndexRoute
   '/_main/new/import/': typeof MainNewImportIndexRoute
   '/_main/$username/$repo/blob/$': typeof MainUsernameRepoBlobSplatRoute
@@ -670,6 +679,7 @@ export interface FileRouteTypes {
     | '/admin/repositories/'
     | '/admin/runners/'
     | '/admin/settings/'
+    | '/admin/stats/'
     | '/admin/users/'
     | '/new/import/'
     | '/$username/$repo/blob/$'
@@ -733,6 +743,7 @@ export interface FileRouteTypes {
     | '/admin/repositories'
     | '/admin/runners'
     | '/admin/settings'
+    | '/admin/stats'
     | '/admin/users'
     | '/new/import'
     | '/$username/$repo/blob/$'
@@ -800,6 +811,7 @@ export interface FileRouteTypes {
     | '/_main/admin/repositories/'
     | '/_main/admin/runners/'
     | '/_main/admin/settings/'
+    | '/_main/admin/stats/'
     | '/_main/admin/users/'
     | '/_main/new/import/'
     | '/_main/$username/$repo/blob/$'
@@ -1050,6 +1062,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users/'
       preLoaderRoute: typeof MainAdminUsersIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/stats/': {
+      id: '/_main/admin/stats/'
+      path: '/stats'
+      fullPath: '/admin/stats/'
+      preLoaderRoute: typeof MainAdminStatsIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
     '/_main/admin/settings/': {
@@ -1435,6 +1454,7 @@ interface MainAdminRouteChildren {
   MainAdminRepositoriesIndexRoute: typeof MainAdminRepositoriesIndexRoute
   MainAdminRunnersIndexRoute: typeof MainAdminRunnersIndexRoute
   MainAdminSettingsIndexRoute: typeof MainAdminSettingsIndexRoute
+  MainAdminStatsIndexRoute: typeof MainAdminStatsIndexRoute
   MainAdminUsersIndexRoute: typeof MainAdminUsersIndexRoute
 }
 
@@ -1447,6 +1467,7 @@ const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminRepositoriesIndexRoute: MainAdminRepositoriesIndexRoute,
   MainAdminRunnersIndexRoute: MainAdminRunnersIndexRoute,
   MainAdminSettingsIndexRoute: MainAdminSettingsIndexRoute,
+  MainAdminStatsIndexRoute: MainAdminStatsIndexRoute,
   MainAdminUsersIndexRoute: MainAdminUsersIndexRoute,
 }
 

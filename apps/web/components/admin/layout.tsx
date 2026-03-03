@@ -2,6 +2,7 @@
 
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
+  BarChart3,
   Building2,
   ChevronRight,
   FileCode,
@@ -29,6 +30,7 @@ export function AdminLayout() {
   
   const navItems = [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard", description: "Overview & stats" },
+    { to: "/admin/stats", icon: BarChart3, label: "Stats", description: "Uptime, API & Postgres" },
     { to: "/admin/users", icon: Users, label: "Users", description: "Manage accounts" },
     { to: "/admin/repositories", icon: FolderGit2, label: "Repositories", description: "All repos" },
     { to: "/admin/organizations", icon: Building2, label: "Organizations", description: "Teams & orgs" },

@@ -153,6 +153,102 @@ app.get("/api/admin/stats", async (c) => {
   });
 });
 
+// System stats: uptime, PostgreSQL health and metrics (admin only)
+app.get("/api/admin/system-stats", async (c) => {
+  const appUptimeSeconds = Math.floor(process.uptime());
+  const apiUptimeSeconds = appUptimeSeconds; // API runs in same process
+
+  let postgres: {
+    version: string | null;
+    connections: number | null;
+    databaseSizeBytes: number | null;
+    cacheHitRatio: number | null;
+    transactionsCommitted: number | null;
+    transactionsRolledBack: number | null;
+    rowsReturned: number | null;
+    rowsFetched: number | null;
+    rowsInserted: number | null;
+    rowsUpdated: number | null;
+    rowsDeleted: number | null;
+    error: string | null;
+  } = {
+    version: null,
+    connections: null,
+    databaseSizeBytes: null,
+    cacheHitRatio: null,
+    transactionsCommitted: null,
+    transactionsRolledBack: null,
+    rowsReturned: null,
+    rowsFetched: null,
+    rowsInserted: null,
+    rowsUpdated: null,
+    rowsDeleted: null,
+    error: null,
+  };
+
+  function firstRow<T extends Record<string, unknown>>(result: unknown): T | null {
+    if (Array.isArray(result) && result.length > 0) return result[0] as T;
+    const r = result as { rows?: unknown[] };
+    if (r?.rows?.length) return r.rows[0] as T;
+    return null;
+  }
+
+  try {
+    const [versionRow, sizeRow, statsRow, connectionsRow] = await Promise.all([
+      db.execute(sql`SELECT version() as version`),
+      db.execute(sql`SELECT pg_database_size(current_database())::bigint as size`),
+      db.execute(
+        sql`SELECT xact_commit, xact_rollback, blks_read, blks_hit, tup_returned, tup_fetched, tup_inserted, tup_updated, tup_deleted FROM pg_stat_database WHERE datname = current_database()`
+      ),
+      db.execute(sql`SELECT count(*)::int as count FROM pg_stat_activity WHERE datname = current_database()`),
+    ]);
+
+    const v = firstRow<{ version: string }>(versionRow);
+    const sz = firstRow<{ size: string }>(sizeRow);
+    const st = firstRow<{
+      xact_commit: string;
+      xact_rollback: string;
+      blks_read: string;
+      blks_hit: string;
+      tup_returned: string;
+      tup_fetched: string;
+      tup_inserted: string;
+      tup_updated: string;
+      tup_deleted: string;
+    }>(statsRow);
+    const conn = firstRow<{ count: number | string }>(connectionsRow);
+
+    const blksHit = st ? Number(st.blks_hit) || 0 : 0;
+    const blksRead = st ? Number(st.blks_read) || 0 : 0;
+    const cacheHitRatio =
+      blksHit + blksRead > 0 ? Math.round((blksHit / (blksHit + blksRead)) * 10000) / 100 : null;
+
+    postgres = {
+      version: v?.version ?? null,
+      connections: conn?.count != null ? Number(conn.count) : null,
+      databaseSizeBytes: sz != null ? Number(sz.size) : null,
+      cacheHitRatio,
+      transactionsCommitted: st ? Number(st.xact_commit) : null,
+      transactionsRolledBack: st ? Number(st.xact_rollback) : null,
+      rowsReturned: st ? Number(st.tup_returned) : null,
+      rowsFetched: st ? Number(st.tup_fetched) : null,
+      rowsInserted: st ? Number(st.tup_inserted) : null,
+      rowsUpdated: st ? Number(st.tup_updated) : null,
+      rowsDeleted: st ? Number(st.tup_deleted) : null,
+      error: null,
+    };
+  } catch (err) {
+    postgres.error = err instanceof Error ? err.message : "Unknown error";
+  }
+
+  return c.json({
+    appUptimeSeconds,
+    apiUptimeSeconds,
+    postgres,
+    generatedAt: new Date().toISOString(),
+  });
+});
+
 app.get("/api/admin/users", async (c) => {
   const search = c.req.query("search") || "";
   const role = c.req.query("role");

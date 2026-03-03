@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ReportDialog } from "@/components/report-dialog";
 import { DmcaDialog } from "@/components/dmca-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createMeta } from "@/lib/seo";
 
 const tabTriggerClassName =
   "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground";
@@ -38,6 +39,12 @@ function getBranchFromPath(pathname: string, defaultBranch: string): string {
 }
 
 export const Route = createFileRoute("/_main/$username/$repo")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo}`,
+      description: `${params.username}/${params.repo} on Sigmagit. Code, issues, pull requests, and more.`,
+    }),
+  }),
   component: RepoLayout,
 });
 

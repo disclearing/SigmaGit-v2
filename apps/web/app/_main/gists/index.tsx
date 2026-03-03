@@ -2,6 +2,7 @@
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { usePublicGists } from "@sigmagit/hooks";
+import { createMeta } from "@/lib/seo";
 import {
   Clock,
   Code2,
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/gists/")({
+  head: () => ({ meta: createMeta({ title: "Gists", description: "Discover and share code snippets. Public gists on Sigmagit." }) }),
   component: GistsPage,
 });
 

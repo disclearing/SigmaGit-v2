@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, BookOpen, Code2, GitBranch, Github, Loader2, Plus, Settings, Shield, Sparkles, Terminal, User, Zap } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCurrentUserSummary, usePlatformStats, useUserRepositories } from "@sigmagit/hooks";
+import { createMeta } from "@/lib/seo";
 import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { useSession } from "@/lib/auth-client";
 import { NewRepositoryModal } from "@/components/new-repository-modal";
 
 export const Route = createFileRoute("/_main/")({
+  head: () => ({ meta: createMeta({ title: "Home", description: "Sigmagit — where code lives. Git hosting, pull requests, issues, and team collaboration." }) }),
   component: HomePage,
 });
 

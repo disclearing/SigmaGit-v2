@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/terms")({
+  head: () => ({ meta: createMeta({ title: "Terms of Service", description: "Sigmagit terms of service. Rules and guidelines for using the platform." }) }),
   component: TermsPage,
 });
 

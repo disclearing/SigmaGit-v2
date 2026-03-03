@@ -6,9 +6,16 @@ import {
 } from '@pierre/diffs/react';
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useTheme } from "tanstack-theme-kit";
+import { createMeta } from "@/lib/seo";
 import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_main/$username/$repo/blob/$")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · File`,
+      description: `View file content in ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: BlobPage,
 });
 

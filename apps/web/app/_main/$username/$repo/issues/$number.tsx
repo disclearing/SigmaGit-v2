@@ -17,9 +17,16 @@ import {
 } from "@sigmagit/hooks";
 import { CommentForm, CommentList, IssueDetail, StateBadge } from "@/components/issues";
 import { authClient } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { api } from "@/lib/api/client";
 
 export const Route = createFileRoute("/_main/$username/$repo/issues/$number")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Issue #${params.number}`,
+      description: `Issue #${params.number} in ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: IssueDetailPage,
 });
 

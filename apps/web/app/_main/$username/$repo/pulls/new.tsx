@@ -2,9 +2,11 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreatePullRequest, useRepoBranches, useRepositoryInfo } from "@sigmagit/hooks";
 import { PRForm } from "@/components/pulls/pr-form";
 import { authClient } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { api } from "@/lib/api/client";
 
 export const Route = createFileRoute("/_main/$username/$repo/pulls/new")({
+  head: () => ({ meta: createMeta({ title: "New Pull Request", description: "Create a new pull request.", noIndex: true }) }),
   component: NewPullRequestPage,
 });
 

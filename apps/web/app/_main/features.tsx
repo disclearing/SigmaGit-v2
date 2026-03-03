@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookOpen, Code2, GitBranch, Shield, Terminal, User } from "lucide-react";
+import { createMeta } from "@/lib/seo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/_main/features")({
+  head: () => ({ meta: createMeta({ title: "Features", description: "Git hosting, pull requests, issues, team collaboration, security, and CI/CD. Everything you need to ship code." }) }),
   component: FeaturesPage,
 });
 

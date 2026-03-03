@@ -2,12 +2,39 @@ import { useRepoCommits, useRepoReadme, useRepoReadmeOid, useRepoTree, useReposi
 import { createFileRoute } from "@tanstack/react-router";
 import { timeAgo } from "@sigmagit/lib";
 import { BookOpen, GitBranch } from "lucide-react";
+import { createMeta } from "@/lib/seo";
+import { getApiUrl } from "@/lib/utils";
 import { CloneUrl } from "@/components/clone-url";
 import { CodeViewer } from "@/components/code-viewer";
 import { FileTree } from "@/components/file-tree";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/_main/$username/$repo/")({
+  loader: async ({ params }) => {
+    const apiUrl = getApiUrl();
+    if (!apiUrl) return { repo: null };
+    try {
+      const res = await fetch(`${apiUrl}/api/repositories/${params.username}/${params.repo}/info`, {
+        credentials: "include",
+      });
+      if (!res.ok) return { repo: null };
+      const data = (await res.json()) as { repo?: { description?: string | null } };
+      return { repo: data.repo ?? null };
+    } catch {
+      return { repo: null };
+    }
+  },
+  head: ({ params, loaderData }) => {
+    const desc =
+      loaderData?.repo?.description?.trim() ||
+      `${params.username}/${params.repo} — browse code, README, and files on Sigmagit.`;
+    return {
+      meta: createMeta({
+        title: `${params.username}/${params.repo}`,
+        description: desc,
+      }),
+    };
+  },
   component: RepoPage,
 });
 

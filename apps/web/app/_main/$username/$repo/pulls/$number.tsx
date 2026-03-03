@@ -24,9 +24,16 @@ import { PRDetail } from "@/components/pulls/pr-detail";
 import { PRHeader } from "@/components/pulls/pr-header";
 import { CommentForm, CommentList } from "@/components/issues";
 import { authClient } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { api } from "@/lib/api/client";
 
 export const Route = createFileRoute("/_main/$username/$repo/pulls/$number")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Pull Request #${params.number}`,
+      description: `Pull request #${params.number} in ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: PullRequestDetailPage,
 });
 

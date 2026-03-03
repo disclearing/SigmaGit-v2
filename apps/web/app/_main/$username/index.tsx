@@ -31,6 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ReportDialog } from "@/components/report-dialog";
+import { createMeta } from "@/lib/seo";
 import { useSession } from "@/lib/auth-client";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
@@ -40,6 +41,12 @@ const TEAM_PERMISSIONS = ["read", "write", "admin"] as const;
 type TeamPermission = (typeof TEAM_PERMISSIONS)[number];
 
 export const Route = createFileRoute("/_main/$username/")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: params.username,
+      description: `${params.username}'s profile, repositories, and activity on Sigmagit.`,
+    }),
+  }),
   component: ProfilePage,
 });
 

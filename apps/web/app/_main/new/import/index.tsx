@@ -31,9 +31,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { createMeta } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/new/import/")({
+  head: () => ({ meta: createMeta({ title: "Import Repository", description: "Import a repository from GitHub, GitLab, or other sources.", noIndex: true }) }),
   component: ImportRepositoryPage,
 });
 

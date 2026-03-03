@@ -2,6 +2,7 @@ import { usePublicRepositories, usePublicUsers } from "@sigmagit/hooks";
 import { Award, BookOpen, ChevronLeft, ChevronRight, Clock, Compass, GitBranch, Loader2, Sparkles, Users } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
+import { createMeta } from "@/lib/seo";
 import RepositoryCard from "@/components/repository-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
 export const Route = createFileRoute("/_main/explore")({
+  head: () => ({ meta: createMeta({ title: "Explore", description: "Discover public repositories and users on Sigmagit. Browse by stars, recently updated, or newest." }) }),
   component: ExplorePage,
 });
 

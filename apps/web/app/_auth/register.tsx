@@ -4,11 +4,13 @@ import { validateUsername } from "@sigmagit/lib";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { signUpWithUsername } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_auth/register")({
+  head: () => ({ meta: createMeta({ title: "Sign up", description: "Create your Sigmagit account.", noIndex: true }) }),
   component: RegisterPage,
 });
 

@@ -13,9 +13,16 @@ import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createMeta } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/$username/$repo/discussions/$number")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Discussion #${params.number}`,
+      description: `Discussion #${params.number} in ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: DiscussionDetailPage,
 });
 

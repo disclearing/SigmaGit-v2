@@ -2,11 +2,18 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, Loader2, MessageSquare, Pin, Plus } from "lucide-react";
 import { useDiscussions } from "@sigmagit/hooks";
 import { formatRelativeTime } from "@sigmagit/lib";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/$username/$repo/discussions/")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Discussions`,
+      description: `Discussions for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: DiscussionsListPage,
 });
 

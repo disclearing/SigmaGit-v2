@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/$username/$repo/discussions/new")({
+  head: () => ({ meta: createMeta({ title: "New Discussion", description: "Start a new discussion.", noIndex: true }) }),
   component: NewDiscussionPage,
 });
 

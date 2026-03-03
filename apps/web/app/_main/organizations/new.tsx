@@ -5,12 +5,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateOrganization } from "@sigmagit/hooks";
 import { Building2, Loader2 } from "lucide-react";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_main/organizations/new")({
+  head: () => ({ meta: createMeta({ title: "New Organization", description: "Create a new organization on Sigmagit.", noIndex: true }) }),
   component: NewOrganizationPage,
 });
 

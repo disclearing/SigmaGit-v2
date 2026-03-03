@@ -4,9 +4,16 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useReleases } from "@sigmagit/hooks";
 import { Package, Plus } from "lucide-react";
 import { timeAgo } from "@sigmagit/lib";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_main/$username/$repo/releases/")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Releases`,
+      description: `Releases and tags for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: ReleasesPage,
 });
 

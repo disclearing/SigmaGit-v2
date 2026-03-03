@@ -3,11 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import { useCreateLabel, useDeleteLabel, useLabels, useRepositoryInfo, useUpdateLabel } from "@sigmagit/hooks";
 import type { Label } from "@sigmagit/hooks";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LabelBadge } from "@/components/issues";
 
 export const Route = createFileRoute("/_main/$username/$repo/labels")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Labels`,
+      description: `Manage labels for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: LabelsPage,
 });
 

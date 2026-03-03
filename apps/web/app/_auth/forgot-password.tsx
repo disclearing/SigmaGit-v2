@@ -3,11 +3,13 @@ import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getApiUrl } from "@/lib/utils";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_auth/forgot-password")({
+  head: () => ({ meta: createMeta({ title: "Forgot password", description: "Reset your Sigmagit password.", noIndex: true }) }),
   component: ForgotPasswordPage,
 });
 

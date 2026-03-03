@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { useApiKeys, useCreateApiKey, useDeleteApiKey } from "@/lib/hooks/use-api-keys";
 import { useAddPasskey, useDeletePasskey, usePasskeys } from "@/lib/hooks/use-passkeys";
 import { getApiUrl } from "@/lib/utils";
@@ -36,6 +37,7 @@ const tabTriggerClassName =
   "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground";
 
 export const Route = createFileRoute("/_main/settings")({
+  head: () => ({ meta: createMeta({ title: "Settings", description: "Manage your account, profile, and preferences.", noIndex: true }) }),
   component: SettingsPage,
 });
 

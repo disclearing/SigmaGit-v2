@@ -3,6 +3,7 @@ import { Databuddy } from "@databuddy/sdk/react";
 import { GitBranch, Home } from "lucide-react";
 import { ThemeProvider } from "tanstack-theme-kit";
 import appCss from "./globals.css?url";
+import { defaultMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -32,12 +33,8 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      { title: "sigmagit" },
-      { name: "description", content: "Where code lives" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      ...defaultMeta,
     ],
     links: [
       {

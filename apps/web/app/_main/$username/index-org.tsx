@@ -7,9 +7,16 @@ import { formatDate, timeAgo } from "@sigmagit/lib";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RepositoryCard from "@/components/repository-card";
+import { createMeta } from "@/lib/seo";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
 export const Route = createFileRoute("/_main/$username/index-org")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: params.username,
+      description: `${params.username} organization on Sigmagit. Profile and repositories.`,
+    }),
+  }),
   component: OrganizationProfilePage,
 });
 

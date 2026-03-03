@@ -2,9 +2,11 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreateIssue } from "@sigmagit/hooks";
 import { IssueForm } from "@/components/issues";
 import { authClient } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_main/$username/$repo/issues/new")({
+  head: () => ({ meta: createMeta({ title: "New Issue", description: "Create a new issue.", noIndex: true }) }),
   component: NewIssuePage,
 });
 

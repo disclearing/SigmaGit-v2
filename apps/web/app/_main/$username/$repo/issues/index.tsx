@@ -8,9 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
+import { createMeta } from "@/lib/seo";
 import { IssueItem } from "@/components/issues/issue-item";
 
 export const Route = createFileRoute("/_main/$username/$repo/issues/")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Issues`,
+      description: `Issues and bug reports for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: IssuesPage,
 });
 

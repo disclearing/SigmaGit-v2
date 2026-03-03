@@ -4,9 +4,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMigrations } from "@sigmagit/hooks";
 import { CheckCircle2, Clock, Download, Loader2, XCircle } from "lucide-react";
 import { timeAgo } from "@sigmagit/lib";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_main/settings/migrations")({
+  head: () => ({ meta: createMeta({ title: "Migrations", description: "Import your repositories from GitHub.", noIndex: true }) }),
   component: MigrationsPage,
 });
 

@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { getApiUrl } from "@/lib/utils";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_auth/verify-email")({
+  head: () => ({ meta: createMeta({ title: "Verify email", description: "Verify your email address.", noIndex: true }) }),
   component: VerifyEmailPage,
   validateSearch: (search: Record<string, unknown>) => ({
     token: (search.token as string) || "",

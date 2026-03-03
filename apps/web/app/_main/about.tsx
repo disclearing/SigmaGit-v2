@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Code, GitBranch, Heart, Users } from "lucide-react";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/about")({
+  head: () => ({ meta: createMeta({ title: "About", description: "A modern Git hosting platform built by developers, for developers. Our mission, team, and values." }) }),
   component: AboutPage,
 });
 

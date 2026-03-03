@@ -12,10 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { GIST_LANGUAGES } from "@/lib/gist-languages";
 import { useSession } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/gists/$id/edit")({
+  head: () => ({ meta: createMeta({ title: "Edit Gist", description: "Edit your gist.", noIndex: true }) }),
   component: EditGistPage,
 });
 

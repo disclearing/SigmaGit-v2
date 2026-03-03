@@ -1,28 +1,14 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { AdminLayout } from "@/components/admin/layout";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/admin")({
   head: () => ({
-    meta: [
-      { title: "Admin Panel | Sigmagit" },
-      {
-        name: "description",
-        content: "Administrative dashboard for managing users, repositories, organizations, and system settings.",
-      },
-      { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Admin Panel | Sigmagit" },
-      {
-        property: "og:description",
-        content: "Administrative dashboard for managing users, repositories, organizations, and system settings.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Admin Panel | Sigmagit" },
-      {
-        name: "twitter:description",
-        content: "Administrative dashboard for managing users, repositories, organizations, and system settings.",
-      },
-    ],
+    meta: createMeta({
+      title: "Admin Panel",
+      description: "Administrative dashboard for managing users, repositories, organizations, and system settings.",
+      noIndex: true,
+    }),
   }),
   component: () => (
     <AdminLayout>

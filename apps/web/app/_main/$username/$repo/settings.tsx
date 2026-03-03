@@ -9,8 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/$username/$repo/settings")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Settings`,
+      description: "Manage repository settings and options.",
+      noIndex: true,
+    }),
+  }),
   component: RepoSettingsPage,
 });
 

@@ -1,9 +1,16 @@
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useRepoTree, useRepositoryWithStars, useTreeCommits } from "@sigmagit/hooks";
 import { ChevronRight, Home } from "lucide-react";
+import { createMeta } from "@/lib/seo";
 import { FileTree } from "@/components/file-tree";
 
 export const Route = createFileRoute("/_main/$username/$repo/tree/$")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Files`,
+      description: `Browse files and directories in ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: TreePage,
 });
 

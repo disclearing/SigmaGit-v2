@@ -1,9 +1,16 @@
 'use client';
 
 import { createFileRoute } from '@tanstack/react-router';
+import { createMeta } from '@/lib/seo';
 import { RunList } from '@/components/workflows/run-list';
 
 export const Route = createFileRoute('/_main/$username/$repo/runs/')({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Workflow Runs`,
+      description: `Workflow run history for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: RunsPage,
 });
 

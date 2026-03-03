@@ -30,10 +30,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportDialog } from "@/components/report-dialog";
 import { DmcaDialog } from "@/components/dmca-dialog";
+import { createMeta } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_main/gists/$id")({
+  head: () => ({ meta: createMeta({ title: "Gist", description: "View and share this code snippet on Sigmagit." }) }),
   component: GistDetailPage,
 });
 

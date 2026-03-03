@@ -2,6 +2,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { createMeta } from "@/lib/seo";
 import { Briefcase, Heart, Loader2, Users, Zap } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { getApiUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/careers")({
+  head: () => ({ meta: createMeta({ title: "Careers", description: "Join Sigmagit. Open positions in engineering and beyond." }) }),
   component: CareersPage,
 });
 

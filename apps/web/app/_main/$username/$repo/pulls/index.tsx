@@ -8,9 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
+import { createMeta } from "@/lib/seo";
 import { PRItem } from "@/components/pulls/pr-item";
 
 export const Route = createFileRoute("/_main/$username/$repo/pulls/")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Pull Requests`,
+      description: `Pull requests for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: PullsPage,
 });
 

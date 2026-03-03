@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Eye, Key, Lock, Shield } from "lucide-react";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/security")({
+  head: () => ({ meta: createMeta({ title: "Security", description: "How Sigmagit protects your code and data. Encryption, authentication, and security practices." }) }),
   component: SecurityPage,
 });
 

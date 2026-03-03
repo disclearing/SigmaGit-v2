@@ -3,6 +3,7 @@ import { ArrowRight, Fingerprint, Github, Loader2, Lock, Mail } from "lucide-rea
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClient, signIn } from "@/lib/auth-client";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { NostrAuthButton } from "@/components/nostr-auth-button";
 
 export const Route = createFileRoute("/_auth/login")({
+  head: () => ({ meta: createMeta({ title: "Log in", description: "Log in to your Sigmagit account.", noIndex: true }) }),
   component: LoginPage,
 });
 

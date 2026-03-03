@@ -2,11 +2,13 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, Search } from "lucide-react";
 import { useSearch } from "@sigmagit/hooks";
+import { createMeta } from "@/lib/seo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchResultsList } from "@/components/search";
 
 export const Route = createFileRoute("/_main/search")({
+  head: () => ({ meta: createMeta({ title: "Search", description: "Search repositories, issues, pull requests, and users on Sigmagit." }) }),
   component: SearchPage,
   validateSearch: (search: Record<string, unknown>) => ({
     q: (search.q as string) || "",

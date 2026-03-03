@@ -14,8 +14,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/$username/$repo/projects/")({
+  head: ({ params }) => ({
+    meta: createMeta({
+      title: `${params.username}/${params.repo} · Projects`,
+      description: `Project boards for ${params.username}/${params.repo} on Sigmagit.`,
+    }),
+  }),
   component: ProjectsListPage,
 });
 

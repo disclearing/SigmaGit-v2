@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_main/privacy")({
+  head: () => ({ meta: createMeta({ title: "Privacy Policy", description: "Sigmagit privacy policy. How we collect, use, and protect your information." }) }),
   component: PrivacyPage,
 });
 

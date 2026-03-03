@@ -10,12 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createMeta } from "@/lib/seo";
 import { GIST_LANGUAGES } from "@/lib/gist-languages";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/gists/new")({
+  head: () => ({ meta: createMeta({ title: "New Gist", description: "Create a new gist on Sigmagit.", noIndex: true }) }),
   component: NewGistPage,
 });
 

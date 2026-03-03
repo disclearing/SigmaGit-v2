@@ -162,19 +162,7 @@ app.get("/v2/*/manifests/:ref", async (c) => {
   });
 });
 
-// Manifest: HEAD /v2/<name>/manifests/<ref>
-app.head("/v2/*/manifests/:ref", async (c) => {
-  const name = getNameFromWildcard(c);
-  const ref = c.req.param("ref");
-  const parsed = parseImageName(name);
-  if (!parsed) return c.json({ errors: [{ code: "NAME_INVALID" }] }, 400);
-  const { owner, imageName } = parsed;
-  const authResult = await requireRegistryAuth(c, `${owner}/${imageName}`, "pull");
-  if (authResult instanceof Response) return authResult;
-  const exists = await manifestExists(owner, imageName, ref);
-  if (!exists) return c.json({ errors: [{ code: "MANIFEST_UNKNOWN" }] }, 404);
-  return new Response(null, { status: 200 });
-});
+// HEAD /v2/<name>/manifests/<ref> is handled by the GET route above (Hono strips body for HEAD).
 
 // Manifest: PUT /v2/<name>/manifests/<ref>
 app.put("/v2/*/manifests/:ref", async (c) => {
@@ -219,19 +207,7 @@ app.get("/v2/*/blobs/:digest", async (c) => {
   });
 });
 
-// Blob: HEAD /v2/<name>/blobs/<digest>
-app.head("/v2/*/blobs/:digest", async (c) => {
-  const name = getNameFromWildcard(c);
-  const digest = c.req.param("digest");
-  const parsed = parseImageName(name);
-  if (!parsed) return c.json({ errors: [{ code: "NAME_INVALID" }] }, 400);
-  const { owner, imageName } = parsed;
-  const authResult = await requireRegistryAuth(c, `${owner}/${imageName}`, "pull");
-  if (authResult instanceof Response) return authResult;
-  const exists = await blobExists(owner, imageName, digest.startsWith("sha256:") ? digest : `sha256:${digest}`);
-  if (!exists) return c.json({ errors: [{ code: "BLOB_UNKNOWN" }] }, 404);
-  return new Response(null, { status: 200 });
-});
+// HEAD /v2/<name>/blobs/<digest> is handled by the GET route above (Hono strips body for HEAD).
 
 // Blob upload: POST /v2/<name>/blobs/uploads/
 app.post("/v2/*/blobs/uploads/", async (c) => {
@@ -310,7 +286,7 @@ app.delete("/v2/*/blobs/uploads/:uuid", async (c) => {
   const authResult = await requireRegistryAuth(c, `${owner}/${imageName}`, "push");
   if (authResult instanceof Response) return authResult;
   await deleteUpload(uuid);
-  return c.body("", 204);
+  return c.body(null, 204);
 });
 
 // Tags list: GET /v2/<name>/tags/list

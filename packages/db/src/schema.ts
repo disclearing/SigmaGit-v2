@@ -1747,6 +1747,65 @@ export const workflowSteps = pgTable(
   (table) => [index("workflow_steps_job_id_idx").on(table.jobId)]
 );
 
+export const jobListings = pgTable(
+  "job_listings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    department: text("department"),
+    location: text("location"),
+    employmentType: text("employment_type", { enum: ["full_time", "part_time", "contract", "internship"] })
+      .notNull()
+      .default("full_time"),
+    open: boolean("open").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("job_listings_slug_idx").on(table.slug),
+    index("job_listings_open_idx").on(table.open),
+  ]
+);
+
+export const jobApplications = pgTable(
+  "job_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    jobListingId: uuid("job_listing_id")
+      .notNull()
+      .references(() => jobListings.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone"),
+    coverLetter: text("cover_letter"),
+    resumeUrl: text("resume_url"),
+    linkedInUrl: text("linkedin_url"),
+    status: text("status", { enum: ["new", "reviewing", "interview", "offer", "rejected"] })
+      .notNull()
+      .default("new"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("job_applications_job_listing_id_idx").on(table.jobListingId),
+    index("job_applications_email_idx").on(table.email),
+    index("job_applications_status_idx").on(table.status),
+  ]
+);
+
+export const jobListingsRelations = relations(jobListings, ({ many }) => ({
+  applications: many(jobApplications),
+}));
+
+export const jobApplicationsRelations = relations(jobApplications, ({ one }) => ({
+  jobListing: one(jobListings, {
+    fields: [jobApplications.jobListingId],
+    references: [jobListings.id],
+  }),
+}));
+
 // Relations
 export const runnersRelations = relations(runners, ({ one, many }) => ({
   currentJob: one(workflowJobs, {

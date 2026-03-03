@@ -28,6 +28,7 @@ import migrations from "./migrations";
 import runners from "./runners";
 import workflows from "./workflows";
 import stats from "./stats";
+import careers from "./careers";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
@@ -56,6 +57,7 @@ export function mountRoutes(app: Hono) {
   app.route("/", runners);
   app.route("/", workflows);
   app.route("/", stats);
+  app.route("/", careers);
 
   if (config.webhooksEnabled) {
     app.route("/", webhooks);

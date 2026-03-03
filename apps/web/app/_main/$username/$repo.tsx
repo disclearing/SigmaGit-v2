@@ -245,6 +245,7 @@ function RepoLayoutContent() {
                 defaultBranch={defaultBranch}
                 username={username}
                 repoName={repo?.name || repoName}
+                isOwner={isOwner}
               />
             )}
             <CloneUrl username={username} repoName={repo?.name || repoName} className="w-full sm:max-w-[430px]" />

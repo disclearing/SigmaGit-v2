@@ -3,6 +3,7 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   BarChart3,
+  Briefcase,
   Building2,
   ChevronRight,
   FileCode,
@@ -36,6 +37,7 @@ export function AdminLayout() {
     { to: "/admin/repositories", icon: FolderGit2, label: "Repositories", description: "All repos" },
     { to: "/admin/organizations", icon: Building2, label: "Organizations", description: "Teams & orgs" },
     { to: "/admin/gists", icon: FileCode, label: "Gists", description: "Code snippets" },
+    { to: "/admin/applications", icon: Briefcase, label: "Applications", description: "Jobs & career applications" },
     { to: "/admin/audit-logs", icon: FileText, label: "Audit Logs", description: "Activity tracking" },
     { to: "/admin/runners", icon: Server, label: "Runners", description: "CI/CD runner agents" },
     { to: "/admin/utils", icon: Wrench, label: "Utils", description: "Cleanup & maintenance" },

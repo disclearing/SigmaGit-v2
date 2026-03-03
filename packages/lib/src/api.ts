@@ -200,6 +200,12 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
           method: "DELETE",
         }),
 
+      setDefaultBranch: (owner: string, name: string, branch: string) =>
+        apiFetch<{ defaultBranch: string }>(`/api/repositories/${owner}/${name}/default-branch`, {
+          method: "PATCH",
+          body: JSON.stringify({ branch }),
+        }),
+
       commitFile: (
         owner: string,
         name: string,
@@ -1196,6 +1202,43 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
           repoGrowth: { date: string; count: number }[];
           activityByDay: { date: string; count: number }[];
         }>(`/api/admin/analytics?days=${days}`),
+
+      getApplicationJobs: (openOnly?: boolean) =>
+        apiFetch<{ jobs: any[] }>(
+          `/api/admin/applications/jobs${openOnly === true ? "?open=true" : ""}`
+        ),
+      createApplicationJob: (data: {
+        title: string;
+        description: string;
+        slug?: string;
+        department?: string;
+        location?: string;
+        employmentType?: string;
+      }) =>
+        apiFetch<any>("/api/admin/applications/jobs", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      updateApplicationJob: (id: string, data: Record<string, unknown>) =>
+        apiFetch<any>(`/api/admin/applications/jobs/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      deleteApplicationJob: (id: string) =>
+        apiFetch<{ success: boolean }>(`/api/admin/applications/jobs/${id}`, {
+          method: "DELETE",
+        }),
+      getApplications: (jobId?: string, status?: string, limit?: number, offset?: number) =>
+        apiFetch<{ applications: any[]; hasMore: boolean }>(
+          `/api/admin/applications/applications?jobId=${jobId || ""}&status=${status || ""}&limit=${limit ?? 20}&offset=${offset ?? 0}`
+        ),
+      getApplication: (id: string) =>
+        apiFetch<any>(`/api/admin/applications/applications/${id}`),
+      updateApplicationStatus: (id: string, status: string) =>
+        apiFetch<any>(`/api/admin/applications/applications/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status }),
+        }),
 
       releases: {
         list: (owner: string, repo: string, includeDrafts = false) =>

@@ -232,6 +232,40 @@ app.delete("/api/repositories/:owner/:name/branches/:branch", requireAuth, async
   return c.json({ success: true });
 });
 
+app.patch("/api/repositories/:owner/:name/default-branch", requireAuth, async (c) => {
+  const owner = c.req.param("owner");
+  const name = c.req.param("name");
+  const currentUser = c.get("user")!;
+  const body = await c.req.json<{ branch: string }>();
+
+  if (!body.branch || typeof body.branch !== "string") {
+    return c.json({ error: "branch is required" }, 400);
+  }
+  if (!/^[a-zA-Z0-9_.\-/]+$/.test(body.branch)) {
+    return c.json({ error: "Invalid branch name" }, 400);
+  }
+
+  const result = await getRepoAndStore(owner, name);
+  if (!result) return c.json({ error: "Repository not found" }, 404);
+  const { repo, store } = result;
+
+  if (currentUser.id !== repo.ownerId) {
+    return c.json({ error: "Not authorized" }, 403);
+  }
+
+  const branches = await listBranchesCached(store);
+  if (!branches.includes(body.branch)) {
+    return c.json({ error: "Branch not found" }, 400);
+  }
+
+  await db
+    .update(repositories)
+    .set({ defaultBranch: body.branch, updatedAt: new Date() })
+    .where(eq(repositories.id, repo.id));
+
+  return c.json({ defaultBranch: body.branch });
+});
+
 // ─── Web-based file editing ──────────────────────────────────────────────────
 
 app.post("/api/repositories/:owner/:name/file", requireAuth, async (c) => {

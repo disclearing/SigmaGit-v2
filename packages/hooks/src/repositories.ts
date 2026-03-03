@@ -301,6 +301,19 @@ export function useDeleteBranch(owner: string, name: string) {
     mutationFn: (branch: string) => api.repositories.deleteBranch(owner, name, branch),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branches"] });
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "info"] });
+    },
+  });
+}
+
+export function useSetDefaultBranch(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (branch: string) => api.repositories.setDefaultBranch(owner, name, branch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branches"] });
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "info"] });
     },
   });
 }

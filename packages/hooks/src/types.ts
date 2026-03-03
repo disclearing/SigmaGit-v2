@@ -587,6 +587,7 @@ export type ApiClient = {
     getBranches: (owner: string, name: string) => Promise<{ branches: string[] }>;
     createBranch: (owner: string, name: string, data: { branch: string; fromRef: string }) => Promise<{ branch: string; oid: string }>;
     deleteBranch: (owner: string, name: string, branch: string) => Promise<{ success: boolean }>;
+    setDefaultBranch: (owner: string, name: string, branch: string) => Promise<{ defaultBranch: string }>;
     getTree: (owner: string, name: string, branch: string, path?: string) => Promise<TreeResponse>;
     getTreeCommits: (owner: string, name: string, branch: string, path?: string) => Promise<{ files: FileLastCommit[] }>;
     getFile: (owner: string, name: string, branch: string, path: string) => Promise<{ content: string; oid: string; path: string }>;
@@ -854,6 +855,20 @@ export type ApiClient = {
       }>;
       hasMore: boolean;
     }>;
+    getApplicationJobs: (openOnly?: boolean) => Promise<{ jobs: unknown[] }>;
+    createApplicationJob: (data: {
+      title: string;
+      description: string;
+      slug?: string;
+      department?: string;
+      location?: string;
+      employmentType?: string;
+    }) => Promise<unknown>;
+    updateApplicationJob: (id: string, data: Record<string, unknown>) => Promise<unknown>;
+    deleteApplicationJob: (id: string) => Promise<{ success: boolean }>;
+    getApplications: (jobId?: string, status?: string, limit?: number, offset?: number) => Promise<{ applications: unknown[]; hasMore: boolean }>;
+    getApplication: (id: string) => Promise<unknown>;
+    updateApplicationStatus: (id: string, status: string) => Promise<unknown>;
     getSettings: () => Promise<Record<string, unknown>>;
     updateSettings: (settings: Record<string, unknown>) => Promise<{ success: boolean }>;
     toggleMaintenance: (enabled: boolean) => Promise<{ success: boolean }>;

@@ -253,3 +253,83 @@ export function useDeleteAdminGist() {
     },
   });
 }
+
+// Applications (careers: job listings + job applications)
+
+export function useAdminApplicationJobs(openOnly?: boolean) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "applications", "jobs", openOnly],
+    queryFn: () => api.admin.getApplicationJobs(openOnly),
+  });
+}
+
+export function useCreateAdminApplicationJob() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      title: string;
+      description: string;
+      slug?: string;
+      department?: string;
+      location?: string;
+      employmentType?: string;
+    }) => api.admin.createApplicationJob(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+    },
+  });
+}
+
+export function useUpdateAdminApplicationJob() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
+      api.admin.updateApplicationJob(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+    },
+  });
+}
+
+export function useDeleteAdminApplicationJob() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.admin.deleteApplicationJob(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+    },
+  });
+}
+
+export function useAdminApplications(jobId?: string, status?: string, limit = 20, offset = 0) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "applications", "list", jobId, status, limit, offset],
+    queryFn: () => api.admin.getApplications(jobId, status, limit, offset),
+  });
+}
+
+export function useAdminApplication(id: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "applications", "application", id],
+    queryFn: () => api.admin.getApplication(id),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateAdminApplicationStatus() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      api.admin.updateApplicationStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+    },
+  });
+}

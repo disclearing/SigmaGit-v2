@@ -49,6 +49,7 @@ import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admi
 import { Route as MainAdminOrganizationsIndexRouteImport } from './app/_main/admin/organizations/index'
 import { Route as MainAdminGistsIndexRouteImport } from './app/_main/admin/gists/index'
 import { Route as MainAdminAuditLogsIndexRouteImport } from './app/_main/admin/audit-logs/index'
+import { Route as MainAdminApplicationsIndexRouteImport } from './app/_main/admin/applications/index'
 import { Route as MainUsernameRepoIndexRouteImport } from './app/_main/$username/$repo/index'
 import { Route as MainGistsIdEditRouteImport } from './app/_main/gists/$id/edit'
 import { Route as MainAdminUsersUserIdRouteImport } from './app/_main/admin/users/$userId'
@@ -279,6 +280,12 @@ const MainAdminAuditLogsIndexRoute = MainAdminAuditLogsIndexRouteImport.update({
   path: '/audit-logs/',
   getParentRoute: () => MainAdminRoute,
 } as any)
+const MainAdminApplicationsIndexRoute =
+  MainAdminApplicationsIndexRouteImport.update({
+    id: '/applications/',
+    path: '/applications/',
+    getParentRoute: () => MainAdminRoute,
+  } as any)
 const MainUsernameRepoIndexRoute = MainUsernameRepoIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -484,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$userId': typeof MainAdminUsersUserIdRoute
   '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo/': typeof MainUsernameRepoIndexRoute
+  '/admin/applications/': typeof MainAdminApplicationsIndexRoute
   '/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
   '/admin/gists/': typeof MainAdminGistsIndexRoute
   '/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
@@ -550,6 +558,7 @@ export interface FileRoutesByTo {
   '/admin/users/$userId': typeof MainAdminUsersUserIdRoute
   '/gists/$id/edit': typeof MainGistsIdEditRoute
   '/$username/$repo': typeof MainUsernameRepoIndexRoute
+  '/admin/applications': typeof MainAdminApplicationsIndexRoute
   '/admin/audit-logs': typeof MainAdminAuditLogsIndexRoute
   '/admin/gists': typeof MainAdminGistsIndexRoute
   '/admin/organizations': typeof MainAdminOrganizationsIndexRoute
@@ -621,6 +630,7 @@ export interface FileRoutesById {
   '/_main/admin/users/$userId': typeof MainAdminUsersUserIdRoute
   '/_main/gists/$id/edit': typeof MainGistsIdEditRoute
   '/_main/$username/$repo/': typeof MainUsernameRepoIndexRoute
+  '/_main/admin/applications/': typeof MainAdminApplicationsIndexRoute
   '/_main/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
   '/_main/admin/gists/': typeof MainAdminGistsIndexRoute
   '/_main/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
@@ -692,6 +702,7 @@ export interface FileRouteTypes {
     | '/admin/users/$userId'
     | '/gists/$id/edit'
     | '/$username/$repo/'
+    | '/admin/applications/'
     | '/admin/audit-logs/'
     | '/admin/gists/'
     | '/admin/organizations/'
@@ -758,6 +769,7 @@ export interface FileRouteTypes {
     | '/admin/users/$userId'
     | '/gists/$id/edit'
     | '/$username/$repo'
+    | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/gists'
     | '/admin/organizations'
@@ -828,6 +840,7 @@ export interface FileRouteTypes {
     | '/_main/admin/users/$userId'
     | '/_main/gists/$id/edit'
     | '/_main/$username/$repo/'
+    | '/_main/admin/applications/'
     | '/_main/admin/audit-logs/'
     | '/_main/admin/gists/'
     | '/_main/admin/organizations/'
@@ -1149,6 +1162,13 @@ declare module '@tanstack/react-router' {
       path: '/audit-logs'
       fullPath: '/admin/audit-logs/'
       preLoaderRoute: typeof MainAdminAuditLogsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/applications/': {
+      id: '/_main/admin/applications/'
+      path: '/applications'
+      fullPath: '/admin/applications/'
+      preLoaderRoute: typeof MainAdminApplicationsIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
     '/_main/$username/$repo/': {
@@ -1486,6 +1506,7 @@ const MainUsernameRouteWithChildren = MainUsernameRoute._addFileChildren(
 interface MainAdminRouteChildren {
   MainAdminIndexRoute: typeof MainAdminIndexRoute
   MainAdminUsersUserIdRoute: typeof MainAdminUsersUserIdRoute
+  MainAdminApplicationsIndexRoute: typeof MainAdminApplicationsIndexRoute
   MainAdminAuditLogsIndexRoute: typeof MainAdminAuditLogsIndexRoute
   MainAdminGistsIndexRoute: typeof MainAdminGistsIndexRoute
   MainAdminOrganizationsIndexRoute: typeof MainAdminOrganizationsIndexRoute
@@ -1500,6 +1521,7 @@ interface MainAdminRouteChildren {
 const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminIndexRoute: MainAdminIndexRoute,
   MainAdminUsersUserIdRoute: MainAdminUsersUserIdRoute,
+  MainAdminApplicationsIndexRoute: MainAdminApplicationsIndexRoute,
   MainAdminAuditLogsIndexRoute: MainAdminAuditLogsIndexRoute,
   MainAdminGistsIndexRoute: MainAdminGistsIndexRoute,
   MainAdminOrganizationsIndexRoute: MainAdminOrganizationsIndexRoute,

@@ -13,6 +13,8 @@ import {
   repoBranchMetadata,
   sessions,
   verifications,
+  jobListings,
+  jobApplications,
 } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
@@ -1188,6 +1190,202 @@ app.get("/api/admin/analytics", async (c) => {
     repoGrowth,
     activityByDay,
   });
+});
+
+// ─── Applications (careers: job listings + job applications) ─────────────────
+
+app.get("/api/admin/applications/jobs", async (c) => {
+  const openOnly = c.req.query("open");
+  const conditions = [];
+  if (openOnly === "true") {
+    conditions.push(eq(jobListings.open, true));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const jobs = await db
+    .select()
+    .from(jobListings)
+    .where(whereClause)
+    .orderBy(desc(jobListings.createdAt));
+  return c.json({ jobs });
+});
+
+app.post("/api/admin/applications/jobs", async (c) => {
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  const slug =
+    typeof body.slug === "string"
+      ? body.slug.trim().toLowerCase().replace(/\s+/g, "-")
+      : title.toLowerCase().replace(/\s+/g, "-");
+  const department = typeof body.department === "string" ? body.department.trim() || null : null;
+  const location = typeof body.location === "string" ? body.location.trim() || null : null;
+  const employmentType =
+    body.employmentType === "part_time" ||
+    body.employmentType === "contract" ||
+    body.employmentType === "internship"
+      ? body.employmentType
+      : "full_time";
+
+  if (!title || !description) {
+    return c.json({ error: "Title and description are required" }, 400);
+  }
+
+  const [job] = await db
+    .insert(jobListings)
+    .values({
+      slug: slug || "job",
+      title,
+      description,
+      department,
+      location,
+      employmentType,
+      open: true,
+    })
+    .returning();
+
+  await logAuditEvent(actor.id, "job_listing.create", "job_listing", job.id, { title: job.title });
+  return c.json(job, 201);
+});
+
+app.patch("/api/admin/applications/jobs/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const updates: Record<string, unknown> = {};
+  if (typeof body.title === "string" && body.title.trim()) updates.title = body.title.trim();
+  if (typeof body.description === "string") updates.description = body.description.trim();
+  if (typeof body.department === "string") updates.department = body.department.trim() || null;
+  if (typeof body.location === "string") updates.location = body.location.trim() || null;
+  if (
+    body.employmentType === "part_time" ||
+    body.employmentType === "contract" ||
+    body.employmentType === "internship" ||
+    body.employmentType === "full_time"
+  ) {
+    updates.employmentType = body.employmentType;
+  }
+  if (typeof body.open === "boolean") updates.open = body.open;
+  if (typeof body.slug === "string" && body.slug.trim()) {
+    updates.slug = body.slug.trim().toLowerCase().replace(/\s+/g, "-");
+  }
+  if (Object.keys(updates).length === 0) {
+    return c.json({ error: "No valid fields to update" }, 400);
+  }
+
+  const [updated] = await db
+    .update(jobListings)
+    .set({ ...updates, updatedAt: new Date() } as Record<string, unknown>)
+    .where(eq(jobListings.id, id))
+    .returning();
+
+  if (!updated) {
+    return c.json({ error: "Job listing not found" }, 404);
+  }
+  await logAuditEvent(actor.id, "job_listing.update", "job_listing", id, updates);
+  return c.json(updated);
+});
+
+app.delete("/api/admin/applications/jobs/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const [existing] = await db.select().from(jobListings).where(eq(jobListings.id, id)).limit(1);
+  if (!existing) {
+    return c.json({ error: "Job listing not found" }, 404);
+  }
+  await db.delete(jobApplications).where(eq(jobApplications.jobListingId, id));
+  await db.delete(jobListings).where(eq(jobListings.id, id));
+  await logAuditEvent(actor.id, "job_listing.delete", "job_listing", id, { title: existing.title });
+  return c.json({ success: true });
+});
+
+app.get("/api/admin/applications/applications", async (c) => {
+  const jobId = c.req.query("jobId");
+  const status = c.req.query("status");
+  const limit = parseInt(c.req.query("limit") || "20", 10);
+  const offset = parseInt(c.req.query("offset") || "0", 10);
+
+  const conditions = [];
+  if (jobId) conditions.push(eq(jobApplications.jobListingId, jobId));
+  if (status) conditions.push(eq(jobApplications.status, status as any));
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const applicationsResult = await db
+    .select({
+      id: jobApplications.id,
+      jobListingId: jobApplications.jobListingId,
+      name: jobApplications.name,
+      email: jobApplications.email,
+      phone: jobApplications.phone,
+      coverLetter: jobApplications.coverLetter,
+      resumeUrl: jobApplications.resumeUrl,
+      linkedInUrl: jobApplications.linkedInUrl,
+      status: jobApplications.status,
+      createdAt: jobApplications.createdAt,
+      jobTitle: jobListings.title,
+    })
+    .from(jobApplications)
+    .innerJoin(jobListings, eq(jobListings.id, jobApplications.jobListingId))
+    .where(whereClause)
+    .orderBy(desc(jobApplications.createdAt))
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = applicationsResult.length > limit;
+  const applications = applicationsResult.slice(0, limit);
+
+  return c.json({ applications, hasMore });
+});
+
+app.get("/api/admin/applications/applications/:id", async (c) => {
+  const id = c.req.param("id");
+  const [row] = await db
+    .select({
+      application: jobApplications,
+      jobTitle: jobListings.title,
+      jobSlug: jobListings.slug,
+    })
+    .from(jobApplications)
+    .innerJoin(jobListings, eq(jobListings.id, jobApplications.jobListingId))
+    .where(eq(jobApplications.id, id))
+    .limit(1);
+
+  if (!row) {
+    return c.json({ error: "Application not found" }, 404);
+  }
+  return c.json({
+    ...row.application,
+    jobTitle: row.jobTitle,
+    jobSlug: row.jobSlug,
+  });
+});
+
+app.patch("/api/admin/applications/applications/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const status = body.status;
+  if (
+    status !== "new" &&
+    status !== "reviewing" &&
+    status !== "interview" &&
+    status !== "offer" &&
+    status !== "rejected"
+  ) {
+    return c.json({ error: "Invalid status" }, 400);
+  }
+
+  const [updated] = await db
+    .update(jobApplications)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(jobApplications.id, id))
+    .returning();
+
+  if (!updated) {
+    return c.json({ error: "Application not found" }, 404);
+  }
+  await logAuditEvent(actor.id, "application.status_update", "job_application", id, { status });
+  return c.json(updated);
 });
 
 export default app;

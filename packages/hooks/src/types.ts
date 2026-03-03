@@ -569,6 +569,54 @@ export type OrganizationInvitation = {
   createdAt: string;
 };
 
+export type ReportTargetType = "user" | "repository" | "gist" | "organization";
+export type ReportReason = "spam" | "harassment" | "inappropriate" | "impersonation" | "other";
+export type ReportStatus = "pending" | "reviewing" | "resolved" | "dismissed";
+
+export type Report = {
+  id: string;
+  reporterId: string | null;
+  targetType: ReportTargetType;
+  targetId: string;
+  reason: ReportReason;
+  description: string;
+  status: ReportStatus;
+  adminNotes: string | null;
+  resolvedById: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  reporterUsername?: string | null;
+  reporterName?: string | null;
+};
+
+export type DmcaRequest = {
+  id: string;
+  requesterId: string | null;
+  targetType: "repository" | "gist";
+  targetId: string;
+  copyrightHolder: string;
+  copyrightHolderEmail: string;
+  copyrightHolderAddress: string;
+  copyrightHolderPhone: string | null;
+  originalWorkDescription: string;
+  originalWorkUrl: string | null;
+  infringingUrls: string;
+  description: string;
+  swornStatement: boolean;
+  perjuryStatement: boolean;
+  signature: string;
+  status: "pending" | "reviewing" | "approved" | "rejected" | "counter_filed";
+  adminNotes: string | null;
+  resolvedById: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requesterUsername?: string | null;
+  requesterName?: string | null;
+  requesterEmail?: string | null;
+};
+
 export type ApiClient = {
   repositories: {
     create: (data: { name: string; description?: string; visibility: "public" | "private"; organizationId?: string }) => Promise<Repository>;
@@ -780,6 +828,31 @@ export type ApiClient = {
     cancel: (id: string) => Promise<{ success: boolean }>;
     delete: (id: string) => Promise<{ success: boolean }>;
   };
+  reports: {
+    submit: (data: {
+      targetType: ReportTargetType;
+      targetId: string;
+      reason: ReportReason;
+      description: string;
+    }) => Promise<{ data: Report }>;
+  };
+  dmca: {
+    submit: (data: {
+      targetType: "repository" | "gist";
+      targetId: string;
+      copyrightHolder: string;
+      copyrightHolderEmail: string;
+      copyrightHolderAddress: string;
+      copyrightHolderPhone?: string | null;
+      originalWorkDescription: string;
+      originalWorkUrl?: string | null;
+      infringingUrls: string;
+      description: string;
+      swornStatement: boolean;
+      perjuryStatement: boolean;
+      signature: string;
+    }) => Promise<{ data: DmcaRequest }>;
+  };
   organizations: {
     list: () => Promise<{ organizations: Organization[]; hasMore?: boolean }>;
     get: (org: string) => Promise<Organization>;
@@ -855,6 +928,16 @@ export type ApiClient = {
       }>;
       hasMore: boolean;
     }>;
+    getReportsCounts: () => Promise<{ pending: number }>;
+    getReports: (status?: string, targetType?: string, limit?: number, offset?: number) => Promise<{ reports: Report[]; hasMore: boolean }>;
+    getReport: (id: string) => Promise<Report & { reporterEmail?: string | null }>;
+    updateReport: (id: string, data: { status?: ReportStatus; adminNotes?: string }) => Promise<Report>;
+    reportAction: (id: string, action: "dismiss" | "resolve" | "take_down" | "warn_user" | "ban_user") => Promise<{ success: boolean; status?: string }>;
+    getDmcaCounts: () => Promise<{ pending: number }>;
+    getDmcaRequests: (status?: string, limit?: number, offset?: number) => Promise<{ requests: DmcaRequest[]; hasMore: boolean }>;
+    getDmcaRequest: (id: string) => Promise<DmcaRequest & { requesterEmail?: string | null }>;
+    updateDmcaRequest: (id: string, data: { status?: string; adminNotes?: string }) => Promise<DmcaRequest>;
+    dmcaAction: (id: string, action: "approve_takedown" | "reject" | "dismiss", reason?: string) => Promise<{ success: boolean; status?: string }>;
     getApplicationJobs: (openOnly?: boolean) => Promise<{ jobs: unknown[] }>;
     createApplicationJob: (data: {
       title: string;

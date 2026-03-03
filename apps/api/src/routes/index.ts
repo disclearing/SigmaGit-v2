@@ -29,6 +29,8 @@ import runners from "./runners";
 import workflows from "./workflows";
 import stats from "./stats";
 import careers from "./careers";
+import reports from "./reports";
+import dmca from "./dmca";
 
 export function mountRoutes(app: Hono) {
   app.route("/", health);
@@ -58,6 +60,8 @@ export function mountRoutes(app: Hono) {
   app.route("/", workflows);
   app.route("/", stats);
   app.route("/", careers);
+  app.route("/", reports);
+  app.route("/", dmca);
 
   if (config.webhooksEnabled) {
     app.route("/", webhooks);

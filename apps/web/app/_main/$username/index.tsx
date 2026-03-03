@@ -18,7 +18,7 @@ import {
   useUserStarredRepos,
 } from "@sigmagit/hooks";
 import { toast } from "sonner";
-import { Activity, Award, BookOpen, Building2, Calendar, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Settings, Trash2, Users } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, Calendar, Flag, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Settings, Trash2, Users } from "lucide-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { formatDate, timeAgo } from "@sigmagit/lib";
 import { GithubIcon, LinkedInIcon, XIcon } from "@/components/icons";
@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { ReportDialog } from "@/components/report-dialog";
 import { useSession } from "@/lib/auth-client";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
@@ -877,6 +878,7 @@ function OrganizationTeamsTab({ orgName }: { orgName: string }) {
 function ProfilePage() {
   const { username } = Route.useParams();
   const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "members", "teams", "settings"]).withDefault("repositories"));
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const { data: session } = useSession();
 
   // Resolve profile type with only 2 requests; secondary data is fetched after we know org vs user
@@ -940,12 +942,31 @@ function ProfilePage() {
             </Avatar>
 
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-semibold">{org.displayName}</h1>
                 {org.isVerified && <span className="text-primary" title="Verified">✓</span>}
+                {currentUsername && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 text-muted-foreground"
+                    onClick={() => setIsReportDialogOpen(true)}
+                  >
+                    <Flag className="size-3.5" />
+                    Report
+                  </Button>
+                )}
               </div>
               <p className="text-base text-muted-foreground">@{org.name}</p>
             </div>
+
+            <ReportDialog
+              targetType="organization"
+              targetId={org.id}
+              targetName={org.displayName}
+              open={isReportDialogOpen}
+              onOpenChange={setIsReportDialogOpen}
+            />
 
             {org.description && (
               <div className="pt-2">
@@ -1054,12 +1075,31 @@ function ProfilePage() {
           </Avatar>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-semibold">{user.name}</h1>
               {user.pronouns && <span className="text-sm text-muted-foreground">({user.pronouns})</span>}
+              {currentUsername && currentUsername !== user.username && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-muted-foreground"
+                  onClick={() => setIsReportDialogOpen(true)}
+                >
+                  <Flag className="size-3.5" />
+                  Report
+                </Button>
+              )}
             </div>
             <p className="text-base text-muted-foreground">@{user.username}</p>
           </div>
+
+          <ReportDialog
+            targetType="user"
+            targetId={user.id}
+            targetName={user.name}
+            open={isReportDialogOpen}
+            onOpenChange={setIsReportDialogOpen}
+          />
 
           {user.bio && (
             <div className="pt-2">

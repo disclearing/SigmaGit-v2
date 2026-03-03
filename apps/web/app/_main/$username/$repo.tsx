@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { Link, Outlet, createFileRoute, useLocation, useNavigate, useParams } from "@tanstack/react-router";
-import { Circle, Code, GitFork, GitPullRequest, History, LayoutGrid, Loader2, Package, PlayCircle, Settings } from "lucide-react";
+import { Circle, Code, GitFork, GitPullRequest, History, LayoutGrid, Loader2, MoreHorizontal, Package, PlayCircle, Settings, ShieldAlert } from "lucide-react";
 import { useForkRepository, useIssueCount, usePullRequestCount, useRepoBranches, useRepoCommitCount, useRepositoryInfo } from "@sigmagit/hooks";
 import { toast } from "sonner";
 import { BranchSelector } from "@/components/branch-selector";
@@ -9,7 +9,15 @@ import { StarButton } from "@/components/star-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ReportDialog } from "@/components/report-dialog";
+import { DmcaDialog } from "@/components/dmca-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const tabTriggerClassName =
@@ -87,6 +95,8 @@ function RepoLayoutContent() {
   const forkCount = repo?.forkCount ?? 0;
   const [isForkDialogOpen, setIsForkDialogOpen] = useState(false);
   const [forkName, setForkName] = useState("");
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [isDmcaDialogOpen, setIsDmcaDialogOpen] = useState(false);
 
   useEffect(() => {
     if (repo?.name) {
@@ -133,9 +143,12 @@ function RepoLayoutContent() {
           <div className="space-y-2">
             <RepoHeader
               repo={repo}
+              username={username}
               forkCount={forkCount}
               onFork={() => setIsForkDialogOpen(true)}
               isForking={forkMutation.isPending}
+              onReport={() => setIsReportDialogOpen(true)}
+              onDmca={() => setIsDmcaDialogOpen(true)}
             />
             {repo.description && (
               <p className="max-w-3xl text-sm text-muted-foreground md:text-base">{repo.description}</p>
@@ -284,20 +297,45 @@ function RepoLayoutContent() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {repo && (
+        <>
+          <ReportDialog
+            targetType="repository"
+            targetId={repo.id}
+            targetName={`${username}/${repo.name}`}
+            open={isReportDialogOpen}
+            onOpenChange={setIsReportDialogOpen}
+          />
+          <DmcaDialog
+            targetType="repository"
+            targetId={repo.id}
+            targetName={`${username}/${repo.name}`}
+            open={isDmcaDialogOpen}
+            onOpenChange={setIsDmcaDialogOpen}
+          />
+        </>
+      )}
     </div>
   );
 }
 
 function RepoHeader({
   repo,
+  username,
   forkCount,
   onFork,
   isForking,
+  onReport,
+  onDmca,
 }: {
   repo: any;
+  username: string;
   forkCount: number;
   onFork: () => void;
   isForking: boolean;
+  onReport: () => void;
+  onDmca: () => void;
 }) {
   return (
     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -325,6 +363,25 @@ function RepoHeader({
             </span>
           )}
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 size-8 rounded-md border-border p-0 text-muted-foreground"
+            >
+              <MoreHorizontal className="size-4" />
+              <span className="sr-only">More actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onReport}>Report repository</DropdownMenuItem>
+            <DropdownMenuItem onClick={onDmca}>
+              <ShieldAlert className="mr-2 size-4" />
+              File DMCA takedown
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

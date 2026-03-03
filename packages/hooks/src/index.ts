@@ -14,4 +14,5 @@ export * from "./releases";
 export * from "./gists";
 export * from "./organizations";
 export * from "./migrations";
+export * from "./reports";
 export * from "./workflows";

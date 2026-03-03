@@ -848,6 +848,41 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         }),
     },
 
+    reports: {
+      submit: (data: {
+        targetType: "user" | "repository" | "gist" | "organization";
+        targetId: string;
+        reason: string;
+        description: string;
+      }) =>
+        apiFetch<{ data: unknown }>("/api/reports", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+    },
+
+    dmca: {
+      submit: (data: {
+        targetType: "repository" | "gist";
+        targetId: string;
+        copyrightHolder: string;
+        copyrightHolderEmail: string;
+        copyrightHolderAddress: string;
+        copyrightHolderPhone?: string | null;
+        originalWorkDescription: string;
+        originalWorkUrl?: string | null;
+        infringingUrls: string;
+        description: string;
+        swornStatement: boolean;
+        perjuryStatement: boolean;
+        signature: string;
+      }) =>
+        apiFetch<{ data: unknown }>("/api/dmca", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+    },
+
     organizations: {
       list: async () => {
         const data = await apiFetch<{
@@ -1142,6 +1177,39 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         apiFetch<{ logs: any[]; hasMore: boolean }>(
           `/api/admin/audit-logs?action=${action || ""}&targetType=${targetType || ""}&limit=${limit}&offset=${offset}`
         ),
+
+      getReportsCounts: () => apiFetch<{ pending: number }>("/api/admin/reports/counts"),
+      getReports: (status?: string, targetType?: string, limit = 20, offset = 0) =>
+        apiFetch<{ reports: any[]; hasMore: boolean }>(
+          `/api/admin/reports?status=${status || ""}&targetType=${targetType || ""}&limit=${limit}&offset=${offset}`
+        ),
+      getReport: (id: string) => apiFetch<any>(`/api/admin/reports/${id}`),
+      updateReport: (id: string, data: { status?: string; adminNotes?: string }) =>
+        apiFetch<any>(`/api/admin/reports/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      reportAction: (id: string, action: string) =>
+        apiFetch<{ success: boolean; status?: string }>(`/api/admin/reports/${id}/actions`, {
+          method: "POST",
+          body: JSON.stringify({ action }),
+        }),
+      getDmcaCounts: () => apiFetch<{ pending: number }>("/api/admin/dmca/counts"),
+      getDmcaRequests: (status?: string, limit = 20, offset = 0) =>
+        apiFetch<{ requests: any[]; hasMore: boolean }>(
+          `/api/admin/dmca?status=${status || ""}&limit=${limit}&offset=${offset}`
+        ),
+      getDmcaRequest: (id: string) => apiFetch<any>(`/api/admin/dmca/${id}`),
+      updateDmcaRequest: (id: string, data: { status?: string; adminNotes?: string }) =>
+        apiFetch<any>(`/api/admin/dmca/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      dmcaAction: (id: string, action: string, reason?: string) =>
+        apiFetch<{ success: boolean; status?: string }>(`/api/admin/dmca/${id}/actions`, {
+          method: "POST",
+          body: JSON.stringify({ action, reason }),
+        }),
 
       getSettings: () => apiFetch<Record<string, unknown>>("/api/admin/settings"),
 

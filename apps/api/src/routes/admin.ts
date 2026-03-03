@@ -15,6 +15,9 @@ import {
   verifications,
   jobListings,
   jobApplications,
+  reports,
+  dmcaRequests,
+  notifications,
 } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray } from "drizzle-orm";
 import { authMiddleware, requireAdmin, type AuthVariables } from "../middleware/auth";
@@ -1452,6 +1455,390 @@ app.patch("/api/admin/applications/applications/:id", async (c) => {
   }
   await logAuditEvent(actor.id, "application.status_update", "job_application", id, { status });
   return c.json(updated);
+});
+
+// --- Admin Reports ---
+
+const REPORT_STATUSES = ["pending", "reviewing", "resolved", "dismissed"] as const;
+const REPORT_TARGET_TYPES = ["user", "repository", "gist", "organization"] as const;
+const REPORT_ACTIONS = ["dismiss", "resolve", "take_down", "warn_user", "ban_user"] as const;
+const DMCA_STATUSES = ["pending", "reviewing", "approved", "rejected", "counter_filed"] as const;
+const DMCA_ACTIONS = ["approve_takedown", "reject", "dismiss"] as const;
+
+app.get("/api/admin/reports/counts", async (c) => {
+  const [pendingRow] = await db
+    .select({ count: count() })
+    .from(reports)
+    .where(eq(reports.status, "pending"));
+  return c.json({ pending: pendingRow?.count ?? 0 });
+});
+
+app.get("/api/admin/reports", async (c) => {
+  const status = c.req.query("status");
+  const targetType = c.req.query("targetType");
+  const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 100);
+  const offset = parseInt(c.req.query("offset") || "0", 10);
+
+  const conditions = [];
+  if (status && REPORT_STATUSES.includes(status as (typeof REPORT_STATUSES)[number])) {
+    conditions.push(eq(reports.status, status as (typeof REPORT_STATUSES)[number]));
+  }
+  if (targetType && REPORT_TARGET_TYPES.includes(targetType as (typeof REPORT_TARGET_TYPES)[number])) {
+    conditions.push(eq(reports.targetType, targetType as (typeof REPORT_TARGET_TYPES)[number]));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const list = await db
+    .select({
+      id: reports.id,
+      reporterId: reports.reporterId,
+      targetType: reports.targetType,
+      targetId: reports.targetId,
+      reason: reports.reason,
+      description: reports.description,
+      status: reports.status,
+      adminNotes: reports.adminNotes,
+      resolvedById: reports.resolvedById,
+      resolvedAt: reports.resolvedAt,
+      createdAt: reports.createdAt,
+      reporterUsername: users.username,
+      reporterName: users.name,
+    })
+    .from(reports)
+    .leftJoin(users, eq(users.id, reports.reporterId))
+    .where(whereClause)
+    .orderBy(desc(reports.createdAt))
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = list.length > limit;
+  const items = list.slice(0, limit);
+  return c.json({ reports: items, hasMore });
+});
+
+app.get("/api/admin/reports/:id", async (c) => {
+  const id = c.req.param("id");
+  const [row] = await db
+    .select({
+      report: reports,
+      reporterUsername: users.username,
+      reporterName: users.name,
+      reporterEmail: users.email,
+    })
+    .from(reports)
+    .leftJoin(users, eq(users.id, reports.reporterId))
+    .where(eq(reports.id, id))
+    .limit(1);
+
+  if (!row) {
+    return c.json({ error: "Report not found" }, 404);
+  }
+  return c.json({
+    ...row.report,
+    reporterUsername: row.reporterUsername,
+    reporterName: row.reporterName,
+    reporterEmail: row.reporterEmail,
+  });
+});
+
+app.patch("/api/admin/reports/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const status = body.status;
+  const adminNotes = typeof body.adminNotes === "string" ? body.adminNotes : undefined;
+
+  const updates: {
+    status?: (typeof REPORT_STATUSES)[number];
+    adminNotes?: string;
+    resolvedById?: string;
+    resolvedAt?: Date;
+    updatedAt: Date;
+  } = {
+    updatedAt: new Date(),
+  };
+  if (status && REPORT_STATUSES.includes(status as (typeof REPORT_STATUSES)[number])) {
+    updates.status = status as (typeof REPORT_STATUSES)[number];
+    if (status === "resolved" || status === "dismissed") {
+      updates.resolvedById = actor.id;
+      updates.resolvedAt = new Date();
+    }
+  }
+  if (adminNotes !== undefined) updates.adminNotes = adminNotes;
+
+  const [updated] = await db.update(reports).set(updates).where(eq(reports.id, id)).returning();
+  if (!updated) {
+    return c.json({ error: "Report not found" }, 404);
+  }
+  return c.json(updated);
+});
+
+app.post("/api/admin/reports/:id/actions", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const action = body.action;
+  if (!action || !REPORT_ACTIONS.includes(action as (typeof REPORT_ACTIONS)[number])) {
+    return c.json({ error: "Invalid action" }, 400);
+  }
+
+  const [report] = await db.select().from(reports).where(eq(reports.id, id)).limit(1);
+  if (!report) {
+    return c.json({ error: "Report not found" }, 404);
+  }
+
+  const now = new Date();
+
+  if (action === "dismiss") {
+    await db
+      .update(reports)
+      .set({ status: "dismissed", resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(reports.id, id));
+    await logAuditEvent(actor.id, "report.dismiss", "report", id);
+    return c.json({ success: true, status: "dismissed" });
+  }
+
+  if (action === "resolve") {
+    await db
+      .update(reports)
+      .set({ status: "resolved", resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(reports.id, id));
+    await logAuditEvent(actor.id, "report.resolve", "report", id);
+    return c.json({ success: true, status: "resolved" });
+  }
+
+  if (action === "take_down") {
+    if (report.targetType === "repository") {
+      const [repo] = await db.select().from(repositories).where(eq(repositories.id, report.targetId)).limit(1);
+      if (repo) {
+        await db.update(repositories).set({ visibility: "private", updatedAt: now }).where(eq(repositories.id, report.targetId));
+        await logAuditEvent(actor.id, "report.take_down", "repository", report.targetId, { reportId: id });
+      }
+    } else if (report.targetType === "gist") {
+      const [gist] = await db.select().from(gists).where(eq(gists.id, report.targetId)).limit(1);
+      if (gist) {
+        await db.update(gists).set({ visibility: "secret", updatedAt: now }).where(eq(gists.id, report.targetId));
+        await logAuditEvent(actor.id, "report.take_down", "gist", report.targetId, { reportId: id });
+      }
+    }
+    await db
+      .update(reports)
+      .set({ status: "resolved", resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(reports.id, id));
+    return c.json({ success: true, status: "resolved" });
+  }
+
+  if (action === "warn_user") {
+    let userId: string | null = null;
+    if (report.targetType === "user") userId = report.targetId;
+    else if (report.targetType === "repository") {
+      const [repo] = await db.select({ ownerId: repositories.ownerId }).from(repositories).where(eq(repositories.id, report.targetId)).limit(1);
+      userId = repo?.ownerId ?? null;
+    } else if (report.targetType === "gist") {
+      const [g] = await db.select({ ownerId: gists.ownerId }).from(gists).where(eq(gists.id, report.targetId)).limit(1);
+      userId = g?.ownerId ?? null;
+    }
+    if (userId) {
+      await db.insert(notifications).values({
+        userId,
+        type: "admin_warning",
+        title: "Content report warning",
+        body: "Your content has been reported. Please review our community guidelines.",
+        actorId: actor.id,
+      });
+      await logAuditEvent(actor.id, "report.warn_user", "user", userId, { reportId: id });
+    }
+    await db
+      .update(reports)
+      .set({ status: "reviewing", updatedAt: now })
+      .where(eq(reports.id, id));
+    return c.json({ success: true });
+  }
+
+  if (action === "ban_user") {
+    let userId: string | null = null;
+    if (report.targetType === "user") userId = report.targetId;
+    else if (report.targetType === "repository") {
+      const [repo] = await db.select({ ownerId: repositories.ownerId }).from(repositories).where(eq(repositories.id, report.targetId)).limit(1);
+      userId = repo?.ownerId ?? null;
+    } else if (report.targetType === "gist") {
+      const [g] = await db.select({ ownerId: gists.ownerId }).from(gists).where(eq(gists.id, report.targetId)).limit(1);
+      userId = g?.ownerId ?? null;
+    }
+    if (userId) {
+      await db.update(users).set({ role: "user", updatedAt: now }).where(eq(users.id, userId));
+      await logAuditEvent(actor.id, "report.ban_user", "user", userId, { reportId: id });
+    }
+    await db
+      .update(reports)
+      .set({ status: "resolved", resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(reports.id, id));
+    return c.json({ success: true, status: "resolved" });
+  }
+
+  return c.json({ error: "Invalid action" }, 400);
+});
+
+// --- Admin DMCA ---
+
+app.get("/api/admin/dmca/counts", async (c) => {
+  const [pendingRow] = await db
+    .select({ count: count() })
+    .from(dmcaRequests)
+    .where(eq(dmcaRequests.status, "pending"));
+  return c.json({ pending: pendingRow?.count ?? 0 });
+});
+
+app.get("/api/admin/dmca", async (c) => {
+  const status = c.req.query("status");
+  const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 100);
+  const offset = parseInt(c.req.query("offset") || "0", 10);
+
+  const conditions = [];
+  if (status && DMCA_STATUSES.includes(status as (typeof DMCA_STATUSES)[number])) {
+    conditions.push(eq(dmcaRequests.status, status as (typeof DMCA_STATUSES)[number]));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const list = await db
+    .select({
+      id: dmcaRequests.id,
+      requesterId: dmcaRequests.requesterId,
+      targetType: dmcaRequests.targetType,
+      targetId: dmcaRequests.targetId,
+      copyrightHolder: dmcaRequests.copyrightHolder,
+      copyrightHolderEmail: dmcaRequests.copyrightHolderEmail,
+      status: dmcaRequests.status,
+      createdAt: dmcaRequests.createdAt,
+      requesterUsername: users.username,
+      requesterName: users.name,
+    })
+    .from(dmcaRequests)
+    .leftJoin(users, eq(users.id, dmcaRequests.requesterId))
+    .where(whereClause)
+    .orderBy(desc(dmcaRequests.createdAt))
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = list.length > limit;
+  const items = list.slice(0, limit);
+  return c.json({ requests: items, hasMore });
+});
+
+app.get("/api/admin/dmca/:id", async (c) => {
+  const id = c.req.param("id");
+  const [row] = await db
+    .select({
+      request: dmcaRequests,
+      requesterUsername: users.username,
+      requesterName: users.name,
+      requesterEmail: users.email,
+    })
+    .from(dmcaRequests)
+    .leftJoin(users, eq(users.id, dmcaRequests.requesterId))
+    .where(eq(dmcaRequests.id, id))
+    .limit(1);
+
+  if (!row) {
+    return c.json({ error: "DMCA request not found" }, 404);
+  }
+  return c.json({
+    ...row.request,
+    requesterUsername: row.requesterUsername,
+    requesterName: row.requesterName,
+    requesterEmail: row.requesterEmail,
+  });
+});
+
+app.patch("/api/admin/dmca/:id", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const status = body.status;
+  const adminNotes = typeof body.adminNotes === "string" ? body.adminNotes : undefined;
+
+  const updates: {
+    status?: (typeof DMCA_STATUSES)[number];
+    adminNotes?: string;
+    resolvedById?: string;
+    resolvedAt?: Date;
+    updatedAt: Date;
+  } = {
+    updatedAt: new Date(),
+  };
+  if (status && DMCA_STATUSES.includes(status as (typeof DMCA_STATUSES)[number])) {
+    updates.status = status as (typeof DMCA_STATUSES)[number];
+    if (status === "approved" || status === "rejected" || status === "counter_filed") {
+      updates.resolvedById = actor.id;
+      updates.resolvedAt = new Date();
+    }
+  }
+  if (adminNotes !== undefined) updates.adminNotes = adminNotes;
+
+  const [updated] = await db.update(dmcaRequests).set(updates).where(eq(dmcaRequests.id, id)).returning();
+  if (!updated) {
+    return c.json({ error: "DMCA request not found" }, 404);
+  }
+  return c.json(updated);
+});
+
+app.post("/api/admin/dmca/:id/actions", async (c) => {
+  const id = c.req.param("id");
+  const actor = c.get("user")!;
+  const body = await c.req.json().catch(() => ({}));
+  const action = body.action;
+  if (!action || !DMCA_ACTIONS.includes(action as (typeof DMCA_ACTIONS)[number])) {
+    return c.json({ error: "Invalid action" }, 400);
+  }
+
+  const [request] = await db.select().from(dmcaRequests).where(eq(dmcaRequests.id, id)).limit(1);
+  if (!request) {
+    return c.json({ error: "DMCA request not found" }, 404);
+  }
+
+  const now = new Date();
+
+  if (action === "dismiss") {
+    await db
+      .update(dmcaRequests)
+      .set({ status: "rejected", resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(dmcaRequests.id, id));
+    await logAuditEvent(actor.id, "dmca.dismiss", "dmca_request", id);
+    return c.json({ success: true, status: "rejected" });
+  }
+
+  if (action === "reject") {
+    const reason = typeof body.reason === "string" ? body.reason : "";
+    await db
+      .update(dmcaRequests)
+      .set({ status: "rejected", adminNotes: reason || undefined, resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(dmcaRequests.id, id));
+    await logAuditEvent(actor.id, "dmca.reject", "dmca_request", id, { reason });
+    return c.json({ success: true, status: "rejected" });
+  }
+
+  if (action === "approve_takedown") {
+    if (request.targetType === "repository") {
+      const [repo] = await db.select().from(repositories).where(eq(repositories.id, request.targetId)).limit(1);
+      if (repo) {
+        await db.update(repositories).set({ visibility: "private", updatedAt: now }).where(eq(repositories.id, request.targetId));
+        await logAuditEvent(actor.id, "dmca.approve_takedown", "repository", request.targetId, { dmcaId: id });
+      }
+    } else if (request.targetType === "gist") {
+      const [gist] = await db.select().from(gists).where(eq(gists.id, request.targetId)).limit(1);
+      if (gist) {
+        await db.update(gists).set({ visibility: "secret", updatedAt: now }).where(eq(gists.id, request.targetId));
+        await logAuditEvent(actor.id, "dmca.approve_takedown", "gist", request.targetId, { dmcaId: id });
+      }
+    }
+    await db
+      .update(dmcaRequests)
+      .set({ status: "approved", resolvedById: actor.id, resolvedAt: now, updatedAt: now })
+      .where(eq(dmcaRequests.id, id));
+    return c.json({ success: true, status: "approved" });
+  }
+
+  return c.json({ error: "Invalid action" }, 400);
 });
 
 export default app;

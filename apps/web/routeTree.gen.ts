@@ -46,8 +46,10 @@ import { Route as MainAdminStatsIndexRouteImport } from './app/_main/admin/stats
 import { Route as MainAdminSettingsIndexRouteImport } from './app/_main/admin/settings/index'
 import { Route as MainAdminRunnersIndexRouteImport } from './app/_main/admin/runners/index'
 import { Route as MainAdminRepositoriesIndexRouteImport } from './app/_main/admin/repositories/index'
+import { Route as MainAdminReportsIndexRouteImport } from './app/_main/admin/reports/index'
 import { Route as MainAdminOrganizationsIndexRouteImport } from './app/_main/admin/organizations/index'
 import { Route as MainAdminGistsIndexRouteImport } from './app/_main/admin/gists/index'
+import { Route as MainAdminDmcaIndexRouteImport } from './app/_main/admin/dmca/index'
 import { Route as MainAdminAuditLogsIndexRouteImport } from './app/_main/admin/audit-logs/index'
 import { Route as MainAdminApplicationsIndexRouteImport } from './app/_main/admin/applications/index'
 import { Route as MainUsernameRepoIndexRouteImport } from './app/_main/$username/$repo/index'
@@ -264,6 +266,11 @@ const MainAdminRepositoriesIndexRoute =
     path: '/repositories/',
     getParentRoute: () => MainAdminRoute,
   } as any)
+const MainAdminReportsIndexRoute = MainAdminReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const MainAdminOrganizationsIndexRoute =
   MainAdminOrganizationsIndexRouteImport.update({
     id: '/organizations/',
@@ -273,6 +280,11 @@ const MainAdminOrganizationsIndexRoute =
 const MainAdminGistsIndexRoute = MainAdminGistsIndexRouteImport.update({
   id: '/gists/',
   path: '/gists/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminDmcaIndexRoute = MainAdminDmcaIndexRouteImport.update({
+  id: '/dmca/',
+  path: '/dmca/',
   getParentRoute: () => MainAdminRoute,
 } as any)
 const MainAdminAuditLogsIndexRoute = MainAdminAuditLogsIndexRouteImport.update({
@@ -493,8 +505,10 @@ export interface FileRoutesByFullPath {
   '/$username/$repo/': typeof MainUsernameRepoIndexRoute
   '/admin/applications/': typeof MainAdminApplicationsIndexRoute
   '/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/admin/dmca/': typeof MainAdminDmcaIndexRoute
   '/admin/gists/': typeof MainAdminGistsIndexRoute
   '/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
+  '/admin/reports/': typeof MainAdminReportsIndexRoute
   '/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/admin/runners/': typeof MainAdminRunnersIndexRoute
   '/admin/settings/': typeof MainAdminSettingsIndexRoute
@@ -560,8 +574,10 @@ export interface FileRoutesByTo {
   '/$username/$repo': typeof MainUsernameRepoIndexRoute
   '/admin/applications': typeof MainAdminApplicationsIndexRoute
   '/admin/audit-logs': typeof MainAdminAuditLogsIndexRoute
+  '/admin/dmca': typeof MainAdminDmcaIndexRoute
   '/admin/gists': typeof MainAdminGistsIndexRoute
   '/admin/organizations': typeof MainAdminOrganizationsIndexRoute
+  '/admin/reports': typeof MainAdminReportsIndexRoute
   '/admin/repositories': typeof MainAdminRepositoriesIndexRoute
   '/admin/runners': typeof MainAdminRunnersIndexRoute
   '/admin/settings': typeof MainAdminSettingsIndexRoute
@@ -632,8 +648,10 @@ export interface FileRoutesById {
   '/_main/$username/$repo/': typeof MainUsernameRepoIndexRoute
   '/_main/admin/applications/': typeof MainAdminApplicationsIndexRoute
   '/_main/admin/audit-logs/': typeof MainAdminAuditLogsIndexRoute
+  '/_main/admin/dmca/': typeof MainAdminDmcaIndexRoute
   '/_main/admin/gists/': typeof MainAdminGistsIndexRoute
   '/_main/admin/organizations/': typeof MainAdminOrganizationsIndexRoute
+  '/_main/admin/reports/': typeof MainAdminReportsIndexRoute
   '/_main/admin/repositories/': typeof MainAdminRepositoriesIndexRoute
   '/_main/admin/runners/': typeof MainAdminRunnersIndexRoute
   '/_main/admin/settings/': typeof MainAdminSettingsIndexRoute
@@ -704,8 +722,10 @@ export interface FileRouteTypes {
     | '/$username/$repo/'
     | '/admin/applications/'
     | '/admin/audit-logs/'
+    | '/admin/dmca/'
     | '/admin/gists/'
     | '/admin/organizations/'
+    | '/admin/reports/'
     | '/admin/repositories/'
     | '/admin/runners/'
     | '/admin/settings/'
@@ -771,8 +791,10 @@ export interface FileRouteTypes {
     | '/$username/$repo'
     | '/admin/applications'
     | '/admin/audit-logs'
+    | '/admin/dmca'
     | '/admin/gists'
     | '/admin/organizations'
+    | '/admin/reports'
     | '/admin/repositories'
     | '/admin/runners'
     | '/admin/settings'
@@ -842,8 +864,10 @@ export interface FileRouteTypes {
     | '/_main/$username/$repo/'
     | '/_main/admin/applications/'
     | '/_main/admin/audit-logs/'
+    | '/_main/admin/dmca/'
     | '/_main/admin/gists/'
     | '/_main/admin/organizations/'
+    | '/_main/admin/reports/'
     | '/_main/admin/repositories/'
     | '/_main/admin/runners/'
     | '/_main/admin/settings/'
@@ -1143,6 +1167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAdminRepositoriesIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
+    '/_main/admin/reports/': {
+      id: '/_main/admin/reports/'
+      path: '/reports'
+      fullPath: '/admin/reports/'
+      preLoaderRoute: typeof MainAdminReportsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/_main/admin/organizations/': {
       id: '/_main/admin/organizations/'
       path: '/organizations'
@@ -1155,6 +1186,13 @@ declare module '@tanstack/react-router' {
       path: '/gists'
       fullPath: '/admin/gists/'
       preLoaderRoute: typeof MainAdminGistsIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/dmca/': {
+      id: '/_main/admin/dmca/'
+      path: '/dmca'
+      fullPath: '/admin/dmca/'
+      preLoaderRoute: typeof MainAdminDmcaIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
     '/_main/admin/audit-logs/': {
@@ -1508,8 +1546,10 @@ interface MainAdminRouteChildren {
   MainAdminUsersUserIdRoute: typeof MainAdminUsersUserIdRoute
   MainAdminApplicationsIndexRoute: typeof MainAdminApplicationsIndexRoute
   MainAdminAuditLogsIndexRoute: typeof MainAdminAuditLogsIndexRoute
+  MainAdminDmcaIndexRoute: typeof MainAdminDmcaIndexRoute
   MainAdminGistsIndexRoute: typeof MainAdminGistsIndexRoute
   MainAdminOrganizationsIndexRoute: typeof MainAdminOrganizationsIndexRoute
+  MainAdminReportsIndexRoute: typeof MainAdminReportsIndexRoute
   MainAdminRepositoriesIndexRoute: typeof MainAdminRepositoriesIndexRoute
   MainAdminRunnersIndexRoute: typeof MainAdminRunnersIndexRoute
   MainAdminSettingsIndexRoute: typeof MainAdminSettingsIndexRoute
@@ -1523,8 +1563,10 @@ const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminUsersUserIdRoute: MainAdminUsersUserIdRoute,
   MainAdminApplicationsIndexRoute: MainAdminApplicationsIndexRoute,
   MainAdminAuditLogsIndexRoute: MainAdminAuditLogsIndexRoute,
+  MainAdminDmcaIndexRoute: MainAdminDmcaIndexRoute,
   MainAdminGistsIndexRoute: MainAdminGistsIndexRoute,
   MainAdminOrganizationsIndexRoute: MainAdminOrganizationsIndexRoute,
+  MainAdminReportsIndexRoute: MainAdminReportsIndexRoute,
   MainAdminRepositoriesIndexRoute: MainAdminRepositoriesIndexRoute,
   MainAdminRunnersIndexRoute: MainAdminRunnersIndexRoute,
   MainAdminSettingsIndexRoute: MainAdminSettingsIndexRoute,

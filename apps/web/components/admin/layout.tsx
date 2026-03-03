@@ -8,6 +8,7 @@ import {
   ChevronRight,
   FileCode,
   FileText,
+  Flag,
   FolderGit2,
   Home,
   LayoutDashboard,
@@ -15,11 +16,13 @@ import {
   Server,
   Settings,
   Shield,
+  ShieldAlert,
   Users,
   Wrench,
 } from "lucide-react";
-import { useCurrentUserSummary } from "@sigmagit/hooks";
+import { useCurrentUserSummary, useAdminReportsCounts, useAdminDmcaCounts } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,7 +32,9 @@ export function AdminLayout() {
   const location = useLocation();
   const { data: session } = useSession();
   const { data: user } = useCurrentUserSummary(!!session?.user);
-  
+  const { data: reportsCounts } = useAdminReportsCounts();
+  const { data: dmcaCounts } = useAdminDmcaCounts();
+
   const navItems = [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard", description: "Overview & stats" },
     { to: "/admin/stats", icon: BarChart3, label: "Stats", description: "Uptime, API & Postgres" },
@@ -39,6 +44,8 @@ export function AdminLayout() {
     { to: "/admin/gists", icon: FileCode, label: "Gists", description: "Code snippets" },
     { to: "/admin/applications", icon: Briefcase, label: "Applications", description: "Jobs & career applications" },
     { to: "/admin/audit-logs", icon: FileText, label: "Audit Logs", description: "Activity tracking" },
+    { to: "/admin/reports", icon: Flag, label: "Reports", description: "User & content reports", countsKey: "reports" },
+    { to: "/admin/dmca", icon: ShieldAlert, label: "DMCA", description: "Copyright takedowns", countsKey: "dmca" },
     { to: "/admin/runners", icon: Server, label: "Runners", description: "CI/CD runner agents" },
     { to: "/admin/utils", icon: Wrench, label: "Utils", description: "Cleanup & maintenance" },
     { to: "/admin/settings", icon: Settings, label: "Settings", description: "System config" },
@@ -67,6 +74,12 @@ export function AdminLayout() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.to || (item.to !== "/admin" && location.pathname.startsWith(item.to));
+              const pendingCount =
+                "countsKey" in item && item.countsKey === "reports"
+                  ? reportsCounts?.pending ?? 0
+                  : "countsKey" in item && item.countsKey === "dmca"
+                    ? dmcaCounts?.pending ?? 0
+                    : 0;
               return (
                 <Link
                   key={item.to}
@@ -84,8 +97,18 @@ export function AdminLayout() {
                   )}>
                   <Icon className="size-4" />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium">{item.label}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">{item.label}</span>
+                      {pendingCount > 0 && (
+                        <Badge
+                          variant={isActive ? "secondary" : "destructive"}
+                          className="shrink-0 text-xs px-1.5 py-0"
+                        >
+                          {pendingCount}
+                        </Badge>
+                      )}
+                    </div>
                     <div className={cn(
                       "text-xs",
                       isActive ? "text-primary-foreground/70" : "text-muted-foreground"
@@ -94,7 +117,7 @@ export function AdminLayout() {
                     </div>
                   </div>
                   <ChevronRight className={cn(
-                    "size-4 transition-transform",
+                    "size-4 shrink-0 transition-transform",
                     isActive ? "opacity-100" : "opacity-0 -translate-x-2"
                   )} />
                 </Link>

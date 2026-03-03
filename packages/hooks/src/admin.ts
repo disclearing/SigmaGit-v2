@@ -333,3 +333,107 @@ export function useUpdateAdminApplicationStatus() {
     },
   });
 }
+
+// --- Reports ---
+
+export function useAdminReportsCounts() {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "reports", "counts"],
+    queryFn: () => api.admin.getReportsCounts(),
+  });
+}
+
+export function useAdminReports(status?: string, targetType?: string, limit = 20, offset = 0) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "reports", status, targetType, limit, offset],
+    queryFn: () => api.admin.getReports(status, targetType, limit, offset),
+  });
+}
+
+export function useAdminReport(id: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "reports", id],
+    queryFn: () => api.admin.getReport(id),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateAdminReport() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { status?: string; adminNotes?: string } }) =>
+      api.admin.updateReport(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "reports", id] });
+    },
+  });
+}
+
+export function useAdminReportAction() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: "dismiss" | "resolve" | "take_down" | "warn_user" | "ban_user" }) =>
+      api.admin.reportAction(id, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+    },
+  });
+}
+
+// --- DMCA ---
+
+export function useAdminDmcaCounts() {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "dmca", "counts"],
+    queryFn: () => api.admin.getDmcaCounts(),
+  });
+}
+
+export function useAdminDmcaRequests(status?: string, limit = 20, offset = 0) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "dmca", status, limit, offset],
+    queryFn: () => api.admin.getDmcaRequests(status, limit, offset),
+  });
+}
+
+export function useAdminDmcaRequest(id: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "dmca", id],
+    queryFn: () => api.admin.getDmcaRequest(id),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateAdminDmcaRequest() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { status?: string; adminNotes?: string } }) =>
+      api.admin.updateDmcaRequest(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "dmca"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dmca", id] });
+    },
+  });
+}
+
+export function useAdminDmcaAction() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action, reason }: { id: string; action: "approve_takedown" | "reject" | "dismiss"; reason?: string }) =>
+      api.admin.dmcaAction(id, action, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "dmca"] });
+    },
+  });
+}

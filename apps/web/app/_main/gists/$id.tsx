@@ -10,7 +10,7 @@ import {
   useIsGistStarred,
   useToggleGistStar,
 } from "@sigmagit/hooks";
-import { ArrowLeft, Check, Clock, Copy, Edit, FileCode2, GitFork, MessageSquare, Send, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Clock, Copy, Edit, FileCode2, GitFork, MessageSquare, MoreHorizontal, Send, ShieldAlert, Star, Trash2 } from "lucide-react";
 import { getLanguage, timeAgo } from "@sigmagit/lib";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -21,7 +21,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ReportDialog } from "@/components/report-dialog";
+import { DmcaDialog } from "@/components/dmca-dialog";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 
@@ -42,6 +50,8 @@ function GistDetailPage() {
   const deleteGist = useDeleteGist();
   const [commentBody, setCommentBody] = useState("");
   const [copied, setCopied] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [isDmcaDialogOpen, setIsDmcaDialogOpen] = useState(false);
 
   const comments = commentsData?.comments ?? [];
   const isStarred = starredData?.starred ?? false;
@@ -195,6 +205,21 @@ function GistDetailPage() {
                 {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
                 {copied ? "Copied" : "Copy"}
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="size-8 p-0">
+                    <MoreHorizontal className="size-4" />
+                    <span className="sr-only">More</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)}>Report gist</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsDmcaDialogOpen(true)}>
+                    <ShieldAlert className="mr-2 size-4" />
+                    File DMCA takedown
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {isOwner && (
                 <>
                   <Link to="/gists/$id/edit" params={{ id }}>
@@ -218,6 +243,21 @@ function GistDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ReportDialog
+        targetType="gist"
+        targetId={id}
+        targetName={(gist as any).description || files[0]?.filename || "Untitled gist"}
+        open={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
+      />
+      <DmcaDialog
+        targetType="gist"
+        targetId={id}
+        targetName={(gist as any).description || files[0]?.filename || "Untitled gist"}
+        open={isDmcaDialogOpen}
+        onOpenChange={setIsDmcaDialogOpen}
+      />
 
       {/* Files */}
       <div className="space-y-4 mb-8">

@@ -1795,6 +1795,69 @@ export const jobApplications = pgTable(
   ]
 );
 
+export const reports = pgTable(
+  "reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    reporterId: text("reporter_id").references(() => users.id, { onDelete: "set null" }),
+    targetType: text("target_type", {
+      enum: ["user", "repository", "gist", "organization"],
+    }).notNull(),
+    targetId: text("target_id").notNull(),
+    reason: text("reason", {
+      enum: ["spam", "harassment", "inappropriate", "impersonation", "other"],
+    }).notNull(),
+    description: text("description").notNull(),
+    status: text("status", {
+      enum: ["pending", "reviewing", "resolved", "dismissed"],
+    }).notNull().default("pending"),
+    adminNotes: text("admin_notes"),
+    resolvedById: text("resolved_by_id").references(() => users.id, { onDelete: "set null" }),
+    resolvedAt: timestamp("resolved_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("reports_status_idx").on(table.status),
+    index("reports_target_type_idx").on(table.targetType),
+    index("reports_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const dmcaRequests = pgTable(
+  "dmca_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requesterId: text("requester_id").references(() => users.id, { onDelete: "set null" }),
+    targetType: text("target_type", { enum: ["repository", "gist"] }).notNull(),
+    targetId: text("target_id").notNull(),
+    copyrightHolder: text("copyright_holder").notNull(),
+    copyrightHolderEmail: text("copyright_holder_email").notNull(),
+    copyrightHolderAddress: text("copyright_holder_address").notNull(),
+    copyrightHolderPhone: text("copyright_holder_phone"),
+    originalWorkDescription: text("original_work_description").notNull(),
+    originalWorkUrl: text("original_work_url"),
+    infringingUrls: text("infringing_urls").notNull(),
+    description: text("description").notNull(),
+    swornStatement: boolean("sworn_statement").notNull(),
+    perjuryStatement: boolean("perjury_statement").notNull(),
+    signature: text("signature").notNull(),
+    status: text("status", {
+      enum: ["pending", "reviewing", "approved", "rejected", "counter_filed"],
+    }).notNull().default("pending"),
+    adminNotes: text("admin_notes"),
+    resolvedById: text("resolved_by_id").references(() => users.id, { onDelete: "set null" }),
+    resolvedAt: timestamp("resolved_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("dmca_requests_status_idx").on(table.status),
+    index("dmca_requests_target_type_idx").on(table.targetType),
+    index("dmca_requests_created_at_idx").on(table.createdAt),
+  ]
+);
+
 export const jobListingsRelations = relations(jobListings, ({ many }) => ({
   applications: many(jobApplications),
 }));
@@ -1803,6 +1866,28 @@ export const jobApplicationsRelations = relations(jobApplications, ({ one }) => 
   jobListing: one(jobListings, {
     fields: [jobApplications.jobListingId],
     references: [jobListings.id],
+  }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [reports.reporterId],
+    references: [users.id],
+  }),
+  resolvedBy: one(users, {
+    fields: [reports.resolvedById],
+    references: [users.id],
+  }),
+}));
+
+export const dmcaRequestsRelations = relations(dmcaRequests, ({ one }) => ({
+  requester: one(users, {
+    fields: [dmcaRequests.requesterId],
+    references: [users.id],
+  }),
+  resolvedBy: one(users, {
+    fields: [dmcaRequests.resolvedById],
+    references: [users.id],
   }),
 }));
 

@@ -1,6 +1,20 @@
 import { Hono } from "hono";
-import { db, users, repositories, auditLogs, systemSettings, organizations, issues, pullRequests, gists, gistFiles } from "@sigmagit/db";
-import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray } from "drizzle-orm";
+import {
+  db,
+  users,
+  repositories,
+  auditLogs,
+  systemSettings,
+  organizations,
+  issues,
+  pullRequests,
+  gists,
+  gistFiles,
+  repoBranchMetadata,
+  sessions,
+  verifications,
+} from "@sigmagit/db";
+import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
 import { repoCache } from "../cache";
 import { deletePrefix, getRepoPrefix } from "../s3";
@@ -247,6 +261,202 @@ app.get("/api/admin/system-stats", async (c) => {
     postgres,
     generatedAt: new Date().toISOString(),
   });
+});
+
+// --- Admin Utils: manual cleanup actions ---
+
+// Preview counts for each cleanup (no mutations)
+app.get("/api/admin/utils/preview", async (c) => {
+  const emptyRepos = await db
+    .select({ id: repositories.id })
+    .from(repositories)
+    .leftJoin(repoBranchMetadata, eq(repoBranchMetadata.repoId, repositories.id))
+    .where(sql`${repoBranchMetadata.repoId} IS NULL`);
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const usersWithRepos = await db
+    .selectDistinct({ ownerId: repositories.ownerId })
+    .from(repositories);
+  const ownerIds = usersWithRepos.map((r) => r.ownerId);
+  const unactivatedCount =
+    ownerIds.length > 0
+      ? await db
+          .select({ count: count() })
+          .from(users)
+          .where(
+            and(
+              eq(users.emailVerified, false),
+              eq(users.role, "user"),
+              notInArray(users.id, ownerIds),
+              lt(users.createdAt, sevenDaysAgo)
+            )
+          )
+      : await db
+          .select({ count: count() })
+          .from(users)
+          .where(
+            and(
+              eq(users.emailVerified, false),
+              eq(users.role, "user"),
+              lt(users.createdAt, sevenDaysAgo)
+            )
+          );
+
+  const expiredSessions = await db
+    .select({ count: count() })
+    .from(sessions)
+    .where(lt(sessions.expiresAt, new Date()));
+
+  const expiredVerifications = await db
+    .select({ count: count() })
+    .from(verifications)
+    .where(lt(verifications.expiresAt, new Date()));
+
+  return c.json({
+    emptyRepos: emptyRepos.length,
+    unactivatedAccounts: Number(unactivatedCount[0]?.count ?? 0),
+    expiredSessions: Number(expiredSessions[0]?.count ?? 0),
+    expiredVerifications: Number(expiredVerifications[0]?.count ?? 0),
+  });
+});
+
+// Run cleanup: empty repos (repos with no branch metadata / never pushed)
+app.post("/api/admin/utils/cleanup-empty-repos", async (c) => {
+  const actor = c.get("user")!;
+  const emptyRepos = await db
+    .select({
+      id: repositories.id,
+      name: repositories.name,
+      ownerId: repositories.ownerId,
+      organizationId: repositories.organizationId,
+    })
+    .from(repositories)
+    .leftJoin(repoBranchMetadata, eq(repoBranchMetadata.repoId, repositories.id))
+    .where(sql`${repoBranchMetadata.repoId} IS NULL`);
+
+  let deleted = 0;
+  for (const row of emptyRepos) {
+    try {
+      await deleteRepositoryCompletely({
+        id: row.id,
+        name: row.name,
+        ownerId: row.ownerId,
+        organizationId: row.organizationId,
+      });
+      deleted++;
+    } catch (err) {
+      console.error(`[Admin Utils] Failed to delete empty repo ${row.id}:`, err);
+    }
+  }
+
+  await logAuditEvent(
+    actor.id,
+    "utils.cleanup_empty_repos",
+    "system",
+    undefined,
+    { deleted },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ deleted });
+});
+
+// Run cleanup: unactivated accounts (email never verified, no repos, older than 7 days)
+app.post("/api/admin/utils/cleanup-unactivated-accounts", async (c) => {
+  const actor = c.get("user")!;
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const usersWithRepos = await db
+    .selectDistinct({ ownerId: repositories.ownerId })
+    .from(repositories);
+  const ownerIds = usersWithRepos.map((r) => r.ownerId);
+
+  const toDelete =
+    ownerIds.length > 0
+      ? await db
+          .select({ id: users.id, username: users.username })
+          .from(users)
+          .where(
+            and(
+              eq(users.emailVerified, false),
+              eq(users.role, "user"),
+              notInArray(users.id, ownerIds),
+              lt(users.createdAt, sevenDaysAgo)
+            )
+          )
+      : await db
+          .select({ id: users.id, username: users.username })
+          .from(users)
+          .where(
+            and(
+              eq(users.emailVerified, false),
+              eq(users.role, "user"),
+              lt(users.createdAt, sevenDaysAgo)
+            )
+          );
+
+  let deleted = 0;
+  for (const u of toDelete) {
+    try {
+      await db.delete(users).where(eq(users.id, u.id));
+      deleted++;
+    } catch (err) {
+      console.error(`[Admin Utils] Failed to delete unactivated user ${u.id}:`, err);
+    }
+  }
+
+  await logAuditEvent(
+    actor.id,
+    "utils.cleanup_unactivated_accounts",
+    "system",
+    undefined,
+    { deleted },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ deleted });
+});
+
+// Run cleanup: expired sessions
+app.post("/api/admin/utils/cleanup-expired-sessions", async (c) => {
+  const actor = c.get("user")!;
+  const result = await db
+    .delete(sessions)
+    .where(lt(sessions.expiresAt, new Date()))
+    .returning({ id: sessions.id });
+
+  await logAuditEvent(
+    actor.id,
+    "utils.cleanup_expired_sessions",
+    "system",
+    undefined,
+    { deleted: result.length },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ deleted: result.length });
+});
+
+// Run cleanup: expired verifications
+app.post("/api/admin/utils/cleanup-expired-verifications", async (c) => {
+  const actor = c.get("user")!;
+  const result = await db
+    .delete(verifications)
+    .where(lt(verifications.expiresAt, new Date()))
+    .returning({ id: verifications.id });
+
+  await logAuditEvent(
+    actor.id,
+    "utils.cleanup_expired_verifications",
+    "system",
+    undefined,
+    { deleted: result.length },
+    c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
+  );
+
+  return c.json({ deleted: result.length });
 });
 
 app.get("/api/admin/users", async (c) => {

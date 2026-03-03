@@ -19,6 +19,60 @@ export function useAdminSystemStats() {
   });
 }
 
+export function useAdminUtilsPreview() {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["admin", "utils-preview"],
+    queryFn: () => api.admin.getUtilsPreview(),
+  });
+}
+
+export function useCleanupEmptyRepos() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.admin.cleanupEmptyRepos(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "utils-preview"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+    },
+  });
+}
+
+export function useCleanupUnactivatedAccounts() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.admin.cleanupUnactivatedAccounts(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "utils-preview"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+    },
+  });
+}
+
+export function useCleanupExpiredSessions() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.admin.cleanupExpiredSessions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "utils-preview"] });
+    },
+  });
+}
+
+export function useCleanupExpiredVerifications() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.admin.cleanupExpiredVerifications(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "utils-preview"] });
+    },
+  });
+}
+
 export function useAdminUsers(search = "", role?: string, limit = 20, offset = 0) {
   const api = useApi();
   return useQuery({

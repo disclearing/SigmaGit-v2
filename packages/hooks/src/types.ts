@@ -857,6 +857,16 @@ export type ApiClient = {
     getSettings: () => Promise<Record<string, unknown>>;
     updateSettings: (settings: Record<string, unknown>) => Promise<{ success: boolean }>;
     toggleMaintenance: (enabled: boolean) => Promise<{ success: boolean }>;
+    getUtilsPreview: () => Promise<{
+      emptyRepos: number;
+      unactivatedAccounts: number;
+      expiredSessions: number;
+      expiredVerifications: number;
+    }>;
+    cleanupEmptyRepos: () => Promise<{ deleted: number }>;
+    cleanupUnactivatedAccounts: () => Promise<{ deleted: number }>;
+    cleanupExpiredSessions: () => Promise<{ deleted: number }>;
+    cleanupExpiredVerifications: () => Promise<{ deleted: number }>;
     releases: {
       list: (owner: string, repo: string, includeDrafts?: boolean) => Promise<{ releases: Release[] }>;
       getLatest: (owner: string, repo: string) => Promise<Release & { assets: ReleaseAsset[] }>;

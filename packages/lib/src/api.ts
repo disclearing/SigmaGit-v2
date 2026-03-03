@@ -1151,6 +1151,28 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
           body: JSON.stringify({ enabled }),
         }),
 
+      getUtilsPreview: () =>
+        apiFetch<{
+          emptyRepos: number;
+          unactivatedAccounts: number;
+          expiredSessions: number;
+          expiredVerifications: number;
+        }>("/api/admin/utils/preview"),
+      cleanupEmptyRepos: () =>
+        apiFetch<{ deleted: number }>("/api/admin/utils/cleanup-empty-repos", { method: "POST" }),
+      cleanupUnactivatedAccounts: () =>
+        apiFetch<{ deleted: number }>("/api/admin/utils/cleanup-unactivated-accounts", {
+          method: "POST",
+        }),
+      cleanupExpiredSessions: () =>
+        apiFetch<{ deleted: number }>("/api/admin/utils/cleanup-expired-sessions", {
+          method: "POST",
+        }),
+      cleanupExpiredVerifications: () =>
+        apiFetch<{ deleted: number }>("/api/admin/utils/cleanup-expired-verifications", {
+          method: "POST",
+        }),
+
       getOrganizations: (search = "", limit = 20, offset = 0) =>
         apiFetch<{ organizations: any[]; hasMore: boolean }>(
           `/api/admin/organizations?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`

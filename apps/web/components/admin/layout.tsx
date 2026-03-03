@@ -15,6 +15,7 @@ import {
   Settings,
   Shield,
   Users,
+  Wrench,
 } from "lucide-react";
 import { useCurrentUserSummary } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ export function AdminLayout() {
     { to: "/admin/gists", icon: FileCode, label: "Gists", description: "Code snippets" },
     { to: "/admin/audit-logs", icon: FileText, label: "Audit Logs", description: "Activity tracking" },
     { to: "/admin/runners", icon: Server, label: "Runners", description: "CI/CD runner agents" },
+    { to: "/admin/utils", icon: Wrench, label: "Utils", description: "Cleanup & maintenance" },
     { to: "/admin/settings", icon: Settings, label: "Settings", description: "System config" },
   ];
 

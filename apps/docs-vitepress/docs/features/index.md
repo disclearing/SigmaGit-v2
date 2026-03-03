@@ -7,3 +7,4 @@ Feature-level documentation for Sigmagit:
 - [Storage](/features/storage/)
 - [Webhooks](/features/webhooks/)
 - [Account Linking](/features/account-linking/)
+- [Container Registry](/features/registry/)

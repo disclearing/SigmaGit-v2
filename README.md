@@ -82,6 +82,19 @@ sigmagitv2/
 - [Storage](apps/docs-vitepress/docs/features/storage/index.md) - Git object storage
 - [Webhooks](apps/docs-vitepress/docs/features/webhooks/index.md) - Webhook notifications
 - [Account Linking](apps/docs-vitepress/docs/features/account-linking/index.md) - Discord account linking
+- [Container Registry](apps/docs-vitepress/docs/features/registry/index.md) - OCI/Docker image hosting
+
+## 🐳 Container Registry
+
+Sigmagit includes an OCI Distribution (Docker Registry) v2–compatible API for hosting container images. Use your API host as the registry:
+
+```bash
+docker login <API_HOST>   # username + password or username + API key
+docker push <API_HOST>/<owner>/<image>:<tag>
+docker pull <API_HOST>/<owner>/<image>:<tag>
+```
+
+Images are stored in the same S3 or local storage backend as git objects, under the `registry/` prefix. Access follows Sigmagit identities: push/pull is allowed for the namespace owner (user or org) and org members.
 
 ## 🛠 Tech Stack
 

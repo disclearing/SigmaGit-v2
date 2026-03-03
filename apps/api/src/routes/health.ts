@@ -1,6 +1,7 @@
 import { Hono } from "hono";
+import { sql } from "drizzle-orm";
 import { getObject, listObjects } from "../s3";
-import { db, users, repositories } from "@sigmagit/db";
+import { db, users, repositories, organizations } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 
 const app = new Hono();
@@ -11,6 +12,26 @@ app.get("/health", (c) => {
 
 app.get("/api/health", (c) => {
   return c.json({ status: "ok", version: "1.0.0" });
+});
+
+// Public platform stats (no auth) - mounted on health so it is never behind admin/auth middleware
+app.get("/api/stats/platform", async (c) => {
+  const [userCountRow, publicRepoCountRow, organizationCountRow] = await Promise.all([
+    db.select({ count: sql<number>`COUNT(*)::int` }).from(users),
+    db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(repositories)
+      .where(sql`${repositories.visibility} = 'public'`),
+    db.select({ count: sql<number>`COUNT(*)::int` }).from(organizations),
+  ]);
+
+  return c.json({
+    developers: Number(userCountRow[0]?.count ?? 0),
+    repositories: Number(publicRepoCountRow[0]?.count ?? 0),
+    organizations: Number(organizationCountRow[0]?.count ?? 0),
+    uptimeSeconds: Math.floor(process.uptime()),
+    generatedAt: new Date().toISOString(),
+  });
 });
 
 app.get("/api/debug/repo/:owner/:name", async (c) => {

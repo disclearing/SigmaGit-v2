@@ -329,15 +329,51 @@ app.get("/api/admin/repositories", async (c) => {
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
   const reposResult = await db
-    .select()
+    .select({
+      id: repositories.id,
+      name: repositories.name,
+      description: repositories.description,
+      ownerId: repositories.ownerId,
+      organizationId: repositories.organizationId,
+      visibility: repositories.visibility,
+      createdAt: repositories.createdAt,
+      updatedAt: repositories.updatedAt,
+      ownerUsername: users.username,
+      ownerName: users.name,
+      orgName: organizations.name,
+      orgDisplayName: organizations.displayName,
+    })
     .from(repositories)
+    .innerJoin(users, eq(users.id, repositories.ownerId))
+    .leftJoin(organizations, eq(organizations.id, repositories.organizationId))
     .where(whereClause)
     .orderBy(desc(repositories.createdAt))
     .limit(limit + 1)
     .offset(offset);
 
   const hasMore = reposResult.length > limit;
-  const reposData = reposResult.slice(0, limit);
+  const reposData = reposResult.slice(0, limit).map((row) => {
+    const ownerUsername =
+      row.organizationId && row.orgName
+        ? row.orgName
+        : (row.ownerUsername ?? row.ownerId);
+    const ownerDisplayName =
+      row.organizationId && (row.orgDisplayName || row.orgName)
+        ? (row.orgDisplayName ?? row.orgName)!
+        : (row.ownerName || (row.ownerUsername ?? row.ownerId));
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      ownerId: row.ownerId,
+      organizationId: row.organizationId,
+      visibility: row.visibility,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      ownerUsername,
+      ownerDisplayName,
+    };
+  });
 
   return c.json({
     repositories: reposData,

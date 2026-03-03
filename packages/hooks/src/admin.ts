@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { useApi } from "./context";
+import type { AdminRepository } from "./types";
 
 export function useAdminStats() {
   const api = useApi();
@@ -54,7 +55,7 @@ export function useDeleteAdminUser() {
 
 export function useAdminRepositories(search = "", visibility?: string, limit = 20, offset = 0) {
   const api = useApi();
-  return useQuery({
+  return useQuery<{ repositories: AdminRepository[]; hasMore: boolean }>({
     queryKey: ["admin", "repositories", search, visibility, limit, offset],
     queryFn: () => api.admin.getRepositories(search, visibility, limit, offset),
   });

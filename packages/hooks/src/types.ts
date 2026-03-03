@@ -38,6 +38,12 @@ export type RepositoryWithStars = Repository & {
   forkCount?: number;
 };
 
+/** Repository shape returned by admin list; includes owner slug/display for URLs and UI */
+export type AdminRepository = Repository & {
+  ownerUsername: string;
+  ownerDisplayName: string;
+};
+
 export type FileEntry = {
   name: string;
   type: "blob" | "tree";
@@ -810,7 +816,7 @@ export type ApiClient = {
     getUser: (id: string) => Promise<UserProfile & { repoCount: number }>;
     updateUser: (id: string, data: { role?: string }) => Promise<{ success: boolean }>;
     deleteUser: (id: string) => Promise<{ success: boolean }>;
-    getRepositories: (search?: string, visibility?: string, limit?: number, offset?: number) => Promise<{ repositories: Repository[]; hasMore: boolean }>;
+    getRepositories: (search?: string, visibility?: string, limit?: number, offset?: number) => Promise<{ repositories: AdminRepository[]; hasMore: boolean }>;
     deleteRepository: (id: string) => Promise<{ success: boolean }>;
     transferRepository: (id: string, newOwnerId: string) => Promise<{ success: boolean }>;
     getGists: (search?: string, visibility?: string, limit?: number, offset?: number) => Promise<{ gists: Gist[]; hasMore: boolean }>;

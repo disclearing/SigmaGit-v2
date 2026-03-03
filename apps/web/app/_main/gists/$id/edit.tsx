@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useGist, useUpdateGist } from "@sigmagit/hooks";
 import { ArrowLeft, Code2, FileCode2, Globe, Lock, Plus, Trash2 } from "lucide-react";
@@ -36,22 +36,26 @@ function EditGistPage() {
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"public" | "secret">("public");
   const [files, setFiles] = useState<Array<GistFile>>([]);
+  const syncedGistIdRef = useRef<string | null>(null);
 
+  // Only sync gist data into form state when we load this gist's data (or when id changes).
+  // Avoid syncing on every gist reference change (e.g. refetch) so user edits aren't overwritten.
   useEffect(() => {
-    if (gist) {
-      setDescription((gist as any).description ?? "");
-      setVisibility((gist as any).visibility ?? "public");
-      const gistFiles = Array.isArray((gist as any).files) ? (gist as any).files : [];
-      setFiles(
-        gistFiles.map((f: any) => ({
-          id: f.id,
-          filename: f.filename ?? "",
-          content: f.content ?? "",
-          language: f.language ?? "",
-        }))
-      );
-    }
-  }, [gist]);
+    if (!gist || (gist as any).id !== id) return;
+    if (syncedGistIdRef.current === id) return;
+    syncedGistIdRef.current = id;
+    setDescription((gist as any).description ?? "");
+    setVisibility((gist as any).visibility ?? "public");
+    const gistFiles = Array.isArray((gist as any).files) ? (gist as any).files : [];
+    setFiles(
+      gistFiles.map((f: any) => ({
+        id: f.id,
+        filename: f.filename ?? "",
+        content: f.content ?? "",
+        language: f.language ?? "",
+      }))
+    );
+  }, [id, gist]);
 
   function addFile() {
     setFiles((prev) => [...prev, { filename: "", content: "", language: "" }]);

@@ -21,6 +21,7 @@ import type {
   PullRequest,
   RepoInfo,
   RepoPageData,
+  AdminRepository,
   Repository,
   RepositoryWebhook,
   RepositoryWithOwner,
@@ -1105,7 +1106,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         }),
 
       getRepositories: (search = "", visibility?: string, limit = 20, offset = 0) =>
-        apiFetch<{ repositories: any[]; hasMore: boolean }>(
+        apiFetch<{ repositories: AdminRepository[]; hasMore: boolean }>(
           `/api/admin/repositories?search=${encodeURIComponent(search)}&visibility=${visibility || ""}&limit=${limit}&offset=${offset}`
         ),
 

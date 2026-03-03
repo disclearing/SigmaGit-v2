@@ -2,7 +2,7 @@
 
 This binary is intended to be used by OpenSSH `AuthorizedKeysCommand`. It handles **only** the key lookup and authorization - it queries the SigmaGit API to retrieve authorized SSH keys and formats them for OpenSSH.
 
-**Important:** This helper does not implement the Git shell handler. The shell handler (referenced by `SIGMAGIT_SHELL_PATH`) is a separate component that must be implemented to handle actual Git operations over SSH.
+**Important:** This helper only handles key lookup and emits restricted, non-interactive `authorized_keys` entries.
 
 ## SSH Setup Guide
 
@@ -73,13 +73,13 @@ sudo chmod +x /usr/local/bin/sigmagit-ssh-key-helper
 
 ### Step 6: Create the Git User (if needed)
 
-Create a dedicated `git` user for SSH access. Use a restricted shell (the key helper will handle authentication):
+Create a dedicated `git` user for SSH access. Use a non-interactive shell:
 
 ```sh
-sudo useradd -r -m -s /usr/bin/git-shell git
+sudo useradd -r -m -s /usr/sbin/nologin git
 ```
 
-Or use `/bin/false` if `git-shell` is not available:
+Or use `/bin/false`:
 
 ```sh
 sudo useradd -r -m -s /bin/false git
@@ -88,10 +88,10 @@ sudo useradd -r -m -s /bin/false git
 Or use an existing user and set the shell:
 
 ```sh
-sudo usermod -s /usr/bin/git-shell git
+sudo usermod -s /usr/sbin/nologin git
 ```
 
-**Note:** The `git` user's shell is only used as a fallback. The SSH key helper outputs authorized_keys entries with forced commands, so the actual shell specified here won't be executed during Git operations.
+**Note:** The helper does not rely on a forced shell command path.
 
 ### Step 7: Configure OpenSSH Server
 
@@ -128,12 +128,9 @@ Add:
 Environment="SIGMAGIT_API_URL=http://127.0.0.1:3001"
 Environment="SIGMAGIT_INTERNAL_TOKEN=your_better_auth_secret_here"
 Environment="SIGMAGIT_ALLOWED_LOOKUP_USER=git"
-Environment="SIGMAGIT_SHELL_PATH=/opt/sigmagit/bin/sigmagit-shell"
 Environment="SIGMAGIT_LOOKUP_PATH=/api/internal/ssh/authorized-keys"
 Environment="SIGMAGIT_LOOKUP_TIMEOUT_SECONDS=3"
 ```
-
-**Note:** `SIGMAGIT_SHELL_PATH` is the path to the shell command that will be embedded in the authorized_keys output. This shell must be implemented separately - it's not part of this key helper. The key helper only handles looking up authorized keys from the API and formatting them for OpenSSH.
 
 Reload systemd:
 
@@ -218,7 +215,6 @@ bun run build --filter=@sigmagit/ssh-key-helper
 - `SIGMAGIT_API_URL` (required): API base URL, e.g. `http://127.0.0.1:3001`
 - `SIGMAGIT_INTERNAL_TOKEN` (required): internal auth token (`BETTER_AUTH_SECRET`)
 - `SIGMAGIT_ALLOWED_LOOKUP_USER` (optional, default `git`): Only respond to key lookups for this username
-- `SIGMAGIT_SHELL_PATH` (optional, default `/opt/sigmagit/bin/sigmagit-shell`): Path to the shell command that will be embedded in authorized_keys output. This shell must be implemented separately.
 - `SIGMAGIT_LOOKUP_PATH` (optional, default `/api/internal/ssh/authorized-keys`): API endpoint path for key lookup
 - `SIGMAGIT_LOOKUP_TIMEOUT_SECONDS` (optional, default `3`): Timeout for API requests
 

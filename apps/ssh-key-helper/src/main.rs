@@ -6,7 +6,6 @@ use std::time::Duration;
 
 const DEFAULT_LOOKUP_PATH: &str = "/api/internal/ssh/authorized-keys";
 const DEFAULT_ALLOWED_USER: &str = "git";
-const DEFAULT_SHELL_PATH: &str = "/opt/sigmagit/bin/sigmagit-shell";
 
 #[derive(Debug, Deserialize)]
 struct LookupResponse {
@@ -34,20 +33,6 @@ fn required_env(name: &str) -> String {
             eprintln!("{name} is required");
             process::exit(1);
         }
-    }
-}
-
-fn sanitize_tag(value: &str) -> Option<String> {
-    if value.is_empty() {
-        return None;
-    }
-    if value
-        .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-    {
-        Some(value.to_string())
-    } else {
-        None
     }
 }
 
@@ -96,15 +81,7 @@ fn main() {
 
     let api_url = required_env("SIGMAGIT_API_URL");
     let internal_token = required_env("SIGMAGIT_INTERNAL_TOKEN");
-    let shell_path = env::var("SIGMAGIT_SHELL_PATH").unwrap_or_else(|_| DEFAULT_SHELL_PATH.to_string());
     let lookup_path = env::var("SIGMAGIT_LOOKUP_PATH").unwrap_or_else(|_| DEFAULT_LOOKUP_PATH.to_string());
-
-    // The shell path is embedded inside command="..." — a double-quote inside it
-    // would break the authorized_keys format and create an injection surface.
-    if shell_path.contains('"') {
-        eprintln!("SIGMAGIT_SHELL_PATH must not contain double-quote characters");
-        process::exit(1);
-    }
     let timeout_secs = env::var("SIGMAGIT_LOOKUP_TIMEOUT_SECONDS")
         .ok()
         .and_then(|v| v.parse::<u64>().ok())
@@ -145,39 +122,23 @@ fn main() {
     let mut out = io::BufWriter::new(io::stdout());
 
     for key in lookup.keys {
-        let safe_key_id = match sanitize_tag(&key.key_id) {
-            Some(value) => value,
-            None => {
-                eprintln!("skipping key with invalid key_id: {:?}", key.key_id);
-                continue;
-            }
-        };
-
-        let safe_user_id = match sanitize_tag(&key.user_id) {
-            Some(value) => value,
-            None => {
-                eprintln!("skipping key with invalid user_id: {:?}", key.user_id);
-                continue;
-            }
-        };
-
         // Sanitize the public key: strip newlines and reject keys containing
         // characters that could break the authorized_keys line format.
         let safe_public_key = match sanitize_public_key(&key.public_key) {
             Some(value) => value,
             None => {
                 eprintln!(
-                    "skipping key with invalid public_key (key_id={safe_key_id}, fp={})",
+                    "skipping key with invalid public_key (key_id={}, user_id={}, fp={})",
+                    key.key_id,
+                    key.user_id,
                     key.fingerprint_sha256
                 );
                 continue;
             }
         };
 
-        let forced_command =
-            format!("{shell_path} --key-id={safe_key_id} --user-id={safe_user_id}");
         let line = format!(
-            "command=\"{forced_command}\",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding {safe_public_key}\n",
+            "restrict,no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding {safe_public_key}\n",
         );
 
         if let Err(err) = out.write_all(line.as_bytes()) {

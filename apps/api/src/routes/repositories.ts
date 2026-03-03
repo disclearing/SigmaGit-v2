@@ -9,6 +9,9 @@ import { createGitStore } from "../git";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
+const REPOSITORY_VISIBILITIES = ["public", "private"] as const;
+type RepositoryVisibility = (typeof REPOSITORY_VISIBILITIES)[number];
+
 const LICENSES = [
   "mit",
   "apache-2.0",
@@ -20,6 +23,10 @@ const LICENSES = [
   "unlicense",
 ] as const;
 type LicenseType = (typeof LICENSES)[number];
+
+function isRepositoryVisibility(value: unknown): value is RepositoryVisibility {
+  return typeof value === "string" && REPOSITORY_VISIBILITIES.includes(value as RepositoryVisibility);
+}
 
 function getLicenseTemplate(license: LicenseType, year: number, holder: string): string {
   if (license === "mit") {
@@ -253,7 +260,7 @@ app.post("/api/repositories", requireAuth, async (c) => {
   const body = await c.req.json<{
     name: string;
     description?: string;
-    visibility: string;
+    visibility: RepositoryVisibility;
     organizationId?: string;
     license?: LicenseType;
   }>();
@@ -262,6 +269,10 @@ app.post("/api/repositories", requireAuth, async (c) => {
 
   if (!/^[a-zA-Z0-9_.-]+$/.test(normalizedName)) {
     return c.json({ error: "Invalid repository name" }, 400);
+  }
+
+  if (!isRepositoryVisibility(body.visibility)) {
+    return c.json({ error: "Invalid repository visibility" }, 400);
   }
 
   if (body.license && !LICENSES.includes(body.license)) {
@@ -305,7 +316,7 @@ app.post("/api/repositories", requireAuth, async (c) => {
     .values({
       name: normalizedName,
       description: body.description,
-      visibility: body.visibility as "public" | "private",
+      visibility: body.visibility,
       ownerId: user.id, // Always set to user ID for ownership tracking
       organizationId: body.organizationId || null,
     })
@@ -896,7 +907,7 @@ app.patch("/api/repositories/:id", requireAuth, async (c) => {
   const body = await c.req.json<{
     name?: string;
     description?: string;
-    visibility?: string;
+    visibility?: RepositoryVisibility;
   }>();
 
   const repo = await db.query.repositories.findFirst({
@@ -912,6 +923,11 @@ app.patch("/api/repositories/:id", requireAuth, async (c) => {
   }
 
   const newName = body.name ? body.name.toLowerCase().replace(/ /g, "-") : repo.name;
+  const nextVisibility = body.visibility ?? repo.visibility;
+
+  if (body.visibility !== undefined && !isRepositoryVisibility(body.visibility)) {
+    return c.json({ error: "Invalid repository visibility" }, 400);
+  }
 
   if (body.name) {
     if (!/^[a-zA-Z0-9_.-]+$/.test(newName)) {
@@ -934,7 +950,7 @@ app.patch("/api/repositories/:id", requireAuth, async (c) => {
     .set({
       name: newName,
       description: body.description ?? repo.description,
-      visibility: (body.visibility as "public" | "private") ?? repo.visibility,
+      visibility: nextVisibility,
       updatedAt: new Date(),
     })
     .where(eq(repositories.id, id))

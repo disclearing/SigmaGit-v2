@@ -29,7 +29,9 @@ const loggingMiddleware = createMiddleware(async (c, next) => {
     const statusColor =
       status >= 500 ? "\x1b[31m" : status >= 400 ? "\x1b[33m" : status >= 300 ? "\x1b[36m" : "\x1b[32m";
     const resetColor = "\x1b[0m";
-
+    console.log(
+      `[API] ${method} ${path}${query} ${statusColor}${status}${resetColor} ${duration}ms ${contentLength}b`
+    );
   }
 });
 

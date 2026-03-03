@@ -17,11 +17,24 @@ import {
   jobApplications,
 } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray } from "drizzle-orm";
-import { authMiddleware, requireAuth, requireAdmin, type AuthVariables } from "../middleware/auth";
+import { authMiddleware, requireAdmin, type AuthVariables } from "../middleware/auth";
 import { repoCache } from "../cache";
-import { deletePrefix, getRepoPrefix } from "../s3";
+import { copyPrefix, deletePrefix, getRepoPrefix } from "../s3";
 
 const app = new Hono<{ Variables: AuthVariables }>();
+
+const USER_ROLES = ["user", "admin", "moderator"] as const;
+type UserRole = (typeof USER_ROLES)[number];
+const APPLICATION_STATUSES = ["new", "reviewing", "interview", "offer", "rejected"] as const;
+type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+function isUserRole(value: unknown): value is UserRole {
+  return typeof value === "string" && USER_ROLES.includes(value as UserRole);
+}
+
+function isApplicationStatus(value: unknown): value is ApplicationStatus {
+  return typeof value === "string" && APPLICATION_STATUSES.includes(value as ApplicationStatus);
+}
 
 app.use("*", authMiddleware);
 app.use("*", requireAdmin);
@@ -539,7 +552,14 @@ app.patch("/api/admin/users/:id", async (c) => {
 
   const updates: Record<string, unknown> = {};
   if (body.role !== undefined) {
+    if (!isUserRole(body.role)) {
+      return c.json({ error: "Invalid role" }, 400);
+    }
     updates.role = body.role;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return c.json({ error: "No valid fields to update" }, 400);
   }
 
   await db.update(users).set(updates).where(eq(users.id, id));
@@ -721,6 +741,10 @@ app.post("/api/admin/repositories/:id/transfer", async (c) => {
   const body = await c.req.json();
   const { newOwnerId } = body;
 
+  if (typeof newOwnerId !== "string" || !newOwnerId) {
+    return c.json({ error: "newOwnerId is required" }, 400);
+  }
+
   const existingRepo = await db.query.repositories.findFirst({
     where: eq(repositories.id, id),
   });
@@ -737,10 +761,47 @@ app.post("/api/admin/repositories/:id/transfer", async (c) => {
     return c.json({ error: "New owner not found" }, 404);
   }
 
+  const conflictingRepo = await db.query.repositories.findFirst({
+    where: and(eq(repositories.ownerId, newOwnerId), eq(repositories.name, existingRepo.name)),
+    columns: { id: true },
+  });
+
+  if (conflictingRepo && conflictingRepo.id !== id) {
+    return c.json({ error: "Target owner already has a repository with this name" }, 409);
+  }
+
+  const oldStorageOwnerId = existingRepo.organizationId ?? existingRepo.ownerId;
+  const oldStoragePrefix = getRepoPrefix(oldStorageOwnerId, existingRepo.name);
+  const newStoragePrefix = getRepoPrefix(newOwnerId, existingRepo.name);
+
   await db
     .update(repositories)
-    .set({ ownerId: newOwnerId })
+    .set({ ownerId: newOwnerId, organizationId: null })
     .where(eq(repositories.id, id));
+
+  if (oldStoragePrefix !== newStoragePrefix) {
+    await copyPrefix(oldStoragePrefix, newStoragePrefix);
+    await deletePrefix(oldStoragePrefix);
+  }
+
+  const oldOwnerName = existingRepo.organizationId
+    ? (
+        await db.query.organizations.findFirst({
+          where: eq(organizations.id, existingRepo.organizationId),
+          columns: { name: true },
+        })
+      )?.name
+    : (
+        await db.query.users.findFirst({
+          where: eq(users.id, existingRepo.ownerId),
+          columns: { username: true },
+        })
+      )?.username;
+
+  if (oldOwnerName) {
+    await repoCache.invalidateRepo(oldOwnerName, existingRepo.name);
+  }
+  await repoCache.invalidateRepo(newOwner.username, existingRepo.name);
 
   await logAuditEvent(
     actor.id,
@@ -1307,7 +1368,12 @@ app.get("/api/admin/applications/applications", async (c) => {
 
   const conditions = [];
   if (jobId) conditions.push(eq(jobApplications.jobListingId, jobId));
-  if (status) conditions.push(eq(jobApplications.status, status as any));
+  if (status) {
+    if (!isApplicationStatus(status)) {
+      return c.json({ error: "Invalid status" }, 400);
+    }
+    conditions.push(eq(jobApplications.status, status));
+  }
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
   const applicationsResult = await db

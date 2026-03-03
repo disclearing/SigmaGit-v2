@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { Link, Outlet, createFileRoute, useLocation, useNavigate, useParams } from "@tanstack/react-router";
-import { Circle, Code, GitFork, GitPullRequest, History, LayoutGrid, Loader2, MoreHorizontal, Package, PlayCircle, Settings, ShieldAlert } from "lucide-react";
+import { Circle, Code, Flag, GitFork, GitPullRequest, History, LayoutGrid, Loader2, MoreHorizontal, Package, PlayCircle, Settings, ShieldAlert } from "lucide-react";
 import { useForkRepository, useIssueCount, usePullRequestCount, useRepoBranches, useRepoCommitCount, useRepositoryInfo } from "@sigmagit/hooks";
 import { toast } from "sonner";
 import { BranchSelector } from "@/components/branch-selector";
@@ -368,10 +368,11 @@ function RepoHeader({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 size-8 rounded-md border-border p-0 text-muted-foreground"
+              className="h-8 gap-1.5 rounded-md border-border px-3 text-muted-foreground"
             >
-              <MoreHorizontal className="size-4" />
-              <span className="sr-only">More actions</span>
+              <Flag className="size-3.5" />
+              <span className="text-sm">Report</span>
+              <MoreHorizontal className="size-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

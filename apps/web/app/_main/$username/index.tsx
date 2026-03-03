@@ -896,6 +896,7 @@ function ProfilePage() {
 
   const isLoading = isLoadingOrg || isLoadingUser;
   const currentUsername = (session?.user as { username?: string } | undefined)?.username;
+  const currentUserId = session?.user?.id;
   const orgMembers = orgMembersData?.members ?? [];
   const orgRepos = orgReposData?.repositories ?? [];
   const orgTeams = orgTeamsData?.teams ?? [];
@@ -945,7 +946,7 @@ function ProfilePage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-semibold">{org.displayName}</h1>
                 {org.isVerified && <span className="text-primary" title="Verified">✓</span>}
-                {currentUsername && (
+                {(currentUserId || currentUsername) && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -1078,7 +1079,7 @@ function ProfilePage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-semibold">{user.name}</h1>
               {user.pronouns && <span className="text-sm text-muted-foreground">({user.pronouns})</span>}
-              {currentUsername && currentUsername !== user.username && (
+              {(!currentUserId || currentUserId !== user.id) && (
                 <Button
                   variant="outline"
                   size="sm"

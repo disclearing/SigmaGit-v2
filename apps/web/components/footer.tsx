@@ -65,8 +65,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/#features" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
+                <Link to="/features" className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1 group">
                   Features
+                  <ExternalLink className="size-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                 </Link>
               </li>
               <li>

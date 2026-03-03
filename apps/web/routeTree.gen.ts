@@ -18,6 +18,7 @@ import { Route as MainSettingsRouteImport } from './app/_main/settings'
 import { Route as MainSecurityRouteImport } from './app/_main/security'
 import { Route as MainSearchRouteImport } from './app/_main/search'
 import { Route as MainPrivacyRouteImport } from './app/_main/privacy'
+import { Route as MainFeaturesRouteImport } from './app/_main/features'
 import { Route as MainExploreRouteImport } from './app/_main/explore'
 import { Route as MainContactRouteImport } from './app/_main/contact'
 import { Route as MainCareersRouteImport } from './app/_main/careers'
@@ -119,6 +120,11 @@ const MainSearchRoute = MainSearchRouteImport.update({
 const MainPrivacyRoute = MainPrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainFeaturesRoute = MainFeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
   getParentRoute: () => MainRoute,
 } as any)
 const MainExploreRoute = MainExploreRouteImport.update({
@@ -457,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/careers': typeof MainCareersRoute
   '/contact': typeof MainContactRoute
   '/explore': typeof MainExploreRoute
+  '/features': typeof MainFeaturesRoute
   '/privacy': typeof MainPrivacyRoute
   '/search': typeof MainSearchRoute
   '/security': typeof MainSecurityRoute
@@ -523,6 +530,7 @@ export interface FileRoutesByTo {
   '/careers': typeof MainCareersRoute
   '/contact': typeof MainContactRoute
   '/explore': typeof MainExploreRoute
+  '/features': typeof MainFeaturesRoute
   '/privacy': typeof MainPrivacyRoute
   '/search': typeof MainSearchRoute
   '/security': typeof MainSecurityRoute
@@ -591,6 +599,7 @@ export interface FileRoutesById {
   '/_main/careers': typeof MainCareersRoute
   '/_main/contact': typeof MainContactRoute
   '/_main/explore': typeof MainExploreRoute
+  '/_main/features': typeof MainFeaturesRoute
   '/_main/privacy': typeof MainPrivacyRoute
   '/_main/search': typeof MainSearchRoute
   '/_main/security': typeof MainSecurityRoute
@@ -662,6 +671,7 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/explore'
+    | '/features'
     | '/privacy'
     | '/search'
     | '/security'
@@ -728,6 +738,7 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/explore'
+    | '/features'
     | '/privacy'
     | '/search'
     | '/security'
@@ -795,6 +806,7 @@ export interface FileRouteTypes {
     | '/_main/careers'
     | '/_main/contact'
     | '/_main/explore'
+    | '/_main/features'
     | '/_main/privacy'
     | '/_main/search'
     | '/_main/security'
@@ -920,6 +932,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof MainPrivacyRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/features': {
+      id: '/_main/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof MainFeaturesRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/explore': {
@@ -1527,6 +1546,7 @@ interface MainRouteChildren {
   MainCareersRoute: typeof MainCareersRoute
   MainContactRoute: typeof MainContactRoute
   MainExploreRoute: typeof MainExploreRoute
+  MainFeaturesRoute: typeof MainFeaturesRoute
   MainPrivacyRoute: typeof MainPrivacyRoute
   MainSearchRoute: typeof MainSearchRoute
   MainSecurityRoute: typeof MainSecurityRoute
@@ -1547,6 +1567,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainCareersRoute: MainCareersRoute,
   MainContactRoute: MainContactRoute,
   MainExploreRoute: MainExploreRoute,
+  MainFeaturesRoute: MainFeaturesRoute,
   MainPrivacyRoute: MainPrivacyRoute,
   MainSearchRoute: MainSearchRoute,
   MainSecurityRoute: MainSecurityRoute,

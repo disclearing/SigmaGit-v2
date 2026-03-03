@@ -240,7 +240,7 @@ function GistDetailPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <CodeViewer content={file.content} language={language} />
+                  <CodeViewer content={file.content} language={language} showLineNumbers wordWrap={false} />
                 </CardContent>
               </Card>
             );

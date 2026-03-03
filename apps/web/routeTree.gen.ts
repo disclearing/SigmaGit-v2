@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './app/__root'
+import { Route as SitemapRouteImport } from './app/sitemap'
 import { Route as MainRouteImport } from './app/_main'
 import { Route as AuthRouteImport } from './app/_auth'
 import { Route as SplatRouteImport } from './app/$'
@@ -82,6 +83,11 @@ import { Route as MainUsernameRepoReleasesTagTagRouteImport } from './app/_main/
 import { Route as MainUsernameRepoReleasesIdEditRouteImport } from './app/_main/$username/$repo/releases/$id/edit'
 import { Route as MainUsernameRepoCommitsBranchOidRouteImport } from './app/_main/$username/$repo/commits/$branch/$oid'
 
+const SitemapRoute = SitemapRouteImport.update({
+  id: '/sitemap',
+  path: '/sitemap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MainRoute = MainRouteImport.update({
   id: '/_main',
   getParentRoute: () => rootRouteImport,
@@ -471,6 +477,7 @@ const MainUsernameRepoCommitsBranchOidRoute =
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof MainIndexRoute
+  '/sitemap': typeof SitemapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
@@ -543,6 +550,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/': typeof MainIndexRoute
+  '/sitemap': typeof SitemapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
@@ -613,6 +621,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_main': typeof MainRouteWithChildren
+  '/sitemap': typeof SitemapRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
@@ -688,6 +697,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/$'
     | '/'
+    | '/sitemap'
     | '/forgot-password'
     | '/login'
     | '/register'
@@ -760,6 +770,7 @@ export interface FileRouteTypes {
   to:
     | '/$'
     | '/'
+    | '/sitemap'
     | '/forgot-password'
     | '/login'
     | '/register'
@@ -829,6 +840,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/_auth'
     | '/_main'
+    | '/sitemap'
     | '/_auth/forgot-password'
     | '/_auth/login'
     | '/_auth/register'
@@ -904,10 +916,18 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
   MainRoute: typeof MainRouteWithChildren
+  SitemapRoute: typeof SitemapRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap': {
+      id: '/sitemap'
+      path: '/sitemap'
+      fullPath: '/sitemap'
+      preLoaderRoute: typeof SitemapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_main': {
       id: '/_main'
       path: ''
@@ -1651,6 +1671,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
   MainRoute: MainRouteWithChildren,
+  SitemapRoute: SitemapRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

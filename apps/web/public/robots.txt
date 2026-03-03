@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemap (update the host if your site uses a different domain)
+Sitemap: https://sigmagit.com/sitemap

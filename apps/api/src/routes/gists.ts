@@ -2,9 +2,17 @@ import { Hono } from "hono";
 import { db, gists, gistFiles, gistComments, gistStars, gistForks, users } from "@sigmagit/db";
 import { eq, and, sql, desc, count, or, ilike, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 import { randomUUID } from "crypto";
 
 const app = new Hono<{ Variables: AuthVariables }>();
+
+const GIST_VISIBILITIES = ["public", "secret"] as const;
+type GistVisibility = (typeof GIST_VISIBILITIES)[number];
+
+function isGistVisibility(value: unknown): value is GistVisibility {
+  return typeof value === "string" && GIST_VISIBILITIES.includes(value as GistVisibility);
+}
 
 app.use("*", authMiddleware);
 
@@ -68,12 +76,20 @@ app.post("/api/gists", requireAuth, async (c) => {
   const body = await c.req.json();
   const { description, visibility, files } = body;
 
+  const visibilityVal = visibility ?? "public";
+  if (!isGistVisibility(visibilityVal)) {
+    return c.json({ error: "Invalid visibility; must be public or secret" }, 400);
+  }
+  if (!Array.isArray(files)) {
+    return c.json({ error: "files must be an array" }, 400);
+  }
+
   const [gist] = await db
     .insert(gists)
     .values({
       ownerId: user.id,
-      description,
-      visibility: visibility || "public",
+      description: description ?? null,
+      visibility: visibilityVal,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
@@ -114,8 +130,8 @@ app.get("/api/gists", requireAuth, async (c) => {
 });
 
 app.get("/api/gists/public", async (c) => {
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const gistsList = await db
     .select()
@@ -183,7 +199,12 @@ app.patch("/api/gists/:id", requireAuth, async (c) => {
 
   const updates: Record<string, unknown> = {};
   if (body.description !== undefined) updates.description = body.description;
-  if (body.visibility !== undefined) updates.visibility = body.visibility;
+  if (body.visibility !== undefined) {
+    if (!isGistVisibility(body.visibility)) {
+      return c.json({ error: "Invalid visibility; must be public or secret" }, 400);
+    }
+    updates.visibility = body.visibility;
+  }
 
   await db
     .update(gists)
@@ -382,8 +403,8 @@ app.post("/api/gists/:id/fork", requireAuth, async (c) => {
 
 app.get("/api/gists/:id/forks", async (c) => {
   const id = c.req.param("id");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const forksList = await db
     .select({
@@ -469,8 +490,8 @@ app.post("/api/gists/:id/comments", requireAuth, async (c) => {
 
 app.get("/api/users/:username/gists", async (c) => {
   const username = c.req.param("username");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const [user] = await db
     .select()

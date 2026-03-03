@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto";
 import { Hono } from "hono";
 import { EmbedBuilder, WebhookClient } from "discord.js";
 import { config } from "../config";
@@ -204,9 +205,28 @@ async function sendToDiscord(webhookData: DiscordWebhookData) {
   }
 }
 
+function verifyWebhookSecret(provided: string | undefined): boolean {
+  const secret = config.discordWebhookSecret;
+  if (!secret) return true;
+  if (!provided) return false;
+  const secretBuf = Buffer.from(secret, "utf8");
+  const providedBuf = Buffer.from(provided, "utf8");
+  if (secretBuf.length !== providedBuf.length) return false;
+  return timingSafeEqual(secretBuf, providedBuf);
+}
+
 app.post('/api/webhooks/discord', async (c) => {
   if (!webhookClient) {
     return c.json({ error: 'Discord webhook not configured' }, 501);
+  }
+
+  const secret = config.discordWebhookSecret;
+  if (secret) {
+    const provided =
+      c.req.header("X-Webhook-Secret") ?? c.req.header("Authorization")?.replace(/^Bearer\s+/i, "").trim();
+    if (!verifyWebhookSecret(provided)) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
   }
 
   try {

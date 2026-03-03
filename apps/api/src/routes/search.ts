@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db, users, repositories, issues, pullRequests } from "@sigmagit/db";
 import { eq, sql, and, or, ilike, desc } from "drizzle-orm";
 import { authMiddleware, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -25,8 +26,8 @@ type SearchResult = {
 app.get("/api/search", async (c) => {
   const query = c.req.query("q")?.trim();
   const type = c.req.query("type") || "all";
-  const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 50);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20, 50);
+  const offset = parseOffset(c.req.query("offset"), 0);
   const currentUser = c.get("user");
 
   if (!query || query.length < 2) {

@@ -3,6 +3,7 @@ import { db, users, repositories, stars, repoBranchMetadata, organizations, orga
 import { eq, sql, desc, and } from "drizzle-orm";
 import git from "isomorphic-git";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 import { putObject, deletePrefix, getRepoPrefix, copyPrefix, listObjects } from "../s3";
 import { repoCache } from "../cache";
 import { createGitStore } from "../git";
@@ -523,8 +524,8 @@ app.post("/api/repositories/:owner/:name/fork", requireAuth, async (c) => {
 
 app.get("/api/repositories/public", async (c) => {
   const sortBy = c.req.query("sortBy") || "updated";
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const orderBy =
     sortBy === "stars"
@@ -793,8 +794,8 @@ app.get("/api/repositories/:owner/:name/forks", async (c) => {
   const owner = c.req.param("owner");
   const name = c.req.param("name");
   const currentUser = c.get("user");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const sourceResult = await db
     .select({

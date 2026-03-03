@@ -87,7 +87,7 @@ export default {
         headers: {
           "Access-Control-Allow-Origin": isAllowed ? origin : (allowedOrigins[0] ?? ""),
           "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, Cookie, x-internal-auth",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization, Cookie, x-internal-auth, X-Webhook-Secret",
           "Access-Control-Allow-Credentials": "true",
           "Access-Control-Max-Age": "300",
         },

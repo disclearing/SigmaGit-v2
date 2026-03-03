@@ -21,6 +21,7 @@ import {
 } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray } from "drizzle-orm";
 import { authMiddleware, requireAdmin, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 import { repoCache } from "../cache";
 import { copyPrefix, deletePrefix, getRepoPrefix } from "../s3";
 
@@ -480,8 +481,8 @@ app.post("/api/admin/utils/cleanup-expired-verifications", async (c) => {
 app.get("/api/admin/users", async (c) => {
   const search = c.req.query("search") || "";
   const role = c.req.query("role");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
 
@@ -639,8 +640,8 @@ app.delete("/api/admin/users/:id", async (c) => {
 app.get("/api/admin/repositories", async (c) => {
   const search = c.req.query("search") || "";
   const visibility = c.req.query("visibility");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
 
@@ -825,8 +826,8 @@ app.post("/api/admin/repositories/:id/transfer", async (c) => {
 app.get("/api/admin/gists", async (c) => {
   const search = c.req.query("search") || "";
   const visibility = c.req.query("visibility");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
 
@@ -945,8 +946,8 @@ app.delete("/api/admin/gists/:id", async (c) => {
 app.get("/api/admin/audit-logs", async (c) => {
   const action = c.req.query("action");
   const targetType = c.req.query("targetType");
-  const limit = parseInt(c.req.query("limit") || "50", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 50);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
 
@@ -1082,8 +1083,8 @@ app.post("/api/admin/maintenance", async (c) => {
 
 app.get("/api/admin/organizations", async (c) => {
   const search = c.req.query("search") || "";
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
 
@@ -1177,8 +1178,8 @@ app.delete("/api/admin/organizations/:id", async (c) => {
 app.get("/api/admin/issues", async (c) => {
   const search = c.req.query("search") || "";
   const state = c.req.query("state");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
 
@@ -1212,7 +1213,7 @@ app.get("/api/admin/issues", async (c) => {
 });
 
 app.get("/api/admin/analytics", async (c) => {
-  const days = parseInt(c.req.query("days") || "30", 10);
+  const days = parseLimit(c.req.query("days"), 30, 365);
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -1366,8 +1367,8 @@ app.delete("/api/admin/applications/jobs/:id", async (c) => {
 app.get("/api/admin/applications/applications", async (c) => {
   const jobId = c.req.query("jobId");
   const status = c.req.query("status");
-  const limit = parseInt(c.req.query("limit") || "20", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
   if (jobId) conditions.push(eq(jobApplications.jobListingId, jobId));
@@ -1476,8 +1477,8 @@ app.get("/api/admin/reports/counts", async (c) => {
 app.get("/api/admin/reports", async (c) => {
   const status = c.req.query("status");
   const targetType = c.req.query("targetType");
-  const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 100);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20, 100);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
   if (status && REPORT_STATUSES.includes(status as (typeof REPORT_STATUSES)[number])) {
@@ -1513,7 +1514,56 @@ app.get("/api/admin/reports", async (c) => {
 
   const hasMore = list.length > limit;
   const items = list.slice(0, limit);
-  return c.json({ reports: items, hasMore });
+
+  // Resolve target display names (user name, repo name, etc.)
+  const userTargetIds = [...new Set(items.filter((r) => r.targetType === "user").map((r) => r.targetId))];
+  const repoTargetIds = [...new Set(items.filter((r) => r.targetType === "repository").map((r) => r.targetId))];
+  const gistTargetIds = [...new Set(items.filter((r) => r.targetType === "gist").map((r) => r.targetId))];
+  const orgTargetIds = [...new Set(items.filter((r) => r.targetType === "organization").map((r) => r.targetId))];
+
+  const [userRows, repoRows, gistRows, orgRows] = await Promise.all([
+    userTargetIds.length > 0
+      ? db.select({ id: users.id, name: users.name, username: users.username }).from(users).where(inArray(users.id, userTargetIds))
+      : [],
+    repoTargetIds.length > 0
+      ? db
+          .select({
+            id: repositories.id,
+            name: repositories.name,
+            ownerUsername: users.username,
+          })
+          .from(repositories)
+          .leftJoin(users, eq(users.id, repositories.ownerId))
+          .where(inArray(repositories.id, repoTargetIds))
+      : [],
+    gistTargetIds.length > 0
+      ? db.select({ id: gists.id, description: gists.description }).from(gists).where(inArray(gists.id, gistTargetIds))
+      : [],
+    orgTargetIds.length > 0
+      ? db.select({ id: organizations.id, displayName: organizations.displayName }).from(organizations).where(inArray(organizations.id, orgTargetIds))
+      : [],
+  ]);
+
+  const userMap = new Map(
+    userRows.map((u) => [
+      u.id,
+      [u.name || u.username || "—", u.username ? `@${u.username}` : null].filter(Boolean).join(" "),
+    ])
+  );
+  const repoMap = new Map(repoRows.map((r) => [r.id, r.ownerUsername ? `${r.ownerUsername}/${r.name}` : r.name]));
+  const gistMap = new Map(gistRows.map((g) => [g.id, g.description || g.id.slice(0, 8)]));
+  const orgMap = new Map(orgRows.map((o) => [o.id, o.displayName]));
+
+  const reportsWithTarget = items.map((r) => {
+    let targetDisplayName: string | null = null;
+    if (r.targetType === "user") targetDisplayName = userMap.get(r.targetId) ?? null;
+    else if (r.targetType === "repository") targetDisplayName = repoMap.get(r.targetId) ?? null;
+    else if (r.targetType === "gist") targetDisplayName = gistMap.get(r.targetId) ?? null;
+    else if (r.targetType === "organization") targetDisplayName = orgMap.get(r.targetId) ?? null;
+    return { ...r, targetDisplayName };
+  });
+
+  return c.json({ reports: reportsWithTarget, hasMore });
 });
 
 app.get("/api/admin/reports/:id", async (c) => {
@@ -1691,8 +1741,8 @@ app.get("/api/admin/dmca/counts", async (c) => {
 
 app.get("/api/admin/dmca", async (c) => {
   const status = c.req.query("status");
-  const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 100);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20, 100);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const conditions = [];
   if (status && DMCA_STATUSES.includes(status as (typeof DMCA_STATUSES)[number])) {
@@ -1722,7 +1772,39 @@ app.get("/api/admin/dmca", async (c) => {
 
   const hasMore = list.length > limit;
   const items = list.slice(0, limit);
-  return c.json({ requests: items, hasMore });
+
+  // Resolve target display names (repo: owner/name, gist: description or id)
+  const repoIds = [...new Set(items.filter((r) => r.targetType === "repository").map((r) => r.targetId))];
+  const gistIds = [...new Set(items.filter((r) => r.targetType === "gist").map((r) => r.targetId))];
+
+  const [repoRows, gistRows] = await Promise.all([
+    repoIds.length > 0
+      ? db
+          .select({
+            id: repositories.id,
+            name: repositories.name,
+            ownerUsername: users.username,
+          })
+          .from(repositories)
+          .leftJoin(users, eq(users.id, repositories.ownerId))
+          .where(inArray(repositories.id, repoIds))
+      : [],
+    gistIds.length > 0
+      ? db.select({ id: gists.id, description: gists.description }).from(gists).where(inArray(gists.id, gistIds))
+      : [],
+  ]);
+
+  const repoMap = new Map(repoRows.map((r) => [r.id, r.ownerUsername ? `${r.ownerUsername}/${r.name}` : r.name]));
+  const gistMap = new Map(gistRows.map((g) => [g.id, g.description || g.id.slice(0, 8)]));
+
+  const requestsWithTarget = items.map((r) => {
+    let targetDisplayName: string | null = null;
+    if (r.targetType === "repository") targetDisplayName = repoMap.get(r.targetId) ?? null;
+    else if (r.targetType === "gist") targetDisplayName = gistMap.get(r.targetId) ?? null;
+    return { ...r, targetDisplayName };
+  });
+
+  return c.json({ requests: requestsWithTarget, hasMore });
 });
 
 app.get("/api/admin/dmca/:id", async (c) => {

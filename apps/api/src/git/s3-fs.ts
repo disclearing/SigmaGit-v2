@@ -27,7 +27,19 @@ export function createS3Fs(basePath: string) {
     if (!path || path === "/") {
       return basePath;
     }
-    return `${basePath}/${path}`.replace(/\/+/g, "/").replace(/\/$/, "");
+    // Resolve . and .. to prevent path traversal outside basePath
+    const parts = path.split("/").filter(Boolean);
+    const resolved: string[] = [];
+    for (const p of parts) {
+      if (p === "..") {
+        resolved.pop();
+      } else if (p !== ".") {
+        resolved.push(p);
+      }
+    }
+    const joined = resolved.join("/");
+    if (!joined) return basePath;
+    return `${basePath}/${joined}`.replace(/\/+/g, "/").replace(/\/$/, "");
   };
 
   const fs = {

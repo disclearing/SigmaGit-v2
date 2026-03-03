@@ -14,6 +14,7 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL!,
   redisUrl: process.env.REDIS_URL,
   webhooksEnabled: process.env.ENABLE_WEBHOOKS !== 'false',
+  discordWebhookSecret: process.env.DISCORD_WEBHOOK_SECRET || null,
   enableMigrations: process.env.ENABLE_MIGRATIONS !== 'false',
   storage: {
     type: (process.env.STORAGE_TYPE as 's3' | 'local') || 's3',

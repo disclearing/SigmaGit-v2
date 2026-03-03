@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { db, users, repositories, workflows, workflowRuns, workflowJobs, workflowSteps } from '@sigmagit/db';
 import { eq, and, desc, asc } from 'drizzle-orm';
 import { authMiddleware, requireAuth, type AuthVariables } from '../middleware/auth';
+import { parseLimit, parsePage } from '../lib/validation';
 import { syncWorkflows } from '../workflows/sync';
 import { triggerWorkflows } from '../workflows/trigger';
 
@@ -126,8 +127,8 @@ app.get('/api/repositories/:owner/:repo/runs', async (c) => {
   const repoRow = await getRepoAccess(owner, repo, user?.id);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
 
-  const page = parseInt(c.req.query('page') ?? '1', 10);
-  const perPage = Math.min(parseInt(c.req.query('per_page') ?? '20', 10), 100);
+  const page = parsePage(c.req.query('page'), 1);
+  const perPage = parseLimit(c.req.query('per_page'), 20, 100);
   const offset = (page - 1) * perPage;
 
   const runs = await db

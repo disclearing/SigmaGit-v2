@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db, users, notifications } from "@sigmagit/db";
 import { eq, sql, and, desc } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 import { notifyUser } from "../websocket";
 import { sendNotificationEmail } from "../email";
 
@@ -36,8 +37,8 @@ async function enrichNotification(notification: any) {
 
 app.get("/api/notifications", requireAuth, async (c) => {
   const user = c.get("user")!;
-  const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 50);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 20, 50);
+  const offset = parseOffset(c.req.query("offset"), 0);
   const unreadOnly = c.req.query("unread") === "true";
 
   const conditions = [eq(notifications.userId, user.id)];

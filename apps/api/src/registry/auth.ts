@@ -61,13 +61,26 @@ export function verifyRegistryToken(token: string): RegistryClaims | null {
       return null;
     }
     const payloadJson = base64UrlDecode(payloadB64).toString("utf8");
-    const payload = JSON.parse(payloadJson) as { sub: string; username: string; access: string[]; repo: string; exp: number };
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+    const payload = JSON.parse(payloadJson) as Record<string, unknown>;
+    if (payload == null || typeof payload !== "object") return null;
+    const sub = payload.sub;
+    const username = payload.username;
+    const access = payload.access;
+    const repo = payload.repo;
+    const exp = payload.exp;
+    if (typeof sub !== "string" || sub.trim() === "") return null;
+    if (typeof username !== "string" || username.trim() === "") return null;
+    if (typeof repo !== "string" || repo.trim() === "") return null;
+    if (typeof exp !== "number" || !Number.isFinite(exp) || exp < Math.floor(Date.now() / 1000)) return null;
+    if (!Array.isArray(access)) return null;
+    const accessList = access.every((a): a is string => typeof a === "string")
+      ? (access.filter((a) => a === "pull" || a === "push") as ("pull" | "push")[])
+      : [];
     return {
-      sub: payload.sub,
-      username: payload.username,
-      access: Array.isArray(payload.access) ? payload.access as ("pull" | "push")[] : [],
-      repo: payload.repo,
+      sub: sub.trim(),
+      username: username.trim(),
+      access: accessList,
+      repo: repo.trim(),
     };
   } catch {
     return null;

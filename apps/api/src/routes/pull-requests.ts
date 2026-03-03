@@ -14,6 +14,7 @@ import {
 } from "@sigmagit/db";
 import { eq, sql, and, desc, or } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, squashMerge, rebaseMerge, repoCache } from "../git";
 import { deliverWebhookEvent } from "./repo-webhooks";
 import { triggerWorkflows } from "../workflows/trigger";
@@ -281,8 +282,8 @@ app.get("/api/repositories/:owner/:name/pulls", async (c) => {
   const assigneeFilter = c.req.query("assignee");
   const reviewerFilter = c.req.query("reviewer");
   const authorFilter = c.req.query("author");
-  const limit = parseInt(c.req.query("limit") || "30", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 30);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser?.id);
   if (!repoAccess) {
@@ -643,8 +644,8 @@ app.get("/api/pulls/:id/diff", async (c) => {
 app.get("/api/pulls/:id/commits", async (c) => {
   const id = c.req.param("id");
   const currentUser = c.get("user");
-  const limit = parseInt(c.req.query("limit") || "30", 10);
-  const skip = parseInt(c.req.query("skip") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 30);
+  const skip = parseOffset(c.req.query("skip"), 0);
 
   const pr = await db.query.pullRequests.findFirst({
     where: eq(pullRequests.id, id),

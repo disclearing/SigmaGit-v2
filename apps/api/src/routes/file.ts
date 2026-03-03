@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db, users, repositories } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, type AuthVariables } from "../middleware/auth";
+import { sanitizePathForGit } from "../lib/validation";
 import { createGitStore, getFile } from "../git";
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -12,7 +13,11 @@ app.get("/file/:username/:repo/:branch/*", async (c) => {
   const username = c.req.param("username");
   const repo = c.req.param("repo");
   const branch = c.req.param("branch");
-  const filePath = c.req.param("*") || "";
+  const rawPath = c.req.param("*") || "";
+  const filePath = sanitizePathForGit(rawPath);
+  if (filePath === null) {
+    return c.json({ error: "Invalid file path" }, 400);
+  }
   const currentUser = c.get("user");
 
   const result = await db

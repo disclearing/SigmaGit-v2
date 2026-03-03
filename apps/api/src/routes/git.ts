@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db, users, repositories, stars, repoBranchMetadata } from "@sigmagit/db";
 import { eq, sql, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset, sanitizePathForGit } from "../lib/validation";
 import { deliverWebhookEvent } from "./repo-webhooks";
 import {
   createGitStore,
@@ -283,6 +284,10 @@ app.post("/api/repositories/:owner/:name/file", requireAuth, async (c) => {
   if (!body.branch || !body.path || !body.message) {
     return c.json({ error: "branch, path, and message are required" }, 400);
   }
+  const path = sanitizePathForGit(body.path);
+  if (path === null) {
+    return c.json({ error: "Invalid path" }, 400);
+  }
 
   const result = await getRepoAndStore(owner, name);
   if (!result) return c.json({ error: "Repository not found" }, 404);
@@ -297,7 +302,7 @@ app.post("/api/repositories/:owner/:name/file", requireAuth, async (c) => {
   const committed = await commitFile(
     store,
     body.branch,
-    body.path,
+    path,
     body.content ?? "",
     body.message,
     currentUser.name,
@@ -416,8 +421,8 @@ app.get("/api/repositories/:owner/:name/commits", async (c) => {
   const name = c.req.param("name");
   const currentUser = c.get("user");
   const branch = c.req.query("branch") || "main";
-  const limit = parseInt(c.req.query("limit") || "30", 10);
-  const skip = parseInt(c.req.query("skip") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 30);
+  const skip = parseOffset(c.req.query("skip"), 0);
 
   const result = await getRepoAndStore(owner, name);
   if (!result) {
@@ -526,7 +531,11 @@ app.get("/api/repositories/:owner/:name/tree", async (c) => {
   const name = c.req.param("name");
   const currentUser = c.get("user");
   const branch = c.req.query("branch") || "main";
-  const path = c.req.query("path") || "";
+  const rawPath = c.req.query("path") || "";
+  const path = sanitizePathForGit(rawPath);
+  if (path === null) {
+    return c.json({ error: "Invalid path" }, 400);
+  }
 
   const result = await getRepoAndStore(owner, name);
   if (!result) {
@@ -565,7 +574,11 @@ app.get("/api/repositories/:owner/:name/tree-commits", async (c) => {
   const name = c.req.param("name");
   const currentUser = c.get("user");
   const branch = c.req.query("branch") || "main";
-  const path = c.req.query("path") || "";
+  const rawPath = c.req.query("path") || "";
+  const path = sanitizePathForGit(rawPath);
+  if (path === null) {
+    return c.json({ error: "Invalid path" }, 400);
+  }
 
   const result = await getRepoAndStore(owner, name);
   if (!result) {
@@ -591,10 +604,13 @@ app.get("/api/repositories/:owner/:name/file", async (c) => {
   const name = c.req.param("name");
   const currentUser = c.get("user");
   const branch = c.req.query("branch") || "main";
-  const path = c.req.query("path");
-
-  if (!path) {
+  const rawPath = c.req.query("path");
+  if (!rawPath) {
     return c.json({ error: "Path is required" }, 400);
+  }
+  const path = sanitizePathForGit(rawPath);
+  if (path === null) {
+    return c.json({ error: "Invalid path" }, 400);
   }
 
   const result = await getRepoAndStore(owner, name);

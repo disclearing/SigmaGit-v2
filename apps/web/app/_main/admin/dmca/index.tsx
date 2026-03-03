@@ -187,7 +187,7 @@ function AdminDmca() {
               </thead>
               <tbody className="divide-y divide-border">
                 {requests.length > 0 ? (
-                  requests.map((req: DmcaRequest & { requesterUsername?: string | null; requesterName?: string | null }) => (
+                  requests.map((req: DmcaRequest & { requesterUsername?: string | null; requesterName?: string | null; targetDisplayName?: string | null }) => (
                     <tr key={req.id} className="transition-colors hover:bg-accent/30">
                       <td className="p-4">
                         <span className="text-sm">{req.requesterName ?? req.requesterUsername ?? "—"}</span>
@@ -196,7 +196,9 @@ function AdminDmca() {
                         )}
                       </td>
                       <td className="p-4 text-sm">
-                        {req.targetType} / {req.targetId.slice(0, 8)}…
+                        {req.targetDisplayName
+                          ? `${req.targetType} / ${req.targetDisplayName}`
+                          : `${req.targetType} / ${req.targetId.slice(0, 8)}…`}
                       </td>
                       <td className="p-4 text-sm">{req.copyrightHolder}</td>
                       <td className="p-4">

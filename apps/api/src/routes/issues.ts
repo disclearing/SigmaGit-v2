@@ -12,6 +12,7 @@ import {
 } from "@sigmagit/db";
 import { eq, sql, and, desc } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { parseLimit, parseOffset } from "../lib/validation";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -135,8 +136,8 @@ app.get("/api/repositories/:owner/:name/issues", async (c) => {
   const state: "open" | "closed" = stateParam === "closed" ? "closed" : "open";
   const labelFilter = c.req.query("label");
   const assigneeFilter = c.req.query("assignee");
-  const limit = parseInt(c.req.query("limit") || "30", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limit = parseLimit(c.req.query("limit"), 30);
+  const offset = parseOffset(c.req.query("offset"), 0);
 
   const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser?.id);
   if (!repoAccess) {

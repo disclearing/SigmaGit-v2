@@ -232,7 +232,7 @@ function AdminReports() {
               </thead>
               <tbody className="divide-y divide-border">
                 {reports.length > 0 ? (
-                  reports.map((report: Report & { reporterUsername?: string | null; reporterName?: string | null }) => (
+                  reports.map((report: Report & { reporterUsername?: string | null; reporterName?: string | null; targetDisplayName?: string | null }) => (
                     <tr key={report.id} className="transition-colors hover:bg-accent/30">
                       <td className="p-4">
                         <span className="text-sm">
@@ -247,7 +247,9 @@ function AdminReports() {
                           to={targetLink(report)}
                           className="text-primary hover:underline"
                         >
-                          {report.targetType} / {report.targetId.slice(0, 8)}…
+                          {report.targetDisplayName
+                            ? `${report.targetType} / ${report.targetDisplayName}`
+                            : `${report.targetType} / ${report.targetId.slice(0, 8)}…`}
                         </Link>
                       </td>
                       <td className="p-4">

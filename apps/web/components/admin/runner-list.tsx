@@ -1,6 +1,7 @@
 'use client';
 
 import { Activity, Trash2, Wifi, WifiOff } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { useRemoveRunner, useRunners } from '@sigmagit/hooks';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -74,16 +75,35 @@ export function AdminRunnerList() {
                 {runner.os && <span>{runner.os}/{runner.arch}</span>}
                 {runner.version && <span>v{runner.version}</span>}
                 {runner.ipAddress && <span>{runner.ipAddress}</span>}
+                {(runner.jobsRunCount ?? 0) > 0 && (
+                  <span>
+                    {runner.jobsRunCount} job{(runner.jobsRunCount ?? 0) !== 1 ? 's' : ''}
+                    {runner.successRate != null && ` · ${runner.successRate}% success`}
+                  </span>
+                )}
                 {runner.lastSeenAt && (
                   <span>
                     Last seen {formatDistanceToNow(new Date(runner.lastSeenAt), { addSuffix: true })}
                   </span>
                 )}
-                {runner.currentJobId && (
-                  <span className="text-blue-500">
-                    Running job {runner.currentJobId.slice(0, 8)}
-                  </span>
-                )}
+                {runner.currentJobId &&
+                  (runner.repoOwner && runner.repoName && runner.currentRunId ? (
+                    <Link
+                      to="/$username/$repo/runs/$runId"
+                      params={{
+                        username: runner.repoOwner,
+                        repo: runner.repoName,
+                        runId: runner.currentRunId,
+                      }}
+                      className="text-blue-500 hover:underline"
+                    >
+                      Running job {runner.currentJobId.slice(0, 8)}
+                    </Link>
+                  ) : (
+                    <span className="text-blue-500">
+                      Running job {runner.currentJobId.slice(0, 8)}
+                    </span>
+                  ))}
               </div>
             </div>
           </div>

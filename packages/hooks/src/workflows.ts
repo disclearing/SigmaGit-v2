@@ -58,12 +58,22 @@ export function useWorkflowRun(owner: string, repo: string, runId: string) {
   });
 }
 
-export function useJobLogs(owner: string, repo: string, runId: string, jobId: string) {
+const ACTIVE_JOB_STATUSES = ['queued', 'assigned', 'in_progress'] as const;
+
+export function useJobLogs(
+  owner: string,
+  repo: string,
+  runId: string,
+  jobId: string,
+  jobStatus?: string
+) {
   const api = useApi();
+  const isActive = jobStatus ? ACTIVE_JOB_STATUSES.includes(jobStatus as (typeof ACTIVE_JOB_STATUSES)[number]) : false;
   return useQuery({
     queryKey: ['job-logs', owner, repo, runId, jobId],
     queryFn: () => api.workflows.getJobLogs(owner, repo, runId, jobId),
     enabled: !!owner && !!repo && !!runId && !!jobId,
+    refetchInterval: isActive ? 3000 : false,
   });
 }
 

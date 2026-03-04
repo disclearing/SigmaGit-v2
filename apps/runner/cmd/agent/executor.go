@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nektos/act/pkg/common"
 	"github.com/nektos/act/pkg/model"
 	"github.com/nektos/act/pkg/runner"
 	go_log "github.com/sirupsen/logrus"
@@ -162,19 +161,20 @@ func (e *Executor) runWithAct(
 		return nil, fmt.Errorf("workflowContent missing from job definition")
 	}
 
-	// Parse workflow
-	workflow, err := model.ReadWorkflow(strings.NewReader(workflowContent))
+	// Build plan using current model API: planner + PlanJob / PlanAll
+	planner, err := model.NewSingleWorkflowPlanner("workflow.yml", strings.NewReader(workflowContent))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse workflow YAML: %w", err)
 	}
 
-	// Build plan for the specific job
-	plan := model.NewSingleWorkflowRunPlan(job.Name, workflow)
-	if plan == nil {
-		// Fall back to running all jobs
-		plan, err = model.NewWorkflowExecutorPlan(workflow, nil, false, job.EventName)
+	plan, err := planner.PlanJob(job.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create job execution plan: %w", err)
+	}
+	if plan == nil || len(plan.Stages) == 0 {
+		plan, err = planner.PlanAll()
 		if err != nil {
-			return nil, fmt.Errorf("failed to create execution plan: %w", err)
+			return nil, fmt.Errorf("failed to create fallback execution plan: %w", err)
 		}
 	}
 
@@ -203,9 +203,9 @@ func (e *Executor) runWithAct(
 
 	executor := r.NewPlanExecutor(plan)
 
-	runCtx := common.WithJobLoggerFactory(ctx, func(jobID string, mask []string) *go_log.Entry {
-		return go_log.NewEntry(logger).WithField("job", jobID)
-	})
+	// WithJobLoggerFactory lives in pkg/runner; it expects a JobLoggerFactory (WithJobLogger() *logrus.Logger).
+	jobLoggerFactory := &jobLoggerFactory{logger: logger}
+	runCtx := runner.WithJobLoggerFactory(ctx, jobLoggerFactory)
 
 	runErr := executor(runCtx)
 
@@ -249,6 +249,15 @@ func (e *Executor) failJob(job *JobPayload, reason string) error {
 		log.Printf("[Executor] Warning: failed to report failure for job %s: %v", job.ID, err)
 	}
 	return fmt.Errorf(reason)
+}
+
+// jobLoggerFactory implements runner.JobLoggerFactory so the plan executor gets a logger from context.
+type jobLoggerFactory struct {
+	logger *go_log.Logger
+}
+
+func (f *jobLoggerFactory) WithJobLogger() *go_log.Logger {
+	return f.logger
 }
 
 // logStreamHook captures logrus entries and streams them to the API.

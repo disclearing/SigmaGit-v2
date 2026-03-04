@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
-import { db, repositories, runners, users, workflowJobs, workflowRuns, workflowSteps } from '@sigmagit/db';
+import { db, repositories, repositoryCollaborators, runners, users, workflowJobs, workflowRuns, workflowSteps } from '@sigmagit/db';
 import { and, eq, isNull, asc, or } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { authMiddleware, requireAdmin, type AuthVariables } from '../middleware/auth';
 import { requireRunnerAuth, type RunnerVariables } from '../middleware/runner-auth';
-import { notifyUser } from '../websocket';
+import { notifyUsers } from '../websocket';
 
 type Variables = AuthVariables & RunnerVariables;
 
@@ -182,24 +183,44 @@ app.post('/api/runners/:runnerId/jobs/:jobId/progress', requireRunnerAuth, async
     }
   }
 
-  // Notify subscribed users via WebSocket (best-effort)
+  // Notify subscribed users via WebSocket (best-effort); include repoOwner/repoName/runId for client cache invalidation
   try {
     const [run] = await db
-      .select({ triggeredBy: workflowRuns.triggeredBy, repositoryId: workflowRuns.repositoryId })
+      .select({
+        triggeredBy: workflowRuns.triggeredBy,
+        repositoryId: workflowRuns.repositoryId,
+        runId: workflowRuns.id,
+        repoOwner: users.username,
+        repoName: repositories.name,
+        repoOwnerId: users.id,
+      })
       .from(workflowJobs)
       .innerJoin(workflowRuns, eq(workflowRuns.id, workflowJobs.runId))
+      .innerJoin(repositories, eq(repositories.id, workflowRuns.repositoryId))
+      .innerJoin(users, eq(users.id, repositories.ownerId))
       .where(eq(workflowJobs.id, jobId))
       .limit(1);
 
-    if (run?.triggeredBy) {
-      notifyUser(run.triggeredBy, {
+    if (run) {
+      const payload = {
         type: 'workflow_job.log_chunk',
         jobId,
+        runId: run.runId,
+        repoOwner: run.repoOwner,
+        repoName: run.repoName,
         stepNumber,
         stepName,
         logChunk,
         status,
-      });
+      };
+      const collaborators = await db
+        .select({ userId: repositoryCollaborators.userId })
+        .from(repositoryCollaborators)
+        .where(eq(repositoryCollaborators.repositoryId, run.repositoryId));
+      const recipientIds = new Set<string>(collaborators.map((c) => c.userId));
+      if (run.triggeredBy) recipientIds.add(run.triggeredBy);
+      if (run.repoOwnerId) recipientIds.add(run.repoOwnerId);
+      notifyUsers(Array.from(recipientIds), payload);
     }
   } catch {
     // Non-critical
@@ -279,22 +300,40 @@ app.post('/api/runners/:runnerId/jobs/:jobId/complete', requireRunnerAuth, async
   if (job?.runId) {
     await finalizeRunIfComplete(job.runId, now);
 
-    // Notify via WebSocket
+    // Notify via WebSocket; include repoOwner/repoName so client can invalidate workflow-run and workflow-runs
     try {
       const [run] = await db
-        .select({ triggeredBy: workflowRuns.triggeredBy })
+        .select({
+          triggeredBy: workflowRuns.triggeredBy,
+          repositoryId: workflowRuns.repositoryId,
+          repoOwner: users.username,
+          repoName: repositories.name,
+          repoOwnerId: users.id,
+        })
         .from(workflowRuns)
+        .innerJoin(repositories, eq(repositories.id, workflowRuns.repositoryId))
+        .innerJoin(users, eq(users.id, repositories.ownerId))
         .where(eq(workflowRuns.id, job.runId))
         .limit(1);
 
-      if (run?.triggeredBy) {
-        notifyUser(run.triggeredBy, {
+      if (run) {
+        const payload = {
           type: 'workflow_job.status_changed',
           jobId,
           runId: job.runId,
+          repoOwner: run.repoOwner,
+          repoName: run.repoName,
           status,
           conclusion,
-        });
+        };
+        const collaborators = await db
+          .select({ userId: repositoryCollaborators.userId })
+          .from(repositoryCollaborators)
+          .where(eq(repositoryCollaborators.repositoryId, run.repositoryId));
+        const recipientIds = new Set<string>(collaborators.map((c) => c.userId));
+        if (run.triggeredBy) recipientIds.add(run.triggeredBy);
+        if (run.repoOwnerId) recipientIds.add(run.repoOwnerId);
+        notifyUsers(Array.from(recipientIds), payload);
       }
     } catch {
       // Non-critical
@@ -337,7 +376,7 @@ app.use('/api/runners', authMiddleware);
 app.use('/api/runners', requireAdmin);
 
 app.get('/api/runners', async (c) => {
-  const allRunners = await db
+  const rows = await db
     .select({
       id: runners.id,
       name: runners.name,
@@ -350,11 +389,65 @@ app.get('/api/runners', async (c) => {
       currentJobId: runners.currentJobId,
       ipAddress: runners.ipAddress,
       createdAt: runners.createdAt,
+      currentRunId: workflowRuns.id,
+      repoOwner: users.username,
+      repoName: repositories.name,
     })
     .from(runners)
+    .leftJoin(workflowJobs, eq(workflowJobs.id, runners.currentJobId))
+    .leftJoin(workflowRuns, eq(workflowRuns.id, workflowJobs.runId))
+    .leftJoin(repositories, eq(repositories.id, workflowRuns.repositoryId))
+    .leftJoin(users, eq(users.id, repositories.ownerId))
     .orderBy(runners.createdAt);
 
-  return c.json({ runners: allRunners });
+  let jobStats: Array<{ runnerId: string; total: number; success: number }> = [];
+  if (rows.length > 0) {
+    const raw = await db.execute(sql`
+      SELECT runner_id as "runnerId",
+        count(*)::int as total,
+        count(*) FILTER (WHERE conclusion = 'success')::int as success
+      FROM workflow_jobs
+      WHERE runner_id IS NOT NULL
+        AND status IN ('completed', 'failed', 'cancelled')
+      GROUP BY runner_id
+    `);
+    const rawRows = Array.isArray(raw) ? raw : (raw as { rows?: unknown[] }).rows ?? [];
+    jobStats = rawRows as Array<{ runnerId: string; total: number; success: number }>;
+  }
+
+  const countMap = new Map<string, { total: number; success: number }>();
+  for (const row of jobStats) {
+    if (row.runnerId) countMap.set(row.runnerId, { total: row.total, success: row.success });
+  }
+
+  const runnersList = rows.map((r) => {
+    const counts = r.id ? countMap.get(r.id) : null;
+    return {
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      labels: r.labels,
+      os: r.os,
+      arch: r.arch,
+      version: r.version,
+      lastSeenAt: r.lastSeenAt,
+      currentJobId: r.currentJobId,
+      ipAddress: r.ipAddress,
+      createdAt: r.createdAt,
+      ...(r.currentJobId && r.currentRunId && r.repoOwner && r.repoName
+        ? { currentRunId: r.currentRunId, repoOwner: r.repoOwner, repoName: r.repoName }
+        : {}),
+      ...(counts
+        ? {
+            jobsRunCount: counts.total,
+            jobsSuccessCount: counts.success,
+            successRate: counts.total > 0 ? Math.round((counts.success / counts.total) * 100) : null,
+          }
+        : {}),
+    };
+  });
+
+  return c.json({ runners: runnersList });
 });
 
 app.delete('/api/runners/:runnerId', authMiddleware, requireAdmin, async (c) => {

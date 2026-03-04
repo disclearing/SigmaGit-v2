@@ -19,7 +19,7 @@ interface JobDetailProps {
 export function JobDetail({ owner, repo, runId, job }: JobDetailProps) {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [showAllLogs, setShowAllLogs] = useState(false);
-  const { data: logsData } = useJobLogs(owner, repo, runId, job.id);
+  const { data: logsData } = useJobLogs(owner, repo, runId, job.id, job.status);
 
   const steps = job.steps ?? logsData?.steps ?? [];
   const allLogs = logsData?.logs ?? '';

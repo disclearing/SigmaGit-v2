@@ -1182,6 +1182,13 @@ export type Runner = {
   currentJobId: string | null;
   ipAddress: string | null;
   createdAt: string;
+  /** When runner has a current job; for linking to run detail */
+  currentRunId?: string;
+  repoOwner?: string;
+  repoName?: string;
+  jobsRunCount?: number;
+  jobsSuccessCount?: number;
+  successRate?: number | null;
 };
 
 export type Workflow = {

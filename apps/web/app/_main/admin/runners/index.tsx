@@ -28,18 +28,25 @@ function AdminRunnersPage() {
       </div>
 
       <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
-        <p className="font-medium">Registering a new runner</p>
+        <p className="font-medium">Add a runner</p>
         <p className="text-muted-foreground">
-          Download the runner agent and start it with your API URL:
+          Build the agent from the repo root, then run it with your API URL. If the server sets{' '}
+          <code className="bg-muted px-1 rounded">SIGMAGIT_RUNNER_SECRET</code>, set the same value on the runner.
         </p>
         <pre className="bg-black text-green-400 font-mono text-xs p-3 rounded-md overflow-auto">
-          {`SIGMAGIT_API_URL=https://your-api.example.com \\
+          {`# Build (from repo root)
+bun run build:runner
+
+# Run
+SIGMAGIT_API_URL=https://your-api.example.com \\
 SIGMAGIT_RUNNER_NAME=my-runner \\
-./sigmagit-runner`}
+SIGMAGIT_RUNNER_SECRET=your-secret-if-required \\
+./apps/runner/bin/sigmagit-runner`}
         </pre>
         <p className="text-muted-foreground text-xs">
-          The runner will register automatically and start polling for jobs. Run{' '}
-          <code className="bg-muted px-1 rounded">bun run build:runner</code> to build the agent binary from source.
+          The runner registers automatically and polls for jobs. Repo checkouts use{' '}
+          <code className="bg-muted px-1 rounded text-[11px]">&lt;API_URL&gt;/&lt;owner&gt;/&lt;repo&gt;.git</code> with
+          basic auth <code className="bg-muted px-1 rounded">runner:&lt;token&gt;</code> (token is saved in config after register).
         </p>
       </div>
 

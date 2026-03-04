@@ -14,25 +14,39 @@ export function useWebSocket() {
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const manuallyDisconnectedRef = useRef(false);
   const [state, setState] = useState<WebSocketState>("disconnected");
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
   const baseReconnectDelay = 1000;
 
   const connect = useCallback(async () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    if (
+      wsRef.current?.readyState === WebSocket.OPEN
+      || wsRef.current?.readyState === WebSocket.CONNECTING
+    ) {
       return;
+    }
+    manuallyDisconnectedRef.current = false;
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
     }
 
     try {
       const session = await authClient.getSession();
-      if (!session.data?.session?.token) {
+      const token = session.data?.session?.token;
+      if (!token) {
+        // Session may not be ready yet; keep retrying in background.
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, 2000);
         return;
       }
 
       const apiUrl = getApiUrl();
       const wsUrl = apiUrl.replace(/^http/, "ws");
-      const url = `${wsUrl}/ws?token=${session.data.session.token}`;
+      const url = `${wsUrl}/ws?token=${token}`;
 
       setState("connecting");
       const ws = new WebSocket(url);
@@ -48,6 +62,28 @@ export function useWebSocket() {
 
           if (message.type === "notification") {
             queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          } else if (message.type === "workflow_job.log_chunk") {
+            const { repoOwner, repoName, runId, jobId } = message;
+            if (repoOwner && repoName && runId && jobId) {
+              queryClient.invalidateQueries({
+                queryKey: ["job-logs", repoOwner, repoName, runId, jobId],
+              });
+            }
+          } else if (message.type === "workflow_job.status_changed") {
+            const { repoOwner, repoName, runId, jobId } = message;
+            if (repoOwner && repoName && runId) {
+              queryClient.invalidateQueries({
+                queryKey: ["workflow-run", repoOwner, repoName, runId],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["workflow-runs", repoOwner, repoName],
+              });
+              if (jobId) {
+                queryClient.invalidateQueries({
+                  queryKey: ["job-logs", repoOwner, repoName, runId, jobId],
+                });
+              }
+            }
           }
         } catch (err) {
           console.error("[WS] Failed to parse message:", err);
@@ -57,6 +93,7 @@ export function useWebSocket() {
       ws.onclose = () => {
         setState("disconnected");
         wsRef.current = null;
+        if (manuallyDisconnectedRef.current) return;
 
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           const delay = baseReconnectDelay * Math.pow(2, reconnectAttemptsRef.current);
@@ -80,6 +117,7 @@ export function useWebSocket() {
   }, [queryClient]);
 
   const disconnect = useCallback(() => {
+    manuallyDisconnectedRef.current = true;
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;

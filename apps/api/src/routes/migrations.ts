@@ -3,23 +3,11 @@ import { db, repositoryMigrations, repositories, users, migrationCredentials } f
 import { eq, and, sql, desc } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
-import { randomUUID } from "crypto";
+import { encryptCredential, decryptCredential } from "../lib/credential-cipher";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
-
-// Helper to encrypt sensitive data (simple base64 for now, should use proper encryption)
-function encryptCredential(value: string): string {
-  // TODO: Implement proper encryption using environment variable key
-  return Buffer.from(value).toString("base64");
-}
-
-// Helper to decrypt sensitive data
-function decryptCredential(encrypted: string): string {
-  // TODO: Implement proper decryption
-  return Buffer.from(encrypted, "base64").toString("utf-8");
-}
 
 app.post("/api/migrations", requireAuth, async (c) => {
   const user = c.get("user")!;
@@ -219,6 +207,43 @@ app.delete("/api/migrations/:id", requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
+// Normalized repo shape for list-repos responses
+interface ListRepoItem {
+  id: string;
+  fullName: string;
+  private: boolean;
+  defaultBranch?: string;
+  url: string;
+}
+
+const FETCH_TIMEOUT_MS = 10_000;
+
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function ensureHttps(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // External service integrations
 app.get("/api/migrations/github/repos", requireAuth, async (c) => {
   const token = c.req.query("token");
@@ -227,18 +252,92 @@ app.get("/api/migrations/github/repos", requireAuth, async (c) => {
     return c.json({ error: "GitHub token required" }, 400);
   }
 
-  return c.json({ error: "GitHub integration not yet implemented" }, 501);
+  try {
+    const res = await fetchWithTimeout(
+      "https://api.github.com/user/repos?per_page=100&sort=updated",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      }
+    );
+    if (res.status === 401 || res.status === 403) {
+      return c.json({ error: "Invalid or expired token" }, 401);
+    }
+    if (!res.ok) {
+      return c.json({ error: "Failed to fetch repositories from GitHub" }, 502);
+    }
+    const data = (await res.json()) as Array<{
+      id: number;
+      full_name: string;
+      private: boolean;
+      default_branch?: string;
+      clone_url: string;
+    }>;
+    const repos: ListRepoItem[] = (data || []).map((r) => ({
+      id: String(r.id),
+      fullName: r.full_name,
+      private: r.private,
+      defaultBranch: r.default_branch,
+      url: r.clone_url,
+    }));
+    return c.json({ repos });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return c.json({ error: "Request timed out" }, 504);
+    }
+    throw err;
+  }
 });
 
 app.get("/api/migrations/gitlab/repos", requireAuth, async (c) => {
   const token = c.req.query("token");
-  const baseUrl = c.req.query("baseUrl");
+  const baseUrl = (c.req.query("baseUrl") || "https://gitlab.com").replace(
+    /\/$/,
+    ""
+  );
 
   if (!token) {
     return c.json({ error: "GitLab token required" }, 400);
   }
 
-  return c.json({ error: "GitLab integration not yet implemented" }, 501);
+  if (process.env.NODE_ENV === "production" && !ensureHttps(baseUrl)) {
+    return c.json({ error: "baseUrl must use HTTPS" }, 400);
+  }
+
+  try {
+    const url = `${baseUrl}/api/v4/projects?membership=true&per_page=100`;
+    const res = await fetchWithTimeout(url, {
+      headers: { "PRIVATE-TOKEN": token },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return c.json({ error: "Invalid or expired token" }, 401);
+    }
+    if (!res.ok) {
+      return c.json({ error: "Failed to fetch repositories from GitLab" }, 502);
+    }
+    const data = (await res.json()) as Array<{
+      id: number;
+      path_with_namespace: string;
+      visibility: string;
+      default_branch?: string;
+      http_url_to_repo: string;
+    }>;
+    const repos: ListRepoItem[] = (data || []).map((r) => ({
+      id: String(r.id),
+      fullName: r.path_with_namespace,
+      private: r.visibility === "private",
+      defaultBranch: r.default_branch,
+      url: r.http_url_to_repo,
+    }));
+    return c.json({ repos });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return c.json({ error: "Request timed out" }, 504);
+    }
+    throw err;
+  }
 });
 
 app.get("/api/migrations/gitea/repos", requireAuth, async (c) => {
@@ -253,7 +352,43 @@ app.get("/api/migrations/gitea/repos", requireAuth, async (c) => {
     return c.json({ error: "Gitea base URL required" }, 400);
   }
 
-  return c.json({ error: "Gitea integration not yet implemented" }, 501);
+  const normalizedBase = (baseUrl as string).replace(/\/$/, "");
+  if (process.env.NODE_ENV === "production" && !ensureHttps(normalizedBase)) {
+    return c.json({ error: "baseUrl must use HTTPS" }, 400);
+  }
+
+  try {
+    const url = `${normalizedBase}/api/v1/user/repos?limit=50`;
+    const res = await fetchWithTimeout(url, {
+      headers: { Authorization: `token ${token}` },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return c.json({ error: "Invalid or expired token" }, 401);
+    }
+    if (!res.ok) {
+      return c.json({ error: "Failed to fetch repositories from Gitea" }, 502);
+    }
+    const data = (await res.json()) as Array<{
+      id: number;
+      full_name: string;
+      private: boolean;
+      default_branch?: string;
+      clone_url: string;
+    }>;
+    const repos: ListRepoItem[] = (data || []).map((r) => ({
+      id: String(r.id),
+      fullName: r.full_name,
+      private: r.private,
+      defaultBranch: r.default_branch,
+      url: r.clone_url,
+    }));
+    return c.json({ repos });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return c.json({ error: "Request timed out" }, 504);
+    }
+    throw err;
+  }
 });
 
 app.get("/api/migrations/bitbucket/repos", requireAuth, async (c) => {
@@ -263,7 +398,47 @@ app.get("/api/migrations/bitbucket/repos", requireAuth, async (c) => {
     return c.json({ error: "Bitbucket token required" }, 400);
   }
 
-  return c.json({ error: "Bitbucket integration not yet implemented" }, 501);
+  try {
+    const res = await fetchWithTimeout(
+      "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (res.status === 401 || res.status === 403) {
+      return c.json({ error: "Invalid or expired token" }, 401);
+    }
+    if (!res.ok) {
+      return c.json({ error: "Failed to fetch repositories from Bitbucket" }, 502);
+    }
+    const body = (await res.json()) as {
+      values?: Array<{
+        uuid: string;
+        full_name?: string;
+        name?: string;
+        is_private?: boolean;
+        mainbranch?: { name?: string };
+        links?: { clone?: Array<{ href: string; name?: string }> };
+      }>;
+    };
+    const values = body?.values ?? [];
+    const repos: ListRepoItem[] = values.map((r) => {
+      const cloneLink = r.links?.clone?.find((l) => l.name === "https") ?? r.links?.clone?.[0];
+      return {
+        id: r.uuid ?? String(r.name),
+        fullName: r.full_name ?? r.name ?? "unknown",
+        private: r.is_private ?? false,
+        defaultBranch: r.mainbranch?.name,
+        url: cloneLink?.href ?? "",
+      };
+    });
+    return c.json({ repos });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return c.json({ error: "Request timed out" }, 504);
+    }
+    throw err;
+  }
 });
 
 export default app;

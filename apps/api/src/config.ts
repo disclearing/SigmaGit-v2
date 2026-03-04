@@ -16,6 +16,7 @@ export const config = {
   webhooksEnabled: process.env.ENABLE_WEBHOOKS !== 'false',
   discordWebhookSecret: process.env.DISCORD_WEBHOOK_SECRET || null,
   enableMigrations: process.env.ENABLE_MIGRATIONS !== 'false',
+  migrationCredentialsKey: process.env.MIGRATION_CREDENTIALS_KEY || null,
   storage: {
     type: (process.env.STORAGE_TYPE as 's3' | 'local') || 's3',
     localPath: process.env.STORAGE_LOCAL_PATH || './data/repos',

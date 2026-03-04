@@ -801,6 +801,7 @@ export type ApiClient = {
     delete: (owner: string, repo: string, id: string) => Promise<{ success: boolean }>;
     publish: (owner: string, repo: string, id: string) => Promise<{ success: boolean }>;
     getAssets: (owner: string, repo: string, id: string) => Promise<{ assets: ReleaseAsset[] }>;
+    uploadAsset: (owner: string, repo: string, id: string, file: File) => Promise<{ data: ReleaseAsset }>;
     deleteAsset: (owner: string, repo: string, id: string, assetId: string) => Promise<{ success: boolean }>;
   };
   gists: {
@@ -975,6 +976,7 @@ export type ApiClient = {
       delete: (owner: string, repo: string, id: string) => Promise<{ success: boolean }>;
       publish: (owner: string, repo: string, id: string) => Promise<{ data: Release }>;
       getAssets: (owner: string, repo: string, id: string) => Promise<{ assets: ReleaseAsset[] }>;
+      uploadAsset: (owner: string, repo: string, id: string, file: File) => Promise<{ data: ReleaseAsset }>;
       deleteAsset: (owner: string, repo: string, id: string, assetId: string) => Promise<{ success: boolean }>;
     };
     gists: {

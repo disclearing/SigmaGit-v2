@@ -6,13 +6,9 @@ import { mkdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
 import { existsSync } from "fs";
+import { decryptCredential } from "../lib/credential-cipher";
 
 const TEMP_DIR = "/tmp/sigmagit-migrations";
-
-// Helper to decrypt credentials
-function decryptCredential(encrypted: string): string {
-  return Buffer.from(encrypted, "base64").toString("utf-8");
-}
 
 // Build authenticated URL for git clone
 function buildAuthenticatedUrl(sourceUrl: string, authType: string, authToken?: string, username?: string): string {

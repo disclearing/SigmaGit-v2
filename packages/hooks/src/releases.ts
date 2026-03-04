@@ -103,6 +103,21 @@ export function useReleaseAssets(owner: string, repo: string, id: string) {
   });
 }
 
+export function useUploadReleaseAsset() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { owner: string; repo: string; id: string; file: File }) =>
+      api.releases?.uploadAsset?.(data.owner, data.repo, data.id, data.file) ?? Promise.reject(new Error("Upload not available")),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["release-assets", variables.owner, variables.repo, variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["release", variables.owner, variables.repo, variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["releases", variables.owner, variables.repo] });
+    },
+  });
+}
+
 export function useDeleteReleaseAsset() {
   const api = useApi();
   const queryClient = useQueryClient();
@@ -110,9 +125,10 @@ export function useDeleteReleaseAsset() {
   return useMutation({
     mutationFn: (data: { owner: string; repo: string; id: string; assetId: string }) =>
       api.releases?.deleteAsset?.(data.owner, data.repo, data.id, data.assetId) ?? Promise.resolve({ success: false }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["release-assets", owner, repo, data.id] });
-      queryClient.invalidateQueries({ queryKey: ["releases", owner, repo, data.id] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["release-assets", variables.owner, variables.repo, variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["release", variables.owner, variables.repo, variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["releases", variables.owner, variables.repo] });
     },
   });
 }

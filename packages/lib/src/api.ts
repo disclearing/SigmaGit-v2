@@ -820,6 +820,24 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       getAssets: (owner: string, repo: string, id: string) =>
         apiFetch<{ assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets`),
 
+      uploadAsset: async (owner: string, repo: string, id: string, file: File) => {
+        const formData = new FormData();
+        formData.append("asset", file);
+        const fullUrl = `${baseUrl}/api/repositories/${owner}/${repo}/releases/${id}/assets`;
+        const authHeaders = await getAuthHeaders();
+        const res = await fetch(fullUrl, {
+          ...fetchOptions,
+          method: "POST",
+          headers: { ...authHeaders, ...(fetchOptions.headers as Record<string, string>) },
+          body: formData,
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error((data as { error?: string }).error || "Asset upload failed");
+        }
+        return res.json() as Promise<{ data: ReleaseAsset }>;
+      },
+
       deleteAsset: (owner: string, repo: string, id: string, assetId: string) =>
         apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets/${assetId}`, {
           method: "DELETE",
@@ -846,6 +864,29 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         apiFetch<{ success: boolean }>(`/api/migrations/${id}`, {
           method: "DELETE",
         }),
+
+      listGitHubRepos: (token: string) =>
+        apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+          `/api/migrations/github/repos?token=${encodeURIComponent(token)}`
+        ),
+
+      listGitLabRepos: (token: string, baseUrl?: string) => {
+        const params = new URLSearchParams({ token });
+        if (baseUrl) params.set("baseUrl", baseUrl);
+        return apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+          `/api/migrations/gitlab/repos?${params}`
+        );
+      },
+
+      listGiteaRepos: (token: string, baseUrl: string) =>
+        apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+          `/api/migrations/gitea/repos?token=${encodeURIComponent(token)}&baseUrl=${encodeURIComponent(baseUrl)}`
+        ),
+
+      listBitbucketRepos: (token: string) =>
+        apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+          `/api/migrations/bitbucket/repos?token=${encodeURIComponent(token)}`
+        ),
     },
 
     reports: {
@@ -1348,6 +1389,24 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         getAssets: (owner: string, repo: string, id: string) =>
           apiFetch<{ assets: ReleaseAsset[] }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets`),
 
+        uploadAsset: async (owner: string, repo: string, id: string, file: File) => {
+          const formData = new FormData();
+          formData.append("asset", file);
+          const fullUrl = `${baseUrl}/api/repositories/${owner}/${repo}/releases/${id}/assets`;
+          const authHeaders = await getAuthHeaders();
+          const res = await fetch(fullUrl, {
+            ...fetchOptions,
+            method: "POST",
+            headers: { ...authHeaders, ...(fetchOptions.headers as Record<string, string>) },
+            body: formData,
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error((data as { error?: string }).error || "Asset upload failed");
+          }
+          return res.json() as Promise<{ data: ReleaseAsset }>;
+        },
+
         deleteAsset: (owner: string, repo: string, id: string, assetId: string) =>
           apiFetch<{ success: boolean }>(`/api/repositories/${owner}/${repo}/releases/${id}/assets/${assetId}`, {
             method: "DELETE",
@@ -1438,6 +1497,29 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
           apiFetch<{ success: boolean }>(`/api/migrations/${id}`, {
             method: "DELETE",
           }),
+
+        listGitHubRepos: (token: string) =>
+          apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+            `/api/migrations/github/repos?token=${encodeURIComponent(token)}`
+          ),
+
+        listGitLabRepos: (token: string, baseUrl?: string) => {
+          const params = new URLSearchParams({ token });
+          if (baseUrl) params.set("baseUrl", baseUrl);
+          return apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+            `/api/migrations/gitlab/repos?${params}`
+          );
+        },
+
+        listGiteaRepos: (token: string, baseUrl: string) =>
+          apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+            `/api/migrations/gitea/repos?token=${encodeURIComponent(token)}&baseUrl=${encodeURIComponent(baseUrl)}`
+          ),
+
+        listBitbucketRepos: (token: string) =>
+          apiFetch<{ repos: Array<{ id: string; fullName: string; private: boolean; defaultBranch?: string; url: string }> }>(
+            `/api/migrations/bitbucket/repos?token=${encodeURIComponent(token)}`
+          ),
       },
 
       organizations: {

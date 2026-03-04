@@ -1,9 +1,11 @@
 "use client";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useRelease, useRepoTags, useUpdateRelease } from "@sigmagit/hooks";
+import { Download, Package, Trash2, Upload } from "lucide-react";
+import { useRelease, useReleaseAssets, useRepoTags, useUpdateRelease, useUploadReleaseAsset, useDeleteReleaseAsset } from "@sigmagit/hooks";
+import { getApiUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +19,13 @@ export const Route = createFileRoute("/_main/$username/$repo/releases/$id/edit")
 function EditReleasePage() {
   const { username, repo, id } = Route.useParams();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: release, isLoading } = useRelease(username, repo, id);
+  const { data: assetsData } = useReleaseAssets(username, repo, id);
+  const assets = assetsData?.assets ?? [];
   const updateRelease = useUpdateRelease();
+  const uploadAsset = useUploadReleaseAsset();
+  const deleteAsset = useDeleteReleaseAsset();
   const { data: tagsData } = useRepoTags(username, repo);
   const tags = tagsData?.tags || [];
 
@@ -66,6 +73,35 @@ function EditReleasePage() {
       }
     );
   }
+
+  function handleUploadAsset(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    uploadAsset.mutate(
+      { owner: username, repo, id, file },
+      {
+        onSuccess: () => {
+          toast.success(`${file.name} uploaded`);
+          e.target.value = "";
+        },
+        onError: (err) => {
+          toast.error(err instanceof Error ? err.message : "Failed to upload asset");
+        },
+      }
+    );
+  }
+
+  function handleDeleteAsset(assetId: string) {
+    deleteAsset.mutate(
+      { owner: username, repo, id, assetId },
+      {
+        onSuccess: () => toast.success("Asset removed"),
+        onError: () => toast.error("Failed to remove asset"),
+      }
+    );
+  }
+
+  const apiUrl = getApiUrl();
 
   if (isLoading) {
     return (
@@ -157,6 +193,79 @@ function EditReleasePage() {
             <Label htmlFor="isPrerelease" className="cursor-pointer">
               This is a pre-release
             </Label>
+          </div>
+        </div>
+
+        <div className="space-y-4 border border-border rounded-lg p-4">
+          <h3 className="font-medium flex items-center gap-2">
+            <Package className="size-4" />
+            Release assets
+          </h3>
+          {assets.length > 0 && (
+            <ul className="space-y-2">
+              {assets.map((asset) => (
+                <li
+                  key={asset.id}
+                  className="flex items-center justify-between gap-4 p-3 border border-border rounded-md bg-muted/30"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Package className="size-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{asset.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {(Number(asset.size) / 1024 / 1024).toFixed(2)} MB
+                        {asset.downloadCount > 0 && ` • ${asset.downloadCount} downloads`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {apiUrl && (
+                      <a
+                        href={`${apiUrl}/api/repositories/${username}/${repo}/releases/${id}/assets/${asset.id}`}
+                        download
+                      >
+                        <Button type="button" variant="outline" size="sm" className="gap-1">
+                          <Download className="size-4" />
+                          Download
+                        </Button>
+                      </a>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteAsset(asset.id)}
+                      disabled={deleteAsset.isPending}
+                    >
+                      <Trash2 className="size-4" />
+                      Remove
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleUploadAsset}
+              disabled={uploadAsset.isPending}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadAsset.isPending}
+            >
+              <Upload className="size-4" />
+              {uploadAsset.isPending ? "Uploading..." : "Upload asset"}
+            </Button>
+            <span className="text-sm text-muted-foreground">Max 100MB per file</span>
           </div>
         </div>
 

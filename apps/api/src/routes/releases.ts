@@ -1,7 +1,9 @@
+import { randomUUID } from "crypto";
 import { Hono } from "hono";
 import { db, releases, releaseAssets, releaseComments, releaseReactions, repositories, users } from "@sigmagit/db";
 import { eq, and, sql, desc, count } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { putObject, getObjectStream, deleteObject } from "../storage";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -376,7 +378,40 @@ app.post("/api/repositories/:owner/:name/releases/:id/assets", requireAuth, asyn
     return c.json({ error: "Forbidden" }, 403);
   }
 
-  return c.json({ error: "Asset upload not yet implemented" }, 501);
+  const formData = await c.req.formData();
+  const file = formData.get("asset") ?? formData.get("file");
+  if (!file || !(file instanceof File)) {
+    return c.json({ error: "Missing file: send as 'asset' or 'file' in multipart/form-data" }, 400);
+  }
+
+  const MAX_ASSET_SIZE = 100 * 1024 * 1024; // 100MB
+  if (file.size > MAX_ASSET_SIZE) {
+    return c.json({ error: "File too large; max 100MB" }, 413);
+  }
+
+  const rawName = file.name || "asset";
+  const sanitized = rawName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 200) || "asset";
+  const contentType = file.type || "application/octet-stream";
+  const unique = randomUUID();
+  const storageKey = `releases/${owner}/${repoName}/${id}/${unique}_${sanitized}`;
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await putObject(storageKey, buffer, contentType);
+
+  const [asset] = await db
+    .insert(releaseAssets)
+    .values({
+      releaseId: id,
+      name: rawName,
+      contentType,
+      size: BigInt(file.size),
+      storageKey,
+      uploaderId: user.id,
+      createdAt: new Date(),
+    })
+    .returning();
+
+  return c.json({ data: asset });
 });
 
 app.get("/api/repositories/:owner/:name/releases/:id/assets", async (c) => {
@@ -388,6 +423,69 @@ app.get("/api/repositories/:owner/:name/releases/:id/assets", async (c) => {
     .where(eq(releaseAssets.releaseId, id));
 
   return c.json({ assets });
+});
+
+app.get("/api/repositories/:owner/:name/releases/:id/assets/:assetId", async (c) => {
+  const id = c.req.param("id");
+  const assetId = c.req.param("assetId");
+  const owner = c.req.param("owner");
+  const repoName = c.req.param("name");
+
+  const [repo] = await db
+    .select()
+    .from(repositories)
+    .where(
+      and(
+        eq(repositories.name, repoName),
+        eq(users.username, owner)
+      )
+    )
+    .innerJoin(users, eq(repositories.ownerId, users.id));
+
+  if (!repo) {
+    return c.json({ error: "Repository not found" }, 404);
+  }
+
+  const [release] = await db
+    .select()
+    .from(releases)
+    .where(
+      and(
+        eq(releases.id, id),
+        eq(releases.repositoryId, repo.repositories.id)
+      )
+    );
+
+  if (!release) {
+    return c.json({ error: "Release not found" }, 404);
+  }
+
+  const [asset] = await db
+    .select()
+    .from(releaseAssets)
+    .where(
+      and(
+        eq(releaseAssets.id, assetId),
+        eq(releaseAssets.releaseId, release.id)
+      )
+    );
+
+  if (!asset) {
+    return c.json({ error: "Asset not found" }, 404);
+  }
+
+  const stream = await getObjectStream(asset.storageKey);
+  if (!stream) {
+    return c.json({ error: "Asset file not found in storage" }, 404);
+  }
+
+  const disposition = `attachment; filename="${asset.name.replace(/"/g, '\\"')}"`;
+  return new Response(stream, {
+    headers: {
+      "Content-Type": asset.contentType,
+      "Content-Disposition": disposition,
+    },
+  });
 });
 
 app.delete("/api/repositories/:owner/:name/releases/:id/assets/:assetId", requireAuth, async (c) => {
@@ -439,6 +537,11 @@ app.delete("/api/repositories/:owner/:name/releases/:id/assets/:assetId", requir
     return c.json({ error: "Asset not found" }, 404);
   }
 
+  try {
+    await deleteObject(asset.storageKey);
+  } catch (err) {
+    console.error("[Releases] Failed to delete asset from storage:", err);
+  }
   await db.delete(releaseAssets).where(eq(releaseAssets.id, assetId));
 
   return c.json({ success: true });

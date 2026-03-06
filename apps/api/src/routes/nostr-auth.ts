@@ -272,6 +272,7 @@ app.post("/api/auth/nostr", async (c) => {
 
     return c.json({
       success: true,
+      token: sessionToken,
       user: {
         id: user.id,
         name: user.name,

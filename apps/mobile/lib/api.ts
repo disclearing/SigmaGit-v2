@@ -1,5 +1,5 @@
 import { createApiClient } from "@sigmagit/lib";
-import { authClient } from "./auth-client";
+import { authClient, getSession } from "./auth-client";
 import type { ApiClient } from "@sigmagit/hooks";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
@@ -8,7 +8,7 @@ const baseClient = createApiClient({
   baseUrl: API_URL,
   getAuthHeaders: async (): Promise<HeadersInit> => {
     try {
-      const session = await authClient.getSession();
+      const session = await getSession();
       if (session?.data?.session?.token) {
         return { Authorization: `Bearer ${session.data.session.token}` };
       }
@@ -22,7 +22,7 @@ export const api = {
   settings: {
     ...baseClient.settings,
     updateAvatar: async (uri: string, mimeType: string) => {
-      const session = await authClient.getSession();
+      const session = await getSession();
       const authHeaders: HeadersInit = session?.data?.session?.token
         ? { Authorization: `Bearer ${session.data.session.token}` }
         : {};

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert } from "react-native";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { signIn } from "@/lib/auth-client";
+import { NostrAuthButton } from "@/components/nostr-auth-button";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -38,7 +39,7 @@ export default function LoginScreen() {
                 <FontAwesome name="code-fork" size={36} color="white" />
               </View>
               <Text className="text-white text-3xl font-bold mb-2">Welcome back</Text>
-              <Text className="text-gray-400 text-base">Sign in to your SimgaGit account</Text>
+              <Text className="text-gray-400 text-base">Sign in to your SigmaGit account</Text>
             </View>
 
             <View className="bg-gray-800/50 border border-gray-700/50 overflow-hidden">
@@ -90,6 +91,18 @@ export default function LoginScreen() {
                     <Text className="text-white text-base font-semibold">{loading ? "Signing in..." : "Sign In"}</Text>
                   </View>
                 </Pressable>
+
+                <View className="mt-4">
+                  <NostrAuthButton />
+                </View>
+
+                <View className="mt-4">
+                  <Link href="/(auth)/forgot-password" asChild>
+                    <Pressable>
+                      <Text className="text-gray-400 text-sm text-center">Forgot password?</Text>
+                    </Pressable>
+                  </Link>
+                </View>
               </View>
             </View>
 

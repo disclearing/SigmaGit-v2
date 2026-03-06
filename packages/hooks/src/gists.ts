@@ -9,11 +9,12 @@ export function usePublicGists(limit = 20, offset = 0) {
   });
 }
 
-export function useMyGists() {
+export function useMyGists(options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["gists", "mine"],
     queryFn: () => api.gists.list(),
+    enabled: options?.enabled ?? true,
   });
 }
 

@@ -77,6 +77,18 @@ function RootLayoutNav() {
                   title: "",
                 }}
               />
+              <Stack.Screen
+                name="settings"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="admin"
+                options={{
+                  headerShown: false,
+                }}
+              />
             </Stack.Protected>
           </Stack>
         </ThemeProvider>

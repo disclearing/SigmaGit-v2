@@ -11,7 +11,8 @@ export default function ProfileScreen() {
   const { data: session, isPending } = useSession();
   const queryClient = useQueryClient();
 
-  const user = session?.user as { name?: string; email?: string; username?: string; image?: string } | undefined;
+  const user = session?.user as { name?: string; email?: string; username?: string; image?: string; role?: string } | undefined;
+  const isAdmin = user?.role === "admin";
   const { data: reposData, isLoading, refetch, isRefetching } = useUserRepositories(user?.username || "");
   const { data: profileData } = useUserProfile(user?.username || "");
   const avatarUrl = profileData?.avatarUrl;
@@ -85,6 +86,23 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        <Pressable onPress={() => router.push("/settings")} className="flex-row items-center justify-between py-3 mb-2 border-b border-gray-800">
+          <View className="flex-row items-center">
+            <FontAwesome name="cog" size={18} color="rgba(255,255,255,0.7)" />
+            <Text className="text-white text-base font-medium ml-3">Settings</Text>
+          </View>
+          <FontAwesome name="chevron-right" size={14} color="rgba(255,255,255,0.4)" />
+        </Pressable>
+        {isAdmin && (
+          <Pressable onPress={() => router.push("/admin")} className="flex-row items-center justify-between py-3 mb-2 border-b border-gray-800">
+            <View className="flex-row items-center">
+              <FontAwesome name="shield" size={18} color="rgba(255,255,255,0.7)" />
+              <Text className="text-white text-base font-medium ml-3">Admin</Text>
+            </View>
+            <FontAwesome name="chevron-right" size={14} color="rgba(255,255,255,0.4)" />
+          </Pressable>
+        )}
 
         <View className="flex-row items-center justify-between mb-3 mt-2">
           <Text className="text-white text-base font-semibold">Your Repositories</Text>

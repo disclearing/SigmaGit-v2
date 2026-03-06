@@ -2,11 +2,12 @@ import { View, Text, ScrollView, RefreshControl, Pressable, ActivityIndicator, S
 import { useLocalSearchParams, Link, Stack, RelativePathString, router } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { BlurView } from "expo-blur";
-import { type FileEntry, useRepositoryInfo, useRepoTree, useRepoReadmeOid, useRepoReadme, useToggleStar, useForkRepository } from "@sigmagit/hooks";
+import { type FileEntry, useRepositoryInfo, useRepoTree, useRepoReadmeOid, useRepoReadme, useToggleStar, useForkRepository, useIssueCount, usePullRequestCount } from "@sigmagit/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import Markdown from "react-native-markdown-display";
 import { markdownStyles } from "@/constants/markdownStyles";
 import { useEffect, useState } from "react";
+import { Tabs, type TabItem } from "@/components/ui/tabs";
 
 export default function RepositoryScreen() {
   const { username, repo: repoName } = useLocalSearchParams<{ username: string; repo: string }>();
@@ -32,6 +33,8 @@ export default function RepositoryScreen() {
 
   const toggleStar = useToggleStar(repoInfo?.repo.id || "");
   const forkRepository = useForkRepository(username || "", repoName || "");
+  const { data: issueCount } = useIssueCount(username || "", repoName || "");
+  const { data: prCount } = usePullRequestCount(username || "", repoName || "");
   const [isForkDialogOpen, setIsForkDialogOpen] = useState(false);
   const [forkName, setForkName] = useState("");
 
@@ -229,6 +232,32 @@ export default function RepositoryScreen() {
               </View>
             </View>
           </View>
+        </View>
+
+        <View className="mb-4">
+          <Tabs
+            tabs={[
+              { key: "code", label: "Code" },
+              { key: "commits", label: "Commits" },
+              { key: "issues", label: "Issues", badge: issueCount?.open ?? 0 },
+              { key: "pulls", label: "Pull requests", badge: prCount?.open ?? 0 },
+              { key: "releases", label: "Releases" },
+            ]}
+            activeKey="code"
+            onSelect={(key) => {
+              if (key === "commits") router.push(`/${username}/${repoName}/commits`);
+              else if (key === "issues") router.push(`/${username}/${repoName}/issues`);
+              else if (key === "pulls") router.push(`/${username}/${repoName}/pulls`);
+              else if (key === "releases") router.push(`/${username}/${repoName}/releases`);
+            }}
+          />
+        </View>
+
+        <View className="mb-4 p-3 rounded-lg bg-white/5 border border-gray-800">
+          <Text className="text-gray-400 text-xs mb-1">Clone (HTTPS)</Text>
+          <Text className="text-white text-sm font-mono" selectable>
+            https://api.sigmagit.com/git/{username}/{repoName}.git
+          </Text>
         </View>
 
         <Text className="text-white text-base font-semibold mb-3">Files</Text>

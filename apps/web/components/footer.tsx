@@ -21,7 +21,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://github.com"
+                href="https://github.com/disclearing/SigmaGit-v2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center size-9 rounded-xl bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-sm transition-all duration-200"
@@ -30,7 +30,7 @@ export function Footer() {
                 <Github className="size-4" />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://twitter.com/gasthefrench"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center size-9 rounded-xl bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-sm transition-all duration-200"
@@ -39,7 +39,7 @@ export function Footer() {
                 <Twitter className="size-4" />
               </a>
               <a
-                href="mailto:support@sigmagit.com"
+                href="mailto:info@sigmagit.com"
                 className="flex items-center justify-center size-9 rounded-xl bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-sm transition-all duration-200"
                 aria-label="Email"
               >

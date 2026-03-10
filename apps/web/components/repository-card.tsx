@@ -56,11 +56,18 @@ export default function RepositoryCard({ repository, showOwner = false, variant 
   return (
     <div className={cn(
       "group relative transition-all duration-300",
-      isListVariant 
-        ? "p-5 border-b border-border last:border-b-0 hover:bg-muted/30" 
-        : "p-5 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-border hover:shadow-lg"
+      isListVariant
+        ? "relative p-5 border-b border-border last:border-b-0 hover:bg-muted/30"
+        : "relative p-5 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-border hover:shadow-lg"
     )}>
-      <Link to="/$username/$repo" params={{ username: ownerUsername, repo: repository.name }} className="absolute inset-0 rounded-xl" />
+      <Link
+        to="/$username/$repo"
+        params={{ username: ownerUsername, repo: repository.name }}
+        className={cn(
+          "absolute inset-0",
+          isListVariant ? "" : "rounded-xl"
+        )}
+      />
       <span className="sr-only">View {repository.name}</span>
 
       <div className="flex items-start justify-between gap-4 relative">

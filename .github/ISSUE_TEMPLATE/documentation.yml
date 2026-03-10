@@ -1,0 +1,44 @@
+name: Documentation
+description: Report missing, incorrect, or unclear documentation
+title: '[Docs]: '
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for documentation fixes or gaps across the README, docs site, setup instructions, API docs, or contributor guidance.
+  - type: dropdown
+    id: docs-area
+    attributes:
+      label: Documentation area
+      options:
+        - README
+        - Setup / onboarding
+        - API docs
+        - Web docs
+        - Mobile docs
+        - Discord bot docs
+        - Deployment docs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong or missing?
+      placeholder: The docs currently say ...
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      placeholder: It would be better if the docs ...
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Relevant links or references
+      description: Include file paths, pages, screenshots, or external references if available.

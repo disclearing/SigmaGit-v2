@@ -1,0 +1,54 @@
+name: Feature request
+description: Propose a new feature or product improvement
+title: '[Feature]: '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea.
+
+        Please describe the problem you are trying to solve and how this would improve Sigmagit for contributors, maintainers, or end users.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project would this affect?
+      options:
+        - Web app
+        - API
+        - Mobile app
+        - Docs
+        - Discord bot
+        - Runner
+        - Database
+        - Cross-cutting
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What problem are you trying to solve?
+      placeholder: It is difficult to ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the change you would like to see.
+      placeholder: We should add ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe alternative solutions or workarounds you have considered.
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add mockups, references, examples, or implementation notes if helpful.

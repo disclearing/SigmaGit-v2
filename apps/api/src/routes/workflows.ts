@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db, users, repositories, workflows, workflowRuns, workflowJobs, workflowSteps } from '@sigmagit/db';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and, desc, asc, inArray } from 'drizzle-orm';
 import { authMiddleware, requireAuth, type AuthVariables } from '../middleware/auth';
 import { parseLimit, parsePage } from '../lib/validation';
 import { syncWorkflows } from '../workflows/sync';
@@ -180,16 +180,21 @@ app.get('/api/repositories/:owner/:repo/runs/:runId', async (c) => {
     .where(eq(workflowJobs.runId, runId))
     .orderBy(asc(workflowJobs.createdAt));
 
-  const jobsWithSteps = await Promise.all(
-    jobs.map(async (job) => {
-      const steps = await db
-        .select()
-        .from(workflowSteps)
-        .where(eq(workflowSteps.jobId, job.id))
-        .orderBy(asc(workflowSteps.number));
-      return { ...job, steps };
-    })
-  );
+  const jobIds = jobs.map((j) => j.id);
+  const stepsByJobId = new Map<string, typeof workflowSteps.$inferSelect[]>();
+  if (jobIds.length > 0) {
+    const allSteps = await db
+      .select()
+      .from(workflowSteps)
+      .where(inArray(workflowSteps.jobId, jobIds))
+      .orderBy(asc(workflowSteps.number));
+    for (const step of allSteps) {
+      const list = stepsByJobId.get(step.jobId) ?? [];
+      list.push(step);
+      stepsByJobId.set(step.jobId, list);
+    }
+  }
+  const jobsWithSteps = jobs.map((job) => ({ ...job, steps: stepsByJobId.get(job.id) ?? [] }));
 
   return c.json({ run, jobs: jobsWithSteps });
 });

@@ -8,7 +8,7 @@ import {
   discussionComments,
   discussionReactions,
 } from "@sigmagit/db";
-import { eq, sql, and, desc, isNull } from "drizzle-orm";
+import { eq, sql, and, desc, isNull, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 
@@ -129,6 +129,106 @@ async function enrichDiscussion(discussion: any, currentUserId?: string) {
   };
 }
 
+type UserSummary = { id: string; username: string; name: string; avatarUrl: string | null };
+
+async function getUsersByIds(userIds: string[]): Promise<Map<string, UserSummary>> {
+  if (userIds.length === 0) return new Map();
+  const uniq = [...new Set(userIds)];
+  const rows = await db
+    .select({ id: users.id, username: users.username, name: users.name, avatarUrl: users.avatarUrl })
+    .from(users)
+    .where(inArray(users.id, uniq));
+  return new Map(rows.map((u) => [u.id, u]));
+}
+
+async function enrichDiscussionsBatch(
+  discussionRows: { id: string; authorId: string; categoryId: string | null; number: number; title: string; body: string | null; isPinned: boolean; isLocked: boolean; isAnswered: boolean; answerId: string | null; createdAt: Date; updatedAt: Date }[],
+  currentUserId?: string
+) {
+  const discussionIds = discussionRows.map((d) => d.id);
+  if (discussionIds.length === 0) return [];
+
+  const authorIds = discussionRows.map((d) => d.authorId);
+  const categoryIds = [...new Set(discussionRows.filter((d) => d.categoryId).map((d) => d.categoryId!))];
+
+  const [usersById, categoriesById, commentCountRows, reactionCounts, userReactionRows] = await Promise.all([
+    getUsersByIds(authorIds),
+    categoryIds.length === 0
+      ? Promise.resolve(new Map())
+      : (async () => {
+          const rows = await db.select().from(discussionCategories).where(inArray(discussionCategories.id, categoryIds));
+          return new Map(rows.map((c) => [c.id, c]));
+        })(),
+    db
+      .select({
+        discussionId: discussionComments.discussionId,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(discussionComments)
+      .where(inArray(discussionComments.discussionId, discussionIds))
+      .groupBy(discussionComments.discussionId),
+    db
+      .select({
+        discussionId: discussionReactions.discussionId,
+        emoji: discussionReactions.emoji,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(discussionReactions)
+      .where(inArray(discussionReactions.discussionId, discussionIds))
+      .groupBy(discussionReactions.discussionId, discussionReactions.emoji),
+    currentUserId
+      ? db
+          .select({ discussionId: discussionReactions.discussionId, emoji: discussionReactions.emoji })
+          .from(discussionReactions)
+          .where(and(inArray(discussionReactions.discussionId, discussionIds), eq(discussionReactions.userId, currentUserId)))
+      : Promise.resolve([]),
+  ]);
+
+  const userEmojisByDiscussionId = new Map<string, string[]>();
+  for (const r of userReactionRows) {
+    const list = userEmojisByDiscussionId.get(r.discussionId) ?? [];
+    if (!list.includes(r.emoji)) list.push(r.emoji);
+    userEmojisByDiscussionId.set(r.discussionId, list);
+  }
+  const reactionsByDiscussionId = new Map<string, { emoji: string; count: number; reacted: boolean }[]>();
+  for (const c of reactionCounts) {
+    const list = reactionsByDiscussionId.get(c.discussionId) ?? [];
+    list.push({
+      emoji: c.emoji,
+      count: Number(c.count),
+      reacted: (userEmojisByDiscussionId.get(c.discussionId) ?? []).includes(c.emoji),
+    });
+    reactionsByDiscussionId.set(c.discussionId, list);
+  }
+  const commentCountByDiscussionId = new Map<string, number>();
+  for (const r of commentCountRows) {
+    commentCountByDiscussionId.set(r.discussionId, Number(r.count) || 0);
+  }
+
+  return discussionRows.map((d) => {
+    const author = usersById.get(d.authorId) ?? { id: d.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+    const category = d.categoryId ? categoriesById.get(d.categoryId) : null;
+    const commentCount = commentCountByDiscussionId.get(d.id) ?? 0;
+    const reactions = reactionsByDiscussionId.get(d.id) ?? [];
+    return {
+      id: d.id,
+      number: d.number,
+      title: d.title,
+      body: d.body,
+      author,
+      category: category ? { id: category.id, name: category.name, emoji: category.emoji } : null,
+      isPinned: d.isPinned,
+      isLocked: d.isLocked,
+      isAnswered: d.isAnswered,
+      answerId: d.answerId,
+      reactions,
+      commentCount,
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+    };
+  });
+}
+
 app.get("/api/repositories/:owner/:name/discussions", async (c) => {
   const owner = c.req.param("owner");
   const name = c.req.param("name");
@@ -156,9 +256,8 @@ app.get("/api/repositories/:owner/:name/discussions", async (c) => {
     .offset(offset);
 
   const hasMore = rows.length > limit;
-  const discussionsList = await Promise.all(
-    rows.slice(0, limit).map((d) => enrichDiscussion(d, currentUser?.id))
-  );
+  const discussionRows = rows.slice(0, limit);
+  const discussionsList = await enrichDiscussionsBatch(discussionRows, currentUser?.id);
 
   return c.json({ discussions: discussionsList, hasMore });
 });
@@ -407,27 +506,65 @@ app.get("/api/discussions/:id/comments", async (c) => {
     .where(eq(discussionComments.discussionId, id))
     .orderBy(discussionComments.createdAt);
 
-  const commentsList = await Promise.all(
-    comments.map(async (comment) => {
-      const author = await db.query.users.findFirst({
-        where: eq(users.id, comment.authorId),
-        columns: { id: true, username: true, name: true, avatarUrl: true },
-      });
+  if (comments.length === 0) {
+    return c.json({ comments: [] });
+  }
 
-      const reactions = await getCommentReactionsGrouped(comment.id, currentUser?.id);
+  const commentIds = comments.map((c) => c.id);
+  const authorIds = [...new Set(comments.map((c) => c.authorId))];
 
-      return {
-        id: comment.id,
-        body: comment.body,
-        parentId: comment.parentId,
-        isAnswer: comment.isAnswer,
-        author: author || { id: comment.authorId, username: "unknown", name: "Unknown", avatarUrl: null },
-        reactions,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-      };
-    })
-  );
+  const [usersById, reactionCounts, userReactionRows] = await Promise.all([
+    getUsersByIds(authorIds),
+    db
+      .select({
+        commentId: discussionReactions.commentId,
+        emoji: discussionReactions.emoji,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(discussionReactions)
+      .where(inArray(discussionReactions.commentId, commentIds))
+      .groupBy(discussionReactions.commentId, discussionReactions.emoji),
+    currentUser?.id
+      ? db
+          .select({ commentId: discussionReactions.commentId, emoji: discussionReactions.emoji })
+          .from(discussionReactions)
+          .where(and(inArray(discussionReactions.commentId, commentIds), eq(discussionReactions.userId, currentUser.id)))
+      : Promise.resolve([]),
+  ]);
+
+  const userEmojisByCommentId = new Map<string, string[]>();
+  for (const r of userReactionRows) {
+    if (!r.commentId) continue;
+    const list = userEmojisByCommentId.get(r.commentId) ?? [];
+    if (!list.includes(r.emoji)) list.push(r.emoji);
+    userEmojisByCommentId.set(r.commentId, list);
+  }
+  const reactionsByCommentId = new Map<string, { emoji: string; count: number; reacted: boolean }[]>();
+  for (const c of reactionCounts) {
+    if (!c.commentId) continue;
+    const list = reactionsByCommentId.get(c.commentId) ?? [];
+    list.push({
+      emoji: c.emoji,
+      count: Number(c.count),
+      reacted: (userEmojisByCommentId.get(c.commentId) ?? []).includes(c.emoji),
+    });
+    reactionsByCommentId.set(c.commentId, list);
+  }
+
+  const commentsList = comments.map((comment) => {
+    const author = usersById.get(comment.authorId) ?? { id: comment.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+    const reactions = reactionsByCommentId.get(comment.id) ?? [];
+    return {
+      id: comment.id,
+      body: comment.body,
+      parentId: comment.parentId,
+      isAnswer: comment.isAnswer,
+      author,
+      reactions,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+    };
+  });
 
   return c.json({ comments: commentsList });
 });

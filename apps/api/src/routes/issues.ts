@@ -10,7 +10,7 @@ import {
   issueComments,
   issueReactions,
 } from "@sigmagit/db";
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 
@@ -128,6 +128,35 @@ async function getCommentCount(issueId: string): Promise<number> {
   return result?.count || 0;
 }
 
+type UserSummary = { id: string; username: string; name: string; avatarUrl: string | null };
+
+async function getUsersByIds(userIds: string[]): Promise<Map<string, UserSummary>> {
+  if (userIds.length === 0) return new Map();
+  const uniq = [...new Set(userIds)];
+  const rows = await db
+    .select({ id: users.id, username: users.username, name: users.name, avatarUrl: users.avatarUrl })
+    .from(users)
+    .where(inArray(users.id, uniq));
+  return new Map(rows.map((u) => [u.id, u]));
+}
+
+function buildIssueReactionsGrouped(
+  counts: { issueId: string; emoji: string; count: number }[],
+  userEmojisByIssue: Map<string, string[]>
+) {
+  const byIssue = new Map<string, { emoji: string; count: number; reacted: boolean }[]>();
+  for (const c of counts) {
+    const list = byIssue.get(c.issueId) ?? [];
+    list.push({
+      emoji: c.emoji,
+      count: c.count,
+      reacted: (userEmojisByIssue.get(c.issueId) ?? []).includes(c.emoji),
+    });
+    byIssue.set(c.issueId, list);
+  }
+  return byIssue;
+}
+
 app.get("/api/repositories/:owner/:name/issues", async (c) => {
   const owner = c.req.param("owner");
   const name = c.req.param("name");
@@ -168,45 +197,128 @@ app.get("/api/repositories/:owner/:name/issues", async (c) => {
 
   const hasMore = rows.length > limit;
   const issueRows = rows.slice(0, limit);
+  const issueIds = issueRows.map((r) => r.id);
+  const authorIds = issueRows.map((r) => r.authorId);
+  const closedByIds = issueRows.filter((r) => r.closedById).map((r) => r.closedById!);
+  const userIds = [...new Set([...authorIds, ...closedByIds])];
 
-  const issueList = await Promise.all(
-    issueRows.map(async (row) => {
-      const author = await db.query.users.findFirst({
-        where: eq(users.id, row.authorId),
-        columns: { id: true, username: true, name: true, avatarUrl: true },
-      });
-
-      const closedBy = row.closedById
-        ? await db.query.users.findFirst({
-            where: eq(users.id, row.closedById),
-            columns: { id: true, username: true, name: true, avatarUrl: true },
+  const [usersById, issueLabelRows, assigneeRows, reactionCounts, userReactionRows, commentCountRows] = await Promise.all([
+    getUsersByIds(userIds),
+    issueIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({ issueId: issueLabels.issueId, labelId: issueLabels.labelId })
+          .from(issueLabels)
+          .where(inArray(issueLabels.issueId, issueIds)),
+    issueIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            issueId: issueAssignees.issueId,
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            avatarUrl: users.avatarUrl,
           })
-        : null;
+          .from(issueAssignees)
+          .innerJoin(users, eq(users.id, issueAssignees.userId))
+          .where(inArray(issueAssignees.issueId, issueIds)),
+    issueIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            issueId: issueReactions.issueId,
+            emoji: issueReactions.emoji,
+            count: sql<number>`COUNT(*)`.as("count"),
+          })
+          .from(issueReactions)
+          .where(inArray(issueReactions.issueId, issueIds))
+          .groupBy(issueReactions.issueId, issueReactions.emoji),
+    currentUser?.id && issueIds.length > 0
+      ? db
+          .select({ issueId: issueReactions.issueId, emoji: issueReactions.emoji })
+          .from(issueReactions)
+          .where(and(inArray(issueReactions.issueId, issueIds), eq(issueReactions.userId, currentUser.id)))
+      : Promise.resolve([]),
+    issueIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            issueId: issueComments.issueId,
+            count: sql<number>`COUNT(*)`.as("count"),
+          })
+          .from(issueComments)
+          .where(inArray(issueComments.issueId, issueIds))
+          .groupBy(issueComments.issueId),
+  ]);
 
-      const issueLabelsData = await getIssueLabels(row.id);
-      const assignees = await getIssueAssignees(row.id);
-      const reactions = await getIssueReactionsGrouped(row.id, currentUser?.id);
-      const commentCount = await getCommentCount(row.id);
+  const labelIds = [...new Set(issueLabelRows.map((r) => r.labelId))];
+  const labelsById = new Map<string, { id: string; name: string; description: string | null; color: string | null }>();
+  if (labelIds.length > 0) {
+    const labelRows = await db
+      .select({ id: labels.id, name: labels.name, description: labels.description, color: labels.color })
+      .from(labels)
+      .where(inArray(labels.id, labelIds));
+    for (const l of labelRows) labelsById.set(l.id, l);
+  }
+  const labelsByIssueId = new Map<string, { id: string; name: string; description: string | null; color: string | null }[]>();
+  for (const r of issueLabelRows) {
+    const label = labelsById.get(r.labelId);
+    if (label) {
+      const list = labelsByIssueId.get(r.issueId) ?? [];
+      list.push(label);
+      labelsByIssueId.set(r.issueId, list);
+    }
+  }
 
-      return {
-        id: row.id,
-        number: row.number,
-        title: row.title,
-        body: row.body,
-        state: row.state,
-        locked: row.locked,
-        author: author || { id: row.authorId, username: "unknown", name: "Unknown", avatarUrl: null },
-        labels: issueLabelsData,
-        assignees,
-        reactions,
-        commentCount,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        closedAt: row.closedAt,
-        closedBy,
-      };
-    })
+  const assigneesByIssueId = new Map<string, UserSummary[]>();
+  for (const r of assigneeRows) {
+    const list = assigneesByIssueId.get(r.issueId) ?? [];
+    list.push({ id: r.id, username: r.username, name: r.name, avatarUrl: r.avatarUrl });
+    assigneesByIssueId.set(r.issueId, list);
+  }
+
+  const userEmojisByIssue = new Map<string, string[]>();
+  for (const r of userReactionRows) {
+    const list = userEmojisByIssue.get(r.issueId) ?? [];
+    if (!list.includes(r.emoji)) list.push(r.emoji);
+    userEmojisByIssue.set(r.issueId, list);
+  }
+  const reactionsByIssueId = buildIssueReactionsGrouped(
+    reactionCounts.map((c) => ({ issueId: c.issueId, emoji: c.emoji, count: c.count })),
+    userEmojisByIssue
   );
+
+  const commentCountByIssueId = new Map<string, number>();
+  for (const r of commentCountRows) {
+    commentCountByIssueId.set(r.issueId, Number(r.count) || 0);
+  }
+
+  const issueList = issueRows.map((row) => {
+    const author = usersById.get(row.authorId) ?? { id: row.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+    const closedBy = row.closedById ? usersById.get(row.closedById) ?? null : null;
+    const issueLabelsData = (labelsByIssueId.get(row.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
+    const assignees = assigneesByIssueId.get(row.id) ?? [];
+    const reactions = (reactionsByIssueId.get(row.id) ?? []).map((c) => ({ emoji: c.emoji, count: c.count, reacted: c.reacted }));
+    const commentCount = commentCountByIssueId.get(row.id) ?? 0;
+    return {
+      id: row.id,
+      number: row.number,
+      title: row.title,
+      body: row.body,
+      state: row.state,
+      locked: row.locked,
+      author,
+      labels: issueLabelsData,
+      assignees,
+      reactions,
+      commentCount,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      closedAt: row.closedAt,
+      closedBy,
+    };
+  });
 
   return c.json({ issues: issueList, hasMore });
 });
@@ -685,25 +797,63 @@ app.get("/api/issues/:id/comments", async (c) => {
     .where(eq(issueComments.issueId, id))
     .orderBy(issueComments.createdAt);
 
-  const commentsList = await Promise.all(
-    comments.map(async (comment) => {
-      const author = await db.query.users.findFirst({
-        where: eq(users.id, comment.authorId),
-        columns: { id: true, username: true, name: true, avatarUrl: true },
-      });
+  if (comments.length === 0) {
+    return c.json({ comments: [] });
+  }
 
-      const reactions = await getCommentReactionsGrouped(comment.id, currentUser?.id);
+  const commentIds = comments.map((c) => c.id);
+  const authorIds = [...new Set(comments.map((c) => c.authorId))];
 
-      return {
-        id: comment.id,
-        body: comment.body,
-        author: author || { id: comment.authorId, username: "unknown", name: "Unknown", avatarUrl: null },
-        reactions,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-      };
-    })
-  );
+  const [usersById, reactionCounts, userReactionRows] = await Promise.all([
+    getUsersByIds(authorIds),
+    db
+      .select({
+        commentId: issueReactions.commentId,
+        emoji: issueReactions.emoji,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(issueReactions)
+      .where(inArray(issueReactions.commentId, commentIds))
+      .groupBy(issueReactions.commentId, issueReactions.emoji),
+    currentUser?.id
+      ? db
+          .select({ commentId: issueReactions.commentId, emoji: issueReactions.emoji })
+          .from(issueReactions)
+          .where(and(inArray(issueReactions.commentId, commentIds), eq(issueReactions.userId, currentUser.id)))
+      : Promise.resolve([]),
+  ]);
+
+  const userEmojisByCommentId = new Map<string, string[]>();
+  for (const r of userReactionRows) {
+    if (!r.commentId) continue;
+    const list = userEmojisByCommentId.get(r.commentId) ?? [];
+    if (!list.includes(r.emoji)) list.push(r.emoji);
+    userEmojisByCommentId.set(r.commentId, list);
+  }
+  const reactionsByCommentId = new Map<string, { emoji: string; count: number; reacted: boolean }[]>();
+  for (const c of reactionCounts) {
+    if (!c.commentId) continue;
+    const list = reactionsByCommentId.get(c.commentId) ?? [];
+    list.push({
+      emoji: c.emoji,
+      count: Number(c.count),
+      reacted: (userEmojisByCommentId.get(c.commentId) ?? []).includes(c.emoji),
+    });
+    reactionsByCommentId.set(c.commentId, list);
+  }
+
+  const commentsList = comments.map((comment) => {
+    const author = usersById.get(comment.authorId) ?? { id: comment.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+    const reactions = reactionsByCommentId.get(comment.id) ?? [];
+    return {
+      id: comment.id,
+      body: comment.body,
+      author,
+      reactions,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+    };
+  });
 
   return c.json({ comments: commentsList });
 });

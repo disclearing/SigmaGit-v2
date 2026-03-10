@@ -213,12 +213,12 @@ export function useDeleteRepository(id: string) {
   });
 }
 
-export function useIsStarredByUser(repoId: string) {
+export function useIsStarredByUser(repoId: string, options?: { enabled?: boolean }) {
   const api = useApi();
   return useQuery({
     queryKey: ["repository", repoId, "isStarred"],
     queryFn: () => api.repositories.isStarred(repoId),
-    enabled: !!repoId,
+    enabled: options?.enabled ?? !!repoId,
   });
 }
 
@@ -234,22 +234,30 @@ export function useToggleStar(repoId: string) {
   });
 }
 
-export function useStarRepository(repoId: string, initialStarCount?: number) {
+export function useStarRepository(
+  repoId: string,
+  initialStarCount?: number,
+  /** When provided (e.g. from list response), skip N+1 isStarred fetch */
+  initialIsStarred?: boolean
+) {
   const api = useApi();
   const queryClient = useQueryClient();
-  const { data, isLoading } = useIsStarredByUser(repoId);
+  const skipIsStarredFetch = initialIsStarred !== undefined;
+  const { data, isLoading } = useIsStarredByUser(repoId, { enabled: !skipIsStarredFetch });
   const [starCount, setStarCount] = useState(initialStarCount);
-  const [isStarred, setIsStarred] = useState(false);
+  const [isStarred, setIsStarred] = useState(skipIsStarredFetch ? initialIsStarred! : false);
 
   useEffect(() => {
     setStarCount(initialStarCount);
   }, [initialStarCount]);
 
   useEffect(() => {
-    if (data !== undefined) {
+    if (skipIsStarredFetch) {
+      setIsStarred(initialIsStarred!);
+    } else if (data !== undefined) {
       setIsStarred(data.starred);
     }
-  }, [data]);
+  }, [skipIsStarredFetch, initialIsStarred, data]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -269,6 +277,8 @@ export function useStarRepository(repoId: string, initialStarCount?: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repository", repoId, "isStarred"] });
+      queryClient.invalidateQueries({ queryKey: ["repository"] });
+      queryClient.invalidateQueries({ queryKey: ["repositories"] });
     },
   });
 

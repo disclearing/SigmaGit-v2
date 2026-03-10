@@ -12,7 +12,7 @@ import {
   prReactions,
   labels,
 } from "@sigmagit/db";
-import { eq, sql, and, desc, or } from "drizzle-orm";
+import { eq, sql, and, desc, or, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, squashMerge, rebaseMerge, repoCache } from "../git";
@@ -212,6 +212,251 @@ async function getRepoInfo(repoId: string) {
   };
 }
 
+type UserSummary = { id: string; username: string; name: string; avatarUrl: string | null };
+type RepoInfo = { id: string; name: string; owner: UserSummary };
+
+async function getUsersByIds(userIds: string[]): Promise<Map<string, UserSummary>> {
+  if (userIds.length === 0) return new Map();
+  const uniq = [...new Set(userIds)];
+  const rows = await db
+    .select({ id: users.id, username: users.username, name: users.name, avatarUrl: users.avatarUrl })
+    .from(users)
+    .where(inArray(users.id, uniq));
+  return new Map(rows.map((u) => [u.id, u]));
+}
+
+async function getReposByIds(repoIds: string[]): Promise<Map<string, RepoInfo | null>> {
+  if (repoIds.length === 0) return new Map();
+  const uniq = [...new Set(repoIds)];
+  const rows = await db
+    .select({
+      id: repositories.id,
+      name: repositories.name,
+      ownerId: repositories.ownerId,
+      username: users.username,
+      userName: users.name,
+      avatarUrl: users.avatarUrl,
+    })
+    .from(repositories)
+    .innerJoin(users, eq(users.id, repositories.ownerId))
+    .where(inArray(repositories.id, uniq));
+  const map = new Map<string, RepoInfo | null>();
+  for (const row of rows) {
+    map.set(row.id, {
+      id: row.id,
+      name: row.name,
+      owner: { id: row.ownerId, username: row.username, name: row.userName, avatarUrl: row.avatarUrl },
+    });
+  }
+  for (const id of uniq) {
+    if (!map.has(id)) map.set(id, null);
+  }
+  return map;
+}
+
+async function enrichPullRequestsBatch(prRows: typeof pullRequests.$inferSelect[], currentUserId?: string) {
+  const prIds = prRows.map((r) => r.id);
+  if (prIds.length === 0) return [];
+
+  const authorIds = prRows.map((r) => r.authorId);
+  const mergedByIds = prRows.filter((r) => r.mergedById).map((r) => r.mergedById!);
+  const closedByIds = prRows.filter((r) => r.closedById).map((r) => r.closedById!);
+  const headRepoIds = prRows.map((r) => r.headRepoId);
+  const baseRepoIds = prRows.map((r) => r.baseRepoId);
+  const userIds = [...new Set([...authorIds, ...mergedByIds, ...closedByIds])];
+  const repoIds = [...new Set([...headRepoIds, ...baseRepoIds])];
+
+  const [
+    usersById,
+    reposById,
+    prLabelRows,
+    assigneeRows,
+    reviewerRows,
+    reviewRows,
+    reactionCounts,
+    userReactionRows,
+    commentCountRows,
+  ] = await Promise.all([
+    getUsersByIds(userIds),
+    getReposByIds(repoIds),
+    db.select({ pullRequestId: prLabels.pullRequestId, labelId: prLabels.labelId }).from(prLabels).where(inArray(prLabels.pullRequestId, prIds)),
+    db
+      .select({
+        pullRequestId: prAssignees.pullRequestId,
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        avatarUrl: users.avatarUrl,
+      })
+      .from(prAssignees)
+      .innerJoin(users, eq(users.id, prAssignees.userId))
+      .where(inArray(prAssignees.pullRequestId, prIds)),
+    db
+      .select({
+        pullRequestId: prReviewers.pullRequestId,
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        avatarUrl: users.avatarUrl,
+      })
+      .from(prReviewers)
+      .innerJoin(users, eq(users.id, prReviewers.userId))
+      .where(inArray(prReviewers.pullRequestId, prIds)),
+    db
+      .select({
+        id: prReviews.id,
+        pullRequestId: prReviews.pullRequestId,
+        body: prReviews.body,
+        state: prReviews.state,
+        commitOid: prReviews.commitOid,
+        createdAt: prReviews.createdAt,
+        authorId: prReviews.authorId,
+      })
+      .from(prReviews)
+      .where(inArray(prReviews.pullRequestId, prIds))
+      .orderBy(desc(prReviews.createdAt)),
+    db
+      .select({
+        pullRequestId: prReactions.pullRequestId,
+        emoji: prReactions.emoji,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(prReactions)
+      .where(inArray(prReactions.pullRequestId, prIds))
+      .groupBy(prReactions.pullRequestId, prReactions.emoji),
+    currentUserId
+      ? db
+          .select({ pullRequestId: prReactions.pullRequestId, emoji: prReactions.emoji })
+          .from(prReactions)
+          .where(and(inArray(prReactions.pullRequestId, prIds), eq(prReactions.userId, currentUserId)))
+      : Promise.resolve([]),
+    db
+      .select({
+        pullRequestId: prComments.pullRequestId,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(prComments)
+      .where(inArray(prComments.pullRequestId, prIds))
+      .groupBy(prComments.pullRequestId),
+  ]);
+
+  const reviewAuthorIds = [...new Set(reviewRows.map((r) => r.authorId))];
+  const reviewAuthorsById = await getUsersByIds(reviewAuthorIds);
+
+  const labelIds = [...new Set(prLabelRows.map((r) => r.labelId))];
+  const labelsById = new Map<string, { id: string; name: string; description: string | null; color: string | null }>();
+  if (labelIds.length > 0) {
+    const labelRows = await db
+      .select({ id: labels.id, name: labels.name, description: labels.description, color: labels.color })
+      .from(labels)
+      .where(inArray(labels.id, labelIds));
+    for (const l of labelRows) labelsById.set(l.id, l);
+  }
+  const labelsByPrId = new Map<string, { id: string; name: string; description: string | null; color: string | null }[]>();
+  for (const r of prLabelRows) {
+    const label = labelsById.get(r.labelId);
+    if (label) {
+      const list = labelsByPrId.get(r.pullRequestId) ?? [];
+      list.push(label);
+      labelsByPrId.set(r.pullRequestId, list);
+    }
+  }
+  for (const id of prIds) {
+    if (!labelsByPrId.has(id)) labelsByPrId.set(id, []);
+  }
+  for (const [, list] of labelsByPrId) list.sort((a, b) => a.name.localeCompare(b.name));
+
+  const assigneesByPrId = new Map<string, UserSummary[]>();
+  for (const r of assigneeRows) {
+    const list = assigneesByPrId.get(r.pullRequestId) ?? [];
+    list.push({ id: r.id, username: r.username, name: r.name, avatarUrl: r.avatarUrl });
+    assigneesByPrId.set(r.pullRequestId, list);
+  }
+  const reviewersByPrId = new Map<string, UserSummary[]>();
+  for (const r of reviewerRows) {
+    const list = reviewersByPrId.get(r.pullRequestId) ?? [];
+    list.push({ id: r.id, username: r.username, name: r.name, avatarUrl: r.avatarUrl });
+    reviewersByPrId.set(r.pullRequestId, list);
+  }
+  const reviewsByPrId = new Map<string, { id: string; body: string | null; state: string; commitOid: string | null; createdAt: Date; author: UserSummary }[]>();
+  for (const r of reviewRows) {
+    const list = reviewsByPrId.get(r.pullRequestId) ?? [];
+    const author = reviewAuthorsById.get(r.authorId) ?? { id: r.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+    list.push({
+      id: r.id,
+      body: r.body,
+      state: r.state,
+      commitOid: r.commitOid,
+      createdAt: r.createdAt,
+      author,
+    });
+    reviewsByPrId.set(r.pullRequestId, list);
+  }
+  const userEmojisByPrId = new Map<string, string[]>();
+  for (const r of userReactionRows) {
+    const list = userEmojisByPrId.get(r.pullRequestId) ?? [];
+    if (!list.includes(r.emoji)) list.push(r.emoji);
+    userEmojisByPrId.set(r.pullRequestId, list);
+  }
+  const reactionsByPrId = new Map<string, { emoji: string; count: number; reacted: boolean }[]>();
+  for (const c of reactionCounts) {
+    const list = reactionsByPrId.get(c.pullRequestId) ?? [];
+    list.push({
+      emoji: c.emoji,
+      count: Number(c.count),
+      reacted: (userEmojisByPrId.get(c.pullRequestId) ?? []).includes(c.emoji),
+    });
+    reactionsByPrId.set(c.pullRequestId, list);
+  }
+  const commentCountByPrId = new Map<string, number>();
+  for (const r of commentCountRows) {
+    commentCountByPrId.set(r.pullRequestId, Number(r.count) || 0);
+  }
+
+  return prRows.map((pr) => {
+    const author = usersById.get(pr.authorId) ?? { id: pr.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+    const mergedBy = pr.mergedById ? usersById.get(pr.mergedById) ?? null : null;
+    const closedBy = pr.closedById ? usersById.get(pr.closedById) ?? null : null;
+    const headRepo = reposById.get(pr.headRepoId) ?? null;
+    const baseRepo = reposById.get(pr.baseRepoId) ?? null;
+    const prLabelsData = labelsByPrId.get(pr.id) ?? [];
+    const assignees = assigneesByPrId.get(pr.id) ?? [];
+    const reviewersList = reviewersByPrId.get(pr.id) ?? [];
+    const reviewsList = reviewsByPrId.get(pr.id) ?? [];
+    const reactionsList = reactionsByPrId.get(pr.id) ?? [];
+    const commentCount = commentCountByPrId.get(pr.id) ?? 0;
+    return {
+      id: pr.id,
+      number: pr.number,
+      title: pr.title,
+      body: pr.body,
+      state: pr.state,
+      isDraft: pr.isDraft ?? false,
+      author,
+      headRepo,
+      headBranch: pr.headBranch,
+      headOid: pr.headOid,
+      baseRepo,
+      baseBranch: pr.baseBranch,
+      baseOid: pr.baseOid,
+      merged: pr.merged,
+      mergedAt: pr.mergedAt,
+      mergedBy,
+      mergeCommitOid: pr.mergeCommitOid,
+      labels: prLabelsData,
+      assignees: assignees,
+      reviewers: reviewersList,
+      reviews: reviewsList,
+      reactions: reactionsList,
+      commentCount,
+      createdAt: pr.createdAt,
+      updatedAt: pr.updatedAt,
+      closedAt: pr.closedAt,
+      closedBy,
+    };
+  });
+}
+
 async function enrichPullRequest(pr: any, currentUserId?: string) {
   const author = await db.query.users.findFirst({
     where: eq(users.id, pr.authorId),
@@ -317,7 +562,7 @@ app.get("/api/repositories/:owner/:name/pulls", async (c) => {
   const hasMore = rows.length > limit;
   const prRows = rows.slice(0, limit);
 
-  const prList = await Promise.all(prRows.map((pr) => enrichPullRequest(pr, currentUser?.id)));
+  const prList = await enrichPullRequestsBatch(prRows, currentUser?.id);
 
   return c.json({ pullRequests: prList, hasMore });
 });
@@ -954,15 +1199,63 @@ app.get("/api/pulls/:id/comments", async (c) => {
 
   const comments = await commentsQuery;
 
-  const commentsList = await Promise.all(
-    comments.map(async (comment) => {
-      const author = await db.query.users.findFirst({
-        where: eq(users.id, comment.authorId),
-        columns: { id: true, username: true, name: true, avatarUrl: true },
+  let commentsList: {
+    id: string;
+    body: string;
+    filePath: string | null;
+    side: string | null;
+    lineNumber: number | null;
+    commitOid: string | null;
+    replyToId: string | null;
+    author: UserSummary;
+    reactions: { emoji: string; count: number; reacted: boolean }[];
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  if (comments.length === 0) {
+    commentsList = [];
+  } else {
+    const commentIds = comments.map((c) => c.id);
+    const authorIds = [...new Set(comments.map((c) => c.authorId))];
+    const [usersById, reactionCounts, userReactionRows] = await Promise.all([
+      getUsersByIds(authorIds),
+      db
+        .select({
+          commentId: prReactions.commentId,
+          emoji: prReactions.emoji,
+          count: sql<number>`COUNT(*)`.as("count"),
+        })
+        .from(prReactions)
+        .where(inArray(prReactions.commentId, commentIds))
+        .groupBy(prReactions.commentId, prReactions.emoji),
+      currentUser?.id
+        ? db
+            .select({ commentId: prReactions.commentId, emoji: prReactions.emoji })
+            .from(prReactions)
+            .where(and(inArray(prReactions.commentId, commentIds), eq(prReactions.userId, currentUser.id)))
+        : Promise.resolve([]),
+    ]);
+    const userEmojisByCommentId = new Map<string, string[]>();
+    for (const r of userReactionRows) {
+      if (!r.commentId) continue;
+      const list = userEmojisByCommentId.get(r.commentId) ?? [];
+      if (!list.includes(r.emoji)) list.push(r.emoji);
+      userEmojisByCommentId.set(r.commentId, list);
+    }
+    const reactionsByCommentId = new Map<string, { emoji: string; count: number; reacted: boolean }[]>();
+    for (const c of reactionCounts) {
+      if (!c.commentId) continue;
+      const list = reactionsByCommentId.get(c.commentId) ?? [];
+      list.push({
+        emoji: c.emoji,
+        count: Number(c.count),
+        reacted: (userEmojisByCommentId.get(c.commentId) ?? []).includes(c.emoji),
       });
-
-      const reactions = await getCommentReactionsGrouped(comment.id, currentUser?.id);
-
+      reactionsByCommentId.set(c.commentId, list);
+    }
+    commentsList = comments.map((comment) => {
+      const author = usersById.get(comment.authorId) ?? { id: comment.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+      const reactions = reactionsByCommentId.get(comment.id) ?? [];
       return {
         id: comment.id,
         body: comment.body,
@@ -971,13 +1264,13 @@ app.get("/api/pulls/:id/comments", async (c) => {
         lineNumber: comment.lineNumber,
         commitOid: comment.commitOid,
         replyToId: comment.replyToId,
-        author: author || { id: comment.authorId, username: "unknown", name: "Unknown", avatarUrl: null },
+        author,
         reactions,
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
       };
-    })
-  );
+    });
+  }
 
   if (groupByFile) {
     const generalComments = commentsList.filter((c) => !c.filePath);

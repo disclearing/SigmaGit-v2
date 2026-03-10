@@ -9,7 +9,7 @@ import {
   issues,
   pullRequests,
 } from "@sigmagit/db";
-import { eq, sql, and, asc } from "drizzle-orm";
+import { eq, sql, and, asc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -188,24 +188,86 @@ app.get("/api/projects/:id", async (c) => {
     .where(eq(projectColumns.projectId, id))
     .orderBy(asc(projectColumns.position));
 
-  const columnsWithItems = await Promise.all(
-    columns.map(async (column) => {
-      const items = await db
-        .select()
-        .from(projectItems)
-        .where(eq(projectItems.columnId, column.id))
-        .orderBy(asc(projectItems.position));
+  if (columns.length === 0) {
+    return c.json({
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      columns: [],
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+    });
+  }
 
-      const enrichedItems = (await Promise.all(items.map(enrichProjectItem))).filter(Boolean);
+  const columnIds = columns.map((c) => c.id);
+  const allItems = await db
+    .select()
+    .from(projectItems)
+    .where(inArray(projectItems.columnId, columnIds))
+    .orderBy(asc(projectItems.position));
 
-      return {
-        id: column.id,
-        name: column.name,
-        position: column.position,
-        items: enrichedItems,
-      };
-    })
-  );
+  const issueIds = [...new Set(allItems.filter((i) => i.issueId).map((i) => i.issueId!))];
+  const prIds = [...new Set(allItems.filter((i) => i.pullRequestId).map((i) => i.pullRequestId!))];
+
+  const [issueRows, prRows, usersById] = await Promise.all([
+    issueIds.length === 0 ? Promise.resolve([]) : db.select().from(issues).where(inArray(issues.id, issueIds)),
+    prIds.length === 0 ? Promise.resolve([]) : db.select().from(pullRequests).where(inArray(pullRequests.id, prIds)),
+    (async () => {
+      const authorIds: string[] = [];
+      if (issueIds.length) {
+        const issuesAuth = await db.select({ authorId: issues.authorId }).from(issues).where(inArray(issues.id, issueIds));
+        authorIds.push(...issuesAuth.map((r) => r.authorId));
+      }
+      if (prIds.length) {
+        const prsAuth = await db.select({ authorId: pullRequests.authorId }).from(pullRequests).where(inArray(pullRequests.id, prIds));
+        authorIds.push(...prsAuth.map((r) => r.authorId));
+      }
+      const uniq = [...new Set(authorIds)];
+      if (uniq.length === 0) return new Map<string, { id: string; username: string; name: string; avatarUrl: string | null }>();
+      const rows = await db
+        .select({ id: users.id, username: users.username, name: users.name, avatarUrl: users.avatarUrl })
+        .from(users)
+        .where(inArray(users.id, uniq));
+      return new Map(rows.map((u) => [u.id, u]));
+    })(),
+  ]);
+
+  const issuesById = new Map(issueRows.map((i) => [i.id, i]));
+  const prsById = new Map(prRows.map((p) => [p.id, p]));
+
+  function enrichItem(item: typeof projectItems.$inferSelect): { id: string; type: "issue"; position: number; issue: { id: string; number: number; title: string; state: string; author: { id: string; username: string; name: string; avatarUrl: string | null } } } | { id: string; type: "pull_request"; position: number; pullRequest: { id: string; number: number; title: string; state: string; author: { id: string; username: string; name: string; avatarUrl: string | null } } } | { id: string; type: "note"; position: number; noteContent: string | null } | null {
+    if (item.issueId) {
+      const issue = issuesById.get(item.issueId);
+      if (issue) {
+        const author = usersById.get(issue.authorId) ?? { id: issue.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+        return { id: item.id, type: "issue" as const, position: item.position, issue: { id: issue.id, number: issue.number, title: issue.title, state: issue.state, author } };
+      }
+    }
+    if (item.pullRequestId) {
+      const pr = prsById.get(item.pullRequestId);
+      if (pr) {
+        const author = usersById.get(pr.authorId) ?? { id: pr.authorId, username: "unknown", name: "Unknown", avatarUrl: null };
+        return { id: item.id, type: "pull_request" as const, position: item.position, pullRequest: { id: pr.id, number: pr.number, title: pr.title, state: pr.state, author } };
+      }
+    }
+    if (item.noteContent != null) {
+      return { id: item.id, type: "note" as const, position: item.position, noteContent: item.noteContent };
+    }
+    return null;
+  }
+
+  const itemsByColumnId = new Map<string, typeof allItems>();
+  for (const item of allItems) {
+    const list = itemsByColumnId.get(item.columnId) ?? [];
+    list.push(item);
+    itemsByColumnId.set(item.columnId, list);
+  }
+
+  const columnsWithItems = columns.map((column) => {
+    const items = (itemsByColumnId.get(column.id) ?? []).sort((a, b) => a.position - b.position);
+    const enrichedItems = items.map(enrichItem).filter((x): x is NonNullable<typeof x> => x != null);
+    return { id: column.id, name: column.name, position: column.position, items: enrichedItems };
+  });
 
   return c.json({
     id: project.id,

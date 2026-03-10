@@ -44,8 +44,15 @@ const languageColors: Record<string, string> = {
   default: "bg-primary",
 };
 
+function getInitialStarred(repository: Repository): boolean | undefined {
+  if ("starredByViewer" in repository && repository.starredByViewer !== undefined) return repository.starredByViewer;
+  if ("starred" in repository && (repository as { starred?: boolean }).starred !== undefined) return (repository as { starred: boolean }).starred;
+  return undefined;
+}
+
 export default function RepositoryCard({ repository, showOwner = false, variant = "default" }: { repository: Repository; showOwner?: boolean; variant?: "default" | "list" }) {
-  const { isStarred, isLoading, starCount, toggleStar, isMutating } = useStarRepository(repository.id, repository.starCount);
+  const initialStarred = getInitialStarred(repository);
+  const { isStarred, isLoading, starCount, toggleStar, isMutating } = useStarRepository(repository.id, repository.starCount, initialStarred);
   const ownerUsername = repository.owner.username;
   const isPrivate = repository.visibility === "private";
 

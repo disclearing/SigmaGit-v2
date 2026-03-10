@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db, users, notifications } from "@sigmagit/db";
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { notifyUser } from "../websocket";
@@ -10,15 +10,18 @@ const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
 
-async function enrichNotification(notification: any) {
-  let actor = null;
-  if (notification.actorId) {
-    actor = await db.query.users.findFirst({
-      where: eq(users.id, notification.actorId),
-      columns: { id: true, username: true, name: true, avatarUrl: true },
-    });
-  }
+async function getUsersByIds(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, { id: string; username: string; name: string; avatarUrl: string | null }>();
+  const uniq = [...new Set(userIds)];
+  const rows = await db
+    .select({ id: users.id, username: users.username, name: users.name, avatarUrl: users.avatarUrl })
+    .from(users)
+    .where(inArray(users.id, uniq));
+  return new Map(rows.map((u) => [u.id, u]));
+}
 
+async function enrichNotification(notification: { id: string; type: string; title: string; body: string | null; resourceType: string; resourceId: string | null; repoOwner: string | null; repoName: string | null; resourceNumber: number | null; actorId: string | null; read: boolean; createdAt: Date }) {
+  const actor = notification.actorId ? (await getUsersByIds([notification.actorId])).get(notification.actorId) ?? null : null;
   return {
     id: notification.id,
     type: notification.type,
@@ -55,9 +58,23 @@ app.get("/api/notifications", requireAuth, async (c) => {
     .offset(offset);
 
   const hasMore = results.length > limit;
-  const notificationsList = await Promise.all(
-    results.slice(0, limit).map(enrichNotification)
-  );
+  const slice = results.slice(0, limit);
+  const actorIds = [...new Set(slice.filter((n) => n.actorId).map((n) => n.actorId!))];
+  const usersById = await getUsersByIds(actorIds);
+  const notificationsList = slice.map((notification) => ({
+    id: notification.id,
+    type: notification.type,
+    title: notification.title,
+    body: notification.body,
+    resourceType: notification.resourceType,
+    resourceId: notification.resourceId,
+    repoOwner: notification.repoOwner,
+    repoName: notification.repoName,
+    resourceNumber: notification.resourceNumber,
+    actor: notification.actorId ? usersById.get(notification.actorId) ?? null : null,
+    read: notification.read,
+    createdAt: notification.createdAt,
+  }));
 
   return c.json({ notifications: notificationsList, hasMore });
 });

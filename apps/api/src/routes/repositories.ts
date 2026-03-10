@@ -557,7 +557,20 @@ app.get("/api/repositories/public", async (c) => {
     .offset(offset);
 
   const hasMore = result.length > limit;
-  const repos = result.slice(0, limit).map((row) => ({
+  const rows = result.slice(0, limit);
+  const repoIds = rows.map((r) => r.id);
+
+  let starredRepoIds = new Set<string>();
+  const currentUser = c.get("user");
+  if (currentUser && repoIds.length > 0) {
+    const starredRows = await db
+      .select({ repositoryId: stars.repositoryId })
+      .from(stars)
+      .where(and(eq(stars.userId, currentUser.id), inArray(stars.repositoryId, repoIds)));
+    starredRepoIds = new Set(starredRows.map((r) => r.repositoryId));
+  }
+
+  const repos = rows.map((row) => ({
     id: row.id,
     name: row.name,
     description: row.description,
@@ -572,6 +585,7 @@ app.get("/api/repositories/public", async (c) => {
       avatarUrl: row.avatarUrl,
     },
     starCount: Number(row.starCount) || 0,
+    ...(currentUser && { starredByViewer: starredRepoIds.has(row.id) }),
   }));
 
   return c.json({ repos, hasMore });
@@ -618,6 +632,15 @@ app.get("/api/repositories/user/:username", async (c) => {
     countByRepoId.set(row.repositoryId, Number(row.count) || 0);
   }
 
+  let starredRepoIds = new Set<string>();
+  if (currentUser && repoIds.length > 0) {
+    const starredRows = await db
+      .select({ repositoryId: stars.repositoryId })
+      .from(stars)
+      .where(and(eq(stars.userId, currentUser.id), inArray(stars.repositoryId, repoIds)));
+    starredRepoIds = new Set(starredRows.map((r) => r.repositoryId));
+  }
+
   const reposWithStars = reposResult.map((repo) => ({
     ...repo,
     owner: {
@@ -627,6 +650,7 @@ app.get("/api/repositories/user/:username", async (c) => {
       avatarUrl: userResult.avatarUrl,
     },
     starCount: countByRepoId.get(repo.id) ?? 0,
+    ...(currentUser && { starredByViewer: starredRepoIds.has(repo.id) }),
   }));
 
   return c.json({ repos: reposWithStars });

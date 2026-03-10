@@ -36,6 +36,8 @@ export type RepositoryWithStars = Repository & {
   starCount: number;
   forkedFrom?: ForkedFrom | null;
   forkCount?: number;
+  /** When present, list response included viewer's star state to avoid N+1 isStarred calls */
+  starredByViewer?: boolean;
 };
 
 /** Repository shape returned by admin list; includes owner slug/display for URLs and UI */

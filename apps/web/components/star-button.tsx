@@ -6,6 +6,12 @@ import type { RepositoryWithStars } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+function getInitialStarred(repository: RepositoryWithStars & { starred?: boolean }): boolean | undefined {
+  if (repository.starredByViewer !== undefined) return repository.starredByViewer;
+  if (repository.starred !== undefined) return repository.starred;
+  return undefined;
+}
+
 export function StarButton({
   repository,
   className,
@@ -13,7 +19,8 @@ export function StarButton({
   repository: RepositoryWithStars;
   className?: string;
 }) {
-  const { isStarred, isLoading, starCount, toggleStar, isMutating } = useStarRepository(repository.id, repository.starCount);
+  const initialStarred = getInitialStarred(repository);
+  const { isStarred, isLoading, starCount, toggleStar, isMutating } = useStarRepository(repository.id, repository.starCount, initialStarred);
 
   if (isLoading) {
     return (

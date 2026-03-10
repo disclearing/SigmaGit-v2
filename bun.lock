@@ -5,9 +5,9 @@
     "": {
       "name": "gitbruv",
       "devDependencies": {
-        "prettier": "^3.8.0",
-        "turbo": "^2.7.2",
-        "typescript": "^5",
+        "prettier": "^3.8.1",
+        "turbo": "^2.8.12",
+        "typescript": "^5.9.3",
       },
     },
     "apps/api": {
@@ -76,6 +76,7 @@
         "expo-constants": "~18.0.13",
         "expo-font": "~14.0.10",
         "expo-glass-effect": "~0.1.8",
+        "expo-image-picker": "~16.0.3",
         "expo-linear-gradient": "~15.0.8",
         "expo-linking": "~8.0.11",
         "expo-network": "~8.0.8",
@@ -106,6 +107,10 @@
         "tailwindcss": "^3.4.17",
         "typescript": "~5.9.2",
       },
+    },
+    "apps/ssh-key-helper": {
+      "name": "@sigmagit/ssh-key-helper",
+      "version": "0.0.0",
     },
     "apps/web": {
       "name": "@sigmagit/web",
@@ -1192,6 +1197,8 @@
 
     "@sigmagit/mobile": ["@sigmagit/mobile@workspace:apps/mobile"],
 
+    "@sigmagit/ssh-key-helper": ["@sigmagit/ssh-key-helper@workspace:apps/ssh-key-helper"],
+
     "@sigmagit/web": ["@sigmagit/web@workspace:apps/web"],
 
     "@simplewebauthn/browser": ["@simplewebauthn/browser@13.2.2", "", {}, "sha512-FNW1oLQpTJyqG5kkDg5ZsotvWgmBaC6jCHR7Ej0qUNep36Wl9tj2eZu7J5rP+uhXgHaLk+QQ3lqcw2vS5MX1IA=="],
@@ -2069,6 +2076,10 @@
     "expo-font": ["expo-font@14.0.11", "", { "dependencies": { "fontfaceobserver": "^2.1.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-ga0q61ny4s/kr4k8JX9hVH69exVSIfcIc19+qZ7gt71Mqtm7xy2c6kwsPTCyhBW2Ro5yXTT8EaZOpuRi35rHbg=="],
 
     "expo-glass-effect": ["expo-glass-effect@0.1.8", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-9Cp17ax0Fpugue8+Bd7Ndl/dSAvGmt4bQ5mQLw9zc1A2lctUse3cEg9nI7TnDJiwKf+A/VAPN6+3K12JVMYgZg=="],
+
+    "expo-image-loader": ["expo-image-loader@5.0.0", "", { "peerDependencies": { "expo": "*" } }, "sha512-Eg+5FHtyzv3Jjw9dHwu2pWy4xjf8fu3V0Asyy42kO+t/FbvW/vjUixpTjPtgKQLQh+2/9Nk4JjFDV6FwCnF2ZA=="],
+
+    "expo-image-picker": ["expo-image-picker@16.0.6", "", { "dependencies": { "expo-image-loader": "~5.0.0" }, "peerDependencies": { "expo": "*" } }, "sha512-HN4xZirFjsFDIsWFb12AZh19fRzuvZjj2ll17cGr19VNRP06S/VPQU3Tdccn5vwUzQhOBlLu704CnNm278boiQ=="],
 
     "expo-json-utils": ["expo-json-utils@0.15.0", "", {}, "sha512-duRT6oGl80IDzH2LD2yEFWNwGIC2WkozsB6HF3cDYNoNNdUvFk6uN3YiwsTsqVM/D0z6LEAQ01/SlYvN+Fw0JQ=="],
 

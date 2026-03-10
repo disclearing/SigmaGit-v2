@@ -1,9 +1,14 @@
+import { useEffect, useState } from "react";
 import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { Databuddy } from "@databuddy/sdk/react";
 import { GitBranch, Home } from "lucide-react";
 import { ThemeProvider } from "tanstack-theme-kit";
 import appCss from "./globals.css?url";
+import type { ReactNode } from "react";
+import { MaintenancePage } from "@/components/maintenance-page";
+import { useSession } from "@/lib/auth-client";
 import { defaultMeta } from "@/lib/seo";
+import { getApiUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -27,6 +32,40 @@ function NotFound() {
       </div>
     </div>
   );
+}
+
+function MaintenanceGate({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${getApiUrl()}/api/status`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setMaintenanceMode(data.maintenanceMode === true);
+      })
+      .catch(() => {
+        if (!cancelled) setMaintenanceMode(false);
+      })
+      .finally(() => {
+        if (!cancelled) setChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin";
+
+  if (!checked) {
+    return <>{children}</>;
+  }
+  if (maintenanceMode && !isAdmin) {
+    return <MaintenancePage />;
+  }
+  return <>{children}</>;
 }
 
 export const Route = createRootRoute({
@@ -65,11 +104,13 @@ function RootLayout() {
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <Outlet />
+          <MaintenanceGate>
+            <Outlet />
+          </MaintenanceGate>
           <Toaster richColors position="top-right" />
           {enableDatabuddy ? (
             <Databuddy
-              clientId={databuddyClientId!}
+              clientId={databuddyClientId}
               trackHashChanges={true}
               trackAttributes={true}
               trackOutgoingLinks={true}

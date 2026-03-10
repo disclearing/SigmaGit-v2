@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { sql } from "drizzle-orm";
 import { getObject, listObjects } from "../s3";
-import { db, users, repositories, organizations } from "@sigmagit/db";
+import { db, users, repositories, organizations, systemSettings } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 
 const app = new Hono();
@@ -12,6 +12,17 @@ app.get("/health", (c) => {
 
 app.get("/api/health", (c) => {
   return c.json({ status: "ok", version: "1.0.0" });
+});
+
+// Public status (maintenance mode) - no auth, so app can gate non-admin users
+app.get("/api/status", async (c) => {
+  const row = await db
+    .select({ value: systemSettings.value })
+    .from(systemSettings)
+    .where(eq(systemSettings.key, "maintenance_mode"))
+    .limit(1);
+  const maintenanceMode = row[0]?.value === true;
+  return c.json({ maintenanceMode: !!maintenanceMode });
 });
 
 // Public platform stats (no auth) - mounted on health so it is never behind admin/auth middleware

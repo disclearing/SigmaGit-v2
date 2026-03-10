@@ -401,6 +401,15 @@ export type RepositoryWebhook = {
   updatedAt: string;
 };
 
+// ─── Container registry (packages) ─────────────────────────────────────────
+
+export type Package = {
+  name: string;
+  owner: string;
+  tags: string[];
+  updatedAt?: string;
+};
+
 export type Release = {
   id: string;
   repositoryId: string;
@@ -668,6 +677,10 @@ export type ApiClient = {
     getStarred: (username: string) => Promise<{ repos: RepositoryWithStars[] }>;
     getAvatarByUsername: (username: string) => Promise<{ avatarUrl: string | null }>;
     getPublic: (sortBy: "newest" | "oldest", limit: number, offset: number) => Promise<{ users: PublicUser[]; hasMore: boolean }>;
+  };
+  packages: {
+    listForUser: (username: string) => Promise<{ packages: Package[] }>;
+    getTags: (username: string, image: string) => Promise<{ name: string; tags: string[] }>;
   };
   settings: {
     getCurrentUser: () => Promise<{ user: UserProfile }>;

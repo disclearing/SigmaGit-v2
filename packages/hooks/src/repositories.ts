@@ -445,6 +445,32 @@ export function useCreateBranchProtectionRule(owner: string, name: string) {
   });
 }
 
+export function useUpdateBranchProtectionRule(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ruleId,
+      data,
+    }: {
+      ruleId: string;
+      data: Partial<{
+        pattern: string;
+        requirePullRequest: boolean;
+        requireApprovals: number;
+        dismissStaleReviews: boolean;
+        requireStatusChecks: boolean;
+        requiredStatusChecks: string[];
+        allowForcePush: boolean;
+        allowDeletion: boolean;
+      }>;
+    }) => api.repositories.updateBranchProtectionRule(owner, name, ruleId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "branch-protection"] });
+    },
+  });
+}
+
 export function useDeleteBranchProtectionRule(owner: string, name: string) {
   const api = useApi();
   const queryClient = useQueryClient();
@@ -478,6 +504,29 @@ export function useCreateRepoWebhook(owner: string, name: string) {
       active?: boolean;
       contentType?: "json" | "form";
     }) => api.repositories.createWebhook(owner, name, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "webhooks"] });
+    },
+  });
+}
+
+export function useUpdateRepoWebhook(owner: string, name: string) {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      hookId,
+      data,
+    }: {
+      hookId: string;
+      data: Partial<{
+        url: string;
+        secret: string | null;
+        events: WebhookEvent[];
+        active: boolean;
+        contentType: "json" | "form";
+      }>;
+    }) => api.repositories.updateWebhook(owner, name, hookId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repository", owner, name, "webhooks"] });
     },

@@ -13,12 +13,13 @@ import {
   useTeam,
   useUpdateOrgMember,
   useUpdateOrganization,
+  useUserPackages,
   useUserProfile,
   useUserRepositories,
   useUserStarredRepos,
 } from "@sigmagit/hooks";
 import { toast } from "sonner";
-import { Activity, Award, BookOpen, Building2, Calendar, Flag, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Settings, Trash2, Users } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, Calendar, Flag, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Package, Settings, Trash2, Users } from "lucide-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { formatDate, timeAgo } from "@sigmagit/lib";
 import { GithubIcon, LinkedInIcon, XIcon } from "@/components/icons";
@@ -88,6 +89,42 @@ function RepositoriesTab({ username }: { username: string }) {
         ))}
       </div>
     </>
+  );
+}
+
+function PackagesTab({ username }: { username: string }) {
+  const { data, isLoading } = useUserPackages(username);
+
+  if (isLoading) {
+    return <TabSkeleton />;
+  }
+
+  const packages = data?.packages || [];
+
+  if (packages.length === 0) {
+    return (
+      <div className="py-20 text-center border border-dashed bg-muted/20">
+        <Package className="size-10 mx-auto mb-4 text-muted-foreground/50" />
+        <h3 className="text-base font-medium">No container images</h3>
+        <p className="text-sm text-muted-foreground">Push images with docker push to get started.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
+      {packages.map((pkg) => (
+        <div key={`${pkg.owner}/${pkg.name}`} className="p-4 flex items-center justify-between">
+          <div>
+            <p className="font-mono font-medium">{pkg.owner}/{pkg.name}</p>
+            <p className="text-sm text-muted-foreground">{pkg.tags.length} tag(s)</p>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            docker pull &lt;host&gt;/{pkg.owner}/{pkg.name}:&lt;tag&gt;
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -884,7 +921,7 @@ function OrganizationTeamsTab({ orgName }: { orgName: string }) {
 
 function ProfilePage() {
   const { username } = Route.useParams();
-  const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "members", "teams", "settings"]).withDefault("repositories"));
+  const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "packages", "members", "teams", "settings"]).withDefault("repositories"));
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const { data: session } = useSession();
 
@@ -1190,7 +1227,7 @@ function ProfilePage() {
         </aside>
 
         <div className="w-full">
-          <Tabs value={tab} onValueChange={(value) => setTab(value === "repositories" ? null : (value as "starred"))}>
+          <Tabs value={tab} onValueChange={(value) => setTab(value === "repositories" ? null : (value as "starred" | "packages"))}>
             <TabsList variant="line" className="w-full mb-6 h-auto bg-transparent p-0">
               <TabsTrigger value="repositories" className="gap-2">
                 <BookOpen className="size-4" />
@@ -1202,6 +1239,12 @@ function ProfilePage() {
                 <span>Starred</span>
                 {starredCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({starredCount})</span>}
               </TabsTrigger>
+              {currentUsername === username && (
+                <TabsTrigger value="packages" className="gap-2">
+                  <Package className="size-4" />
+                  <span>Packages</span>
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="repositories" className="mt-0">
@@ -1211,6 +1254,12 @@ function ProfilePage() {
             <TabsContent value="starred" className="mt-0">
               <StarredTab username={username} />
             </TabsContent>
+
+            {currentUsername === username && (
+              <TabsContent value="packages" className="mt-0">
+                <PackagesTab username={username} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>

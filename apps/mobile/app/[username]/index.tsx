@@ -1,13 +1,16 @@
 import { View, Text, ScrollView, RefreshControl, Pressable, ActivityIndicator, StyleSheet } from "react-native";
-import { useLocalSearchParams, Link, Stack } from "expo-router";
+import { useLocalSearchParams, Link, Stack, router } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { BlurView } from "expo-blur";
 import { useUserProfile, useUserRepositories } from "@sigmagit/hooks";
+import { useSession } from "@/lib/auth-client";
 import { timeAgo } from "@sigmagit/lib";
 import { UserAvatar } from "@/components/user-avatar";
 
 export default function UserProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
+  const { data: session } = useSession();
+  const currentUsername = (session?.user as { username?: string } | undefined)?.username;
 
   const { data: user, isLoading: userLoading, error: userError, refetch: refetchUser, isRefetching: isRefetchingUser } = useUserProfile(username || "");
   const { data: reposData, isLoading: reposLoading, refetch: refetchRepos, isRefetching: isRefetchingRepos } = useUserRepositories(username || "");
@@ -100,6 +103,19 @@ export default function UserProfileScreen() {
             </View>
           </View>
         </View>
+
+        {currentUsername === username && (
+          <Pressable
+            onPress={() => router.push(`/${username}/packages` as any)}
+            className="flex-row items-center py-4 mb-2 border-b border-white/10"
+          >
+            <View className="w-10 h-10 rounded-lg bg-white/10 items-center justify-center mr-4">
+              <FontAwesome name="cube" size={18} color="rgba(255,255,255,0.8)" />
+            </View>
+            <Text className="text-white text-base font-medium flex-1">Packages</Text>
+            <FontAwesome name="chevron-right" size={14} color="rgba(255,255,255,0.4)" />
+          </Pressable>
+        )}
 
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-white text-base font-semibold">Repositories</Text>

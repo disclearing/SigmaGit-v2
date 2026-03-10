@@ -16,6 +16,7 @@ import type {
   PRDiff,
   PRFilters,
   PRReview,
+  Package,
   PlatformStats,
   PublicUser,
   PullRequest,
@@ -318,6 +319,15 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       getPublic: (sortBy: "newest" | "oldest" = "newest", limit = 20, offset = 0) =>
         apiFetch<{ users: PublicUser[]; hasMore: boolean }>(
           `/api/users/public?sortBy=${sortBy}&limit=${limit}&offset=${offset}`
+        ),
+    },
+
+    packages: {
+      listForUser: (username: string) =>
+        apiFetch<{ packages: Package[] }>(`/api/users/${encodeURIComponent(username)}/packages`),
+      getTags: (username: string, image: string) =>
+        apiFetch<{ name: string; tags: string[] }>(
+          `/api/users/${encodeURIComponent(username)}/packages/${encodeURIComponent(image)}/tags`
         ),
     },
 

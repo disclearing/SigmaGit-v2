@@ -1,19 +1,199 @@
-import { View, Text, ScrollView, RefreshControl, Pressable, ActivityIndicator, StyleSheet } from "react-native";
-import { useLocalSearchParams, Link, Stack, router } from "expo-router";
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  Pressable,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
+import { useLocalSearchParams, Link, Stack } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { BlurView } from "expo-blur";
 import { useUserProfile, useUserRepositories } from "@sigmagit/hooks";
 import { useSession } from "@/lib/auth-client";
-import { timeAgo } from "@sigmagit/lib";
+import { timeAgo, formatDate } from "@sigmagit/lib";
 import { UserAvatar } from "@/components/user-avatar";
+
+// Modern stat card component
+function StatCard({
+  value,
+  label,
+  icon,
+}: {
+  value: string | number;
+  label: string;
+  icon: React.ComponentProps<typeof FontAwesome>["name"];
+}) {
+  return (
+    <View className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[rgba(40,40,60,0.6)]">
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+      <View className="items-center p-3 relative z-10">
+        <View className="mb-2 size-9 items-center justify-center rounded-xl bg-blue-500/20">
+          <FontAwesome name={icon} size={16} color="#60a5fa" />
+        </View>
+        <Text className="text-[20px] font-bold text-white">{value}</Text>
+        <Text className="text-[11px] text-white/50">{label}</Text>
+      </View>
+    </View>
+  );
+}
+
+// Modern info item component
+function InfoItem({
+  icon,
+  text,
+  isLink = false,
+}: {
+  icon: React.ComponentProps<typeof FontAwesome>["name"];
+  text: string;
+  isLink?: boolean;
+}) {
+  return (
+    <View className="mr-4 flex-row items-center">
+      <FontAwesome
+        name={icon}
+        size={12}
+        color={isLink ? "#60a5fa" : "rgba(255,255,255,0.5)"}
+      />
+      <Text
+        className={`ml-2 text-[13px] ${
+          isLink ? "text-blue-400" : "text-white/60"
+        }`}
+        numberOfLines={1}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+// Modern repository card component
+function RepositoryCard({
+  repo,
+  username,
+  isLast,
+}: {
+  repo: {
+    id: string;
+    name: string;
+    description?: string;
+    visibility: string;
+    starCount: number;
+  };
+  username: string;
+  isLast?: boolean;
+}) {
+  return (
+    <Link href={`/${username}/${repo.name}`} asChild>
+      <Pressable className={isLast ? "" : "mb-2"}>
+        <View className="overflow-hidden rounded-2xl border border-white/10 bg-[rgba(40,40,60,0.4)]">
+          <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+          <View className="flex-row items-center p-4 relative z-10">
+            <View className="mr-3 size-11 items-center justify-center rounded-xl bg-blue-500/15">
+              <FontAwesome name="code-fork" size={18} color="#60a5fa" />
+            </View>
+            <View className="flex-1 mr-3">
+              <View className="mb-1 flex-row items-center">
+                <Text className="mr-2 text-[16px] font-semibold text-white">{repo.name}</Text>
+                <View
+                  className={`rounded-md px-1.5 py-0.5 ${
+                    repo.visibility === "private" ? "bg-yellow-500/15" : "bg-green-500/15"
+                  }`}
+                >
+                  <Text
+                    className={`text-[10px] font-semibold ${
+                      repo.visibility === "private" ? "text-yellow-400" : "text-green-400"
+                    }`}
+                  >
+                    {repo.visibility}
+                  </Text>
+                </View>
+              </View>
+              {repo.description && (
+                <Text className="text-[13px] text-white/50" numberOfLines={1}>
+                  {repo.description}
+                </Text>
+              )}
+            </View>
+            <View className="flex-row items-center rounded-lg bg-yellow-500/15 px-2 py-1">
+              <FontAwesome name="star" size={11} color="#fbbf24" />
+              <Text className="ml-1 text-xs font-semibold text-yellow-400">{repo.starCount}</Text>
+            </View>
+          </View>
+        </View>
+      </Pressable>
+    </Link>
+  );
+}
+
+// Modern empty state component
+function EmptyState({
+  icon,
+  title,
+}: {
+  icon: React.ComponentProps<typeof FontAwesome>["name"];
+  title: string;
+}) {
+  return (
+    <View className="overflow-hidden rounded-2xl border border-white/10 bg-[rgba(40,40,60,0.4)]">
+      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+      <View className="items-center p-8 relative z-10">
+        <View className="mb-3 size-14 items-center justify-center rounded-full bg-white/5">
+          <FontAwesome name={icon} size={24} color="rgba(255,255,255,0.3)" />
+        </View>
+        <Text className="text-center text-[14px] text-white/40">{title}</Text>
+      </View>
+    </View>
+  );
+}
+
+// Modern menu button component
+function MenuButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ComponentProps<typeof FontAwesome>["name"];
+  label: string;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress}>
+      <View className="overflow-hidden rounded-2xl border border-white/10 bg-[rgba(40,40,60,0.4)]">
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+        <View className="flex-row items-center justify-between p-4 relative z-10">
+          <View className="flex-row items-center">
+            <View className="mr-3 size-10 items-center justify-center rounded-xl bg-purple-500/15">
+              <FontAwesome name={icon} size={16} color="#a78bfa" />
+            </View>
+            <Text className="text-[16px] font-medium text-white">{label}</Text>
+          </View>
+          <FontAwesome name="chevron-right" size={14} color="rgba(255,255,255,0.3)" />
+        </View>
+      </View>
+    </Pressable>
+  );
+}
 
 export default function UserProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
   const { data: session } = useSession();
   const currentUsername = (session?.user as { username?: string } | undefined)?.username;
 
-  const { data: user, isLoading: userLoading, error: userError, refetch: refetchUser, isRefetching: isRefetchingUser } = useUserProfile(username || "");
-  const { data: reposData, isLoading: reposLoading, refetch: refetchRepos, isRefetching: isRefetchingRepos } = useUserRepositories(username || "");
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+    refetch: refetchUser,
+    isRefetching: isRefetchingUser,
+  } = useUserProfile(username || "");
+  const {
+    data: reposData,
+    isLoading: reposLoading,
+    refetch: refetchRepos,
+    isRefetching: isRefetchingRepos,
+  } = useUserRepositories(username || "");
 
   const repos = reposData?.repos || [];
   const isLoading = userLoading || reposLoading;
@@ -27,7 +207,15 @@ export default function UserProfileScreen() {
   if (isLoading) {
     return (
       <View style={{ flex: 1 }} className="items-center justify-center">
-        <Stack.Screen options={{ title: "", headerShown: true, headerBackButtonDisplayMode: "minimal", headerTransparent: true, headerLargeTitle: false }} />
+        <Stack.Screen
+          options={{
+            title: "",
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerTransparent: true,
+            headerLargeTitle: false,
+          }}
+        />
         <ActivityIndicator size="large" color="#60a5fa" />
       </View>
     );
@@ -37,133 +225,126 @@ export default function UserProfileScreen() {
     return (
       <View style={{ flex: 1 }} className="items-center justify-center px-6">
         <Stack.Screen options={{ title: "Error" }} />
-        <View className="overflow-hidden bg-[rgba(30,30,50,0.5)] border border-white/10">
-          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-          <View className="p-8 items-center relative z-10">
-            <FontAwesome name="exclamation-circle" size={48} color="#f87171" />
-            <Text className="text-red-400 text-base mt-4">{userError?.message || "User not found"}</Text>
+        <View className="overflow-hidden rounded-3xl border border-white/10 bg-[rgba(40,40,60,0.6)]">
+          <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+          <View className="items-center p-8 relative z-10">
+            <View className="mb-4 size-16 items-center justify-center rounded-full bg-red-500/15">
+              <FontAwesome name="exclamation-circle" size={32} color="#f87171" />
+            </View>
+            <Text className="text-center text-[16px] text-red-400">
+              {userError?.message || "User not found"}
+            </Text>
           </View>
         </View>
       </View>
     );
   }
 
+  const totalStars = repos.reduce((sum, repo) => sum + (repo.starCount || 0), 0);
+  const isOwnProfile = currentUsername === username;
+
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen
-        options={{ title: user.username, headerShown: true, headerBackButtonDisplayMode: "minimal", headerTransparent: true, headerLargeTitle: false }}
+        options={{
+          title: user.username,
+          headerShown: true,
+          headerBackButtonDisplayMode: "minimal",
+          headerTransparent: true,
+          headerLargeTitle: false,
+        }}
       />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerClassName="px-4 py-4"
         contentInsetAdjustmentBehavior="automatic"
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor="#60a5fa" />}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor="#60a5fa" />
+        }
       >
-        <View className="overflow-hidden bg-[rgba(30,30,50,0.5)] border border-white/10 mb-4">
-          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-          <View className="p-4 relative z-10">
-            <View className="flex-row items-start mb-4">
-              <UserAvatar avatarUrl={user.avatarUrl} size={64} style={{ marginRight: 12 }} />
-              <View style={{ flex: 1 }}>
-                <Text className="text-white text-[18px] font-semibold">{user.name}</Text>
-                <Text className="text-white/60 text-[14px] mt-0.5">@{user.username}</Text>
-                {user.pronouns && <Text className="text-white/40 text-[12px] mt-0.5">{user.pronouns}</Text>}
+        {/* Profile Card */}
+        <View className="mb-4 overflow-hidden rounded-3xl border border-white/10 bg-[rgba(40,40,60,0.6)]">
+          <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+          <View className="p-5 relative z-10">
+            {/* Header with Avatar */}
+            <View className="flex-row items-start">
+              <View className="mr-4">
+                <UserAvatar avatarUrl={user.avatarUrl} size={80} />
+              </View>
+              <View className="flex-1 pt-1">
+                <Text className="text-[24px] font-bold text-white">{user.name}</Text>
+                <Text className="mt-0.5 text-[16px] text-white/60">@{user.username}</Text>
+                {user.pronouns && (
+                  <Text className="mt-1 text-[13px] text-white/40">{user.pronouns}</Text>
+                )}
               </View>
             </View>
 
-            {user.bio && <Text className="text-white/80 text-[14px] leading-5 mb-3">{user.bio}</Text>}
+            {/* Bio */}
+            {user.bio && (
+              <Text className="mt-4 text-[15px] leading-6 text-white/80">{user.bio}</Text>
+            )}
 
-            <View className="flex-row flex-wrap gap-3 mb-3">
-              {user.location && (
-                <View className="flex-row items-center">
-                  <FontAwesome name="map-marker" size={12} color="#60a5fa" />
-                  <Text className="text-white/60 text-[13px] ml-1.5">{user.location}</Text>
-                </View>
-              )}
+            {/* Info Row */}
+            <View className="mt-4 flex-row flex-wrap">
+              {user.location && <InfoItem icon="map-marker" text={user.location} />}
               {user.website && (
-                <View className="flex-row items-center">
-                  <FontAwesome name="link" size={12} color="#60a5fa" />
-                  <Text className="text-blue-400 text-[13px] ml-1.5">{user.website}</Text>
-                </View>
+                <InfoItem
+                  icon="link"
+                  text={user.website.replace(/^https?:\/\//, "")}
+                  isLink
+                />
               )}
               {user.createdAt && (
-                <View className="flex-row items-center">
-                  <FontAwesome name="calendar" size={12} color="#60a5fa" />
-                  <Text className="text-white/60 text-[13px] ml-1.5">Joined {timeAgo(user.createdAt)}</Text>
-                </View>
+                <InfoItem
+                  icon="calendar"
+                  text={`Joined ${formatDate(user.createdAt)}`}
+                />
               )}
             </View>
 
-            <View className="flex-row pt-3 border-t border-white/10">
-              <View className="flex-row items-center mr-6">
-                <FontAwesome name="code-fork" size={14} color="#60a5fa" />
-                <Text className="text-white text-[16px] font-semibold ml-2">{repos.length}</Text>
-                <Text className="text-white/50 text-[13px] ml-1">repositories</Text>
-              </View>
+            {/* Stats Row */}
+            <View className="mt-5 flex-row gap-3">
+              <StatCard value={repos.length} label="Repos" icon="code-fork" />
+              <StatCard value={totalStars} label="Stars" icon="star" />
             </View>
           </View>
         </View>
 
-        {currentUsername === username && (
-          <Pressable
-            onPress={() => router.push(`/${username}/packages` as any)}
-            className="flex-row items-center py-4 mb-2 border-b border-white/10"
-          >
-            <View className="w-10 h-10 rounded-lg bg-white/10 items-center justify-center mr-4">
-              <FontAwesome name="cube" size={18} color="rgba(255,255,255,0.8)" />
-            </View>
-            <Text className="text-white text-base font-medium flex-1">Packages</Text>
-            <FontAwesome name="chevron-right" size={14} color="rgba(255,255,255,0.4)" />
-          </Pressable>
+        {/* Packages Menu (only for own profile) */}
+        {isOwnProfile && (
+          <View className="mb-4">
+            <MenuButton
+              icon="cube"
+              label="Packages"
+              onPress={() => {}}
+            />
+          </View>
         )}
 
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-white text-base font-semibold">Repositories</Text>
-          {repos.length > 0 && <Text className="text-white/40 text-xs">{repos.length}</Text>}
+        {/* Repositories Section */}
+        <View className="mb-3 flex-row items-center justify-between">
+          <Text className="text-[17px] font-semibold text-white">Repositories</Text>
+          {repos.length > 0 && (
+            <View className="rounded-full bg-white/10 px-2.5 py-1">
+              <Text className="text-[12px] font-medium text-white/60">{repos.length}</Text>
+            </View>
+          )}
         </View>
 
         {repos.length === 0 ? (
-          <View className="overflow-hidden bg-[rgba(30,30,50,0.5)] border border-white/10">
-            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-            <View className="p-6 items-center relative z-10">
-              <FontAwesome name="inbox" size={28} color="rgba(255,255,255,0.3)" />
-              <Text className="text-white/40 text-sm mt-2">No public repositories</Text>
-            </View>
-          </View>
+          <EmptyState icon="inbox" title="No public repositories" />
         ) : (
-          repos.map((repo, index) => (
-            <Link key={repo.id} href={`/${username}/${repo.name}`} asChild>
-              <Pressable className={index < repos.length - 1 ? "mb-2" : ""}>
-                <View className="overflow-hidden bg-[rgba(30,30,50,0.5)] border border-white/10">
-                  <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-                  <View className="flex-row items-center p-3.5 relative z-10">
-                    <View className="w-10 h-10 bg-blue-500/20 items-center justify-center mr-3">
-                      <FontAwesome name="code-fork" size={16} color="#60a5fa" />
-                    </View>
-                    <View style={{ flex: 1 }} className="mr-3">
-                      <View className="flex-row items-center mb-1">
-                        <Text className="text-white text-[15px] font-semibold mr-2">{repo.name}</Text>
-                        <View className={`px-1.5 py-0.5 ${repo.visibility === "private" ? "bg-yellow-500/20" : "bg-green-500/20"}`}>
-                          <Text className={`text-[10px] font-semibold ${repo.visibility === "private" ? "text-yellow-400" : "text-green-500"}`}>
-                            {repo.visibility}
-                          </Text>
-                        </View>
-                      </View>
-                      {repo.description && (
-                        <Text className="text-white/50 text-[13px]" numberOfLines={1}>
-                          {repo.description}
-                        </Text>
-                      )}
-                    </View>
-                    <View className="flex-row items-center bg-yellow-500/20 px-2 py-1">
-                      <FontAwesome name="star" size={11} color="#fbbf24" />
-                      <Text className="text-yellow-400 text-xs font-semibold ml-1">{repo.starCount}</Text>
-                    </View>
-                  </View>
-                </View>
-              </Pressable>
-            </Link>
-          ))
+          <View>
+            {repos.map((repo, index) => (
+              <RepositoryCard
+                key={repo.id}
+                repo={repo}
+                username={username}
+                isLast={index === repos.length - 1}
+              />
+            ))}
+          </View>
         )}
       </ScrollView>
     </View>

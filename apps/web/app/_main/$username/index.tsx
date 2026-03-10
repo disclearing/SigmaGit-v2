@@ -19,7 +19,7 @@ import {
   useUserStarredRepos,
 } from "@sigmagit/hooks";
 import { toast } from "sonner";
-import { Activity, Award, BookOpen, Building2, Calendar, Flag, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Package, Settings, Trash2, Users } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, Calendar, Flag, GitBranch, Globe, Link as LinkIcon, Mail, MapPin, Package, Settings, Star, Trash2, Users } from "lucide-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { formatDate, timeAgo } from "@sigmagit/lib";
 import { GithubIcon, LinkedInIcon, XIcon } from "@/components/icons";
@@ -35,6 +35,7 @@ import { ReportDialog } from "@/components/report-dialog";
 import { createMeta } from "@/lib/seo";
 import { useSession } from "@/lib/auth-client";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
+import { cn } from "@/lib/utils";
 
 const ORG_MEMBER_ROLES = ["owner", "admin", "member"] as const;
 type OrganizationRole = (typeof ORG_MEMBER_ROLES)[number];
@@ -51,6 +52,47 @@ export const Route = createFileRoute("/_main/$username/")({
   component: ProfilePage,
 });
 
+// Modern stat card component
+function StatCard({ value, label, icon: Icon }: { value: number | string; label: string; icon: React.ElementType }) {
+  return (
+    <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/50 p-4 transition-all duration-300 hover:bg-card hover:border-border hover:shadow-md">
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+          <Icon className="size-5" />
+        </div>
+        <div>
+          <div className="text-2xl font-bold tracking-tight">{value}</div>
+          <div className="text-xs font-medium text-muted-foreground">{label}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modern empty state component
+function EmptyState({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 px-4 py-16">
+      <div className="flex size-16 items-center justify-center rounded-full bg-muted/50">
+        <Icon className="size-8 text-muted-foreground/50" />
+      </div>
+      <h3 className="mt-4 text-base font-semibold">{title}</h3>
+      <p className="mt-1 max-w-xs text-center text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+// Modern tab skeleton
+function TabSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="h-28 animate-pulse rounded-xl bg-muted/60" />
+      ))}
+    </div>
+  );
+}
+
 function RepositoriesTab({ username }: { username: string }) {
   const { data, isLoading } = useUserRepositories(username);
 
@@ -63,32 +105,26 @@ function RepositoriesTab({ username }: { username: string }) {
 
   if (repos.length === 0) {
     return (
-      <div className="py-20 text-center border border-dashed bg-muted/20">
-              <GitBranch className="size-10 mx-auto mb-4 text-muted-foreground/50" />
-        <h3 className="text-base font-medium">No repositories yet</h3>
-        <p className="text-sm text-muted-foreground">This user hasn't created any public repositories.</p>
-      </div>
+      <EmptyState
+        icon={GitBranch}
+        title="No repositories yet"
+        description="This user hasn't created any public repositories."
+      />
     );
   }
 
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="border border-border bg-card p-4">
-          <div className="text-2xl font-bold">{repos.length}</div>
-          <div className="text-sm text-muted-foreground mt-1">Repositories</div>
-        </div>
-        <div className="border border-border bg-card p-4">
-          <div className="text-2xl font-bold">{totalStars}</div>
-          <div className="text-sm text-muted-foreground mt-1">Total stars</div>
-        </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <StatCard value={repos.length} label="Repositories" icon={BookOpen} />
+        <StatCard value={totalStars} label="Total Stars" icon={Star} />
       </div>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
+      <div className="flex flex-col gap-3">
         {repos.map((repo) => (
           <RepositoryCard key={repo.id} repository={repo} variant="list" />
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -103,25 +139,28 @@ function PackagesTab({ username }: { username: string }) {
 
   if (packages.length === 0) {
     return (
-      <div className="py-20 text-center border border-dashed bg-muted/20">
-        <Package className="size-10 mx-auto mb-4 text-muted-foreground/50" />
-        <h3 className="text-base font-medium">No container images</h3>
-        <p className="text-sm text-muted-foreground">Push images with docker push to get started.</p>
-      </div>
+      <EmptyState
+        icon={Package}
+        title="No container images"
+        description="Push images with docker push to get started."
+      />
     );
   }
 
   return (
-    <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
+    <div className="flex flex-col gap-3">
       {packages.map((pkg) => (
-        <div key={`${pkg.owner}/${pkg.name}`} className="p-4 flex items-center justify-between">
-          <div>
-            <p className="font-mono font-medium">{pkg.owner}/{pkg.name}</p>
+        <div
+          key={`${pkg.owner}/${pkg.name}`}
+          className="group flex items-center justify-between rounded-xl border border-border/50 bg-card/50 p-4 transition-all duration-300 hover:bg-card hover:border-border hover:shadow-sm"
+        >
+          <div className="min-w-0">
+            <p className="font-mono font-medium text-foreground">{pkg.owner}/{pkg.name}</p>
             <p className="text-sm text-muted-foreground">{pkg.tags.length} tag(s)</p>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <code className="hidden shrink-0 rounded-md bg-muted px-3 py-1.5 text-xs text-muted-foreground sm:block">
             docker pull &lt;host&gt;/{pkg.owner}/{pkg.name}:&lt;tag&gt;
-          </div>
+          </code>
         </div>
       ))}
     </div>
@@ -139,37 +178,22 @@ function StarredTab({ username }: { username: string }) {
 
   if (repos.length === 0) {
     return (
-      <div className="py-20 text-center border border-dashed bg-muted/20">
-              <Award className="size-10 mx-auto mb-4 text-muted-foreground/50" />
-        <h3 className="text-base font-medium">No starred repositories</h3>
-        <p className="text-sm text-muted-foreground">This user hasn't starred any repositories yet.</p>
-      </div>
+      <EmptyState
+        icon={Award}
+        title="No starred repositories"
+        description="This user hasn't starred any repositories yet."
+      />
     );
   }
 
   return (
-    <>
-      <div className="mb-6">
-        <div className="border border-border bg-card p-4 inline-block">
-          <div className="text-2xl font-bold">{repos.length}</div>
-          <div className="text-sm text-muted-foreground mt-1">Starred repositories</div>
-        </div>
-      </div>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
+    <div className="space-y-4">
+      <StatCard value={repos.length} label="Starred repositories" icon={Award} />
+      <div className="flex flex-col gap-3">
         {repos.map((repo) => (
           <RepositoryCard key={repo.id} repository={repo} showOwner variant="list" />
         ))}
       </div>
-    </>
-  );
-}
-
-function TabSkeleton() {
-  return (
-    <div className="flex flex-col gap-4">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-28 bg-card border border-border animate-pulse" />
-      ))}
     </div>
   );
 }
@@ -185,28 +209,23 @@ function OrganizationRepositoriesTab({ orgName }: { orgName: string }) {
 
   if (repos.length === 0) {
     return (
-      <div className="py-20 text-center border border-dashed bg-muted/20">
-        <GitBranch className="size-10 mx-auto mb-4 text-muted-foreground/50" />
-        <h3 className="text-base font-medium">No repositories yet</h3>
-        <p className="text-sm text-muted-foreground">This organization hasn't created any repositories yet.</p>
-      </div>
+      <EmptyState
+        icon={GitBranch}
+        title="No repositories yet"
+        description="This organization hasn't created any repositories yet."
+      />
     );
   }
 
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="border border-border bg-card p-4">
-          <div className="text-2xl font-bold">{repos.length}</div>
-          <div className="text-sm text-muted-foreground mt-1">Repositories</div>
-        </div>
-      </div>
-      <div className="border border-border rounded-lg bg-card divide-y divide-border overflow-hidden">
+    <div className="space-y-4">
+      <StatCard value={repos.length} label="Repositories" icon={BookOpen} />
+      <div className="flex flex-col gap-3">
         {repos.map((repo) => (
           <RepositoryCard key={repo.id} repository={repo} variant="list" />
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -225,10 +244,7 @@ function OrganizationMemberRow({
   const removeMember = useRemoveOrgMember(orgName, username || "");
 
   const canRemove =
-    canManageMembers &&
-    !!username &&
-    username !== currentUsername &&
-    member.role !== "owner";
+    canManageMembers && !!username && username !== currentUsername && member.role !== "owner";
 
   const handleRemoveMember = async () => {
     if (!username) return;
@@ -242,10 +258,12 @@ function OrganizationMemberRow({
   };
 
   return (
-    <div className="p-4 flex items-center justify-between">
+    <div className="flex items-center justify-between p-4">
       <div className="flex items-center gap-3">
         <Avatar className="size-10">
-          <AvatarFallback>{member.user?.name?.charAt(0) || "?"}</AvatarFallback>
+          <AvatarFallback className="bg-muted text-sm font-medium">
+            {member.user?.name?.charAt(0) || "?"}
+          </AvatarFallback>
         </Avatar>
         <div>
           <div className="font-medium">{member.user?.name || "Unknown"}</div>
@@ -253,14 +271,16 @@ function OrganizationMemberRow({
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="text-sm text-muted-foreground capitalize">{member.role}</div>
+        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
+          {member.role}
+        </span>
         {canRemove && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleRemoveMember}
             disabled={removeMember.isPending}
-            className="text-destructive hover:text-destructive"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
             Remove
           </Button>
@@ -288,7 +308,7 @@ function OrganizationMembersTab({
   const members = data?.members || [];
 
   return (
-    <div className="border border-border rounded-lg bg-card divide-y divide-border">
+    <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50">
       {members.map((member) => (
         <OrganizationMemberRow
           key={member.userId}
@@ -343,19 +363,21 @@ function OrganizationSettingsMemberRow({
   };
 
   return (
-    <div className="p-4 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="flex items-center justify-between gap-3 p-4">
+      <div className="flex min-w-0 items-center gap-3">
         <Avatar className="size-10">
-          <AvatarFallback>{member.user?.name?.charAt(0) || "?"}</AvatarFallback>
+          <AvatarFallback className="bg-muted text-sm font-medium">
+            {member.user?.name?.charAt(0) || "?"}
+          </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <div className="font-medium truncate">{member.user?.name || "Unknown"}</div>
-          <div className="text-sm text-muted-foreground truncate">@{member.user?.username || "unknown"}</div>
+          <div className="truncate font-medium">{member.user?.name || "Unknown"}</div>
+          <div className="truncate text-sm text-muted-foreground">@{member.user?.username || "unknown"}</div>
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex shrink-0 items-center gap-2">
         <Select value={role} onValueChange={handleRoleChange}>
-          <SelectTrigger className="w-32 h-9" disabled={!canEditRole || updateMemberRole.isPending}>
+          <SelectTrigger className="h-9 w-32" disabled={!canEditRole || updateMemberRole.isPending}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -367,11 +389,11 @@ function OrganizationSettingsMemberRow({
           </SelectContent>
         </Select>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={handleRemoveMember}
           disabled={!canRemove || removeMember.isPending}
-          className="text-destructive hover:text-destructive"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           Remove
         </Button>
@@ -413,16 +435,19 @@ function OrganizationSettingsMembersSection({
 
   return (
     <div className="space-y-6">
-      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
-        <h3 className="text-lg font-semibold">Add Member</h3>
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_160px_auto] gap-3">
+      <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50 p-6">
+        <h3 className="mb-4 text-lg font-semibold">Add Member</h3>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_160px_auto]">
           <Input
             placeholder="Username"
             value={usernameInput}
             onChange={(e) => setUsernameInput(e.target.value)}
             disabled={addOrUpdateMember.isPending}
           />
-          <Select value={newMemberRole} onValueChange={(value) => setNewMemberRole(value as OrganizationRole)}>
+          <Select
+            value={newMemberRole}
+            onValueChange={(value) => setNewMemberRole(value as OrganizationRole)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -438,12 +463,12 @@ function OrganizationSettingsMembersSection({
             Add member
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-3 text-xs text-muted-foreground">
           Enter an existing username to add them to this organization.
         </p>
       </div>
 
-      <div className="border border-border rounded-lg bg-card divide-y divide-border">
+      <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50">
         {isLoading ? (
           <div className="p-6 text-sm text-muted-foreground">Loading members...</div>
         ) : members.length === 0 ? (
@@ -481,7 +506,10 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
 
   const teams = teamsData?.teams || [];
   const repositories = orgReposData?.repositories || [];
-  const assignedRepos = (selectedTeamData?.repositories || []) as Array<{ repository: any; permission: TeamPermission }>;
+  const assignedRepos = (selectedTeamData?.repositories || []) as Array<{
+    repository: any;
+    permission: TeamPermission;
+  }>;
 
   useEffect(() => {
     if (!selectedTeamSlug && teams.length > 0) {
@@ -558,16 +586,19 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
-        <h3 className="text-lg font-semibold">Create Team</h3>
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3">
+      <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50 p-6">
+        <h3 className="mb-4 text-lg font-semibold">Create Team</h3>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px]">
           <Input
             placeholder="Team name"
             value={newTeamName}
             onChange={(e) => setNewTeamName(e.target.value)}
             disabled={createTeam.isPending}
           />
-          <Select value={newTeamPermission} onValueChange={(value) => setNewTeamPermission(value as TeamPermission)}>
+          <Select
+            value={newTeamPermission}
+            onValueChange={(value) => setNewTeamPermission(value as TeamPermission)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -585,24 +616,20 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
           value={newTeamDescription}
           onChange={(e) => setNewTeamDescription(e.target.value)}
           disabled={createTeam.isPending}
+          className="mt-3"
         />
-        <div className="flex justify-end">
+        <div className="mt-4 flex justify-end">
           <Button onClick={handleCreateTeam} disabled={createTeam.isPending}>
             Create team
           </Button>
         </div>
       </div>
 
-      <div className="border border-border rounded-lg bg-card p-6 space-y-4">
-        <div className="flex items-center justify-between gap-3">
+      <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50 p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-lg font-semibold">Team Repository Access</h3>
           {selectedTeamSlug && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteTeam}
-              disabled={deleteTeam.isPending}
-            >
+            <Button variant="destructive" size="sm" onClick={handleDeleteTeam} disabled={deleteTeam.isPending}>
               Delete team
             </Button>
           )}
@@ -611,7 +638,9 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
         {isLoadingTeams ? (
           <p className="text-sm text-muted-foreground">Loading teams...</p>
         ) : teams.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No teams yet. Create one to assign repository access.</p>
+          <p className="text-sm text-muted-foreground">
+            No teams yet. Create one to assign repository access.
+          </p>
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -632,7 +661,7 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
 
             {selectedTeamSlug && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px_auto]">
                   <Select value={repoName} onValueChange={setRepoName}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select repository" />
@@ -645,7 +674,10 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={repoPermission} onValueChange={(value) => setRepoPermission(value as TeamPermission)}>
+                  <Select
+                    value={repoPermission}
+                    onValueChange={(value) => setRepoPermission(value as TeamPermission)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -662,22 +694,26 @@ function OrganizationSettingsTeamsSection({ orgName }: { orgName: string }) {
                   </Button>
                 </div>
 
-                <div className="border border-border rounded-lg divide-y divide-border">
+                <div className="overflow-hidden rounded-lg border border-border/50">
                   {isLoadingSelectedTeam ? (
                     <div className="p-4 text-sm text-muted-foreground">Loading team access...</div>
                   ) : assignedRepos.length === 0 ? (
-                    <div className="p-4 text-sm text-muted-foreground">No repositories assigned to this team yet.</div>
+                    <div className="p-4 text-sm text-muted-foreground">
+                      No repositories assigned to this team yet.
+                    </div>
                   ) : (
                     assignedRepos.map((assigned) => (
-                      <div key={assigned.repository?.id} className="p-4 flex items-center justify-between">
+                      <div key={assigned.repository?.id} className="flex items-center justify-between p-4">
                         <div>
                           <div className="font-medium">{assigned.repository?.name}</div>
-                          <div className="text-sm text-muted-foreground">Permission: {assigned.permission}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Permission: {assigned.permission}
+                          </div>
                         </div>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => handleRemoveRepo(assigned.repository?.name)}
                         >
                           Remove
@@ -761,93 +797,95 @@ function OrganizationSettingsTab({
     }
   };
 
+  const navItems = [
+    { id: "general", label: "General" },
+    { id: "members", label: "Members" },
+    { id: "teams", label: "Teams" },
+    { id: "danger", label: "Danger Zone", danger: true },
+  ] as const;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
-      <div className="border border-border rounded-lg bg-card p-3 h-fit">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
+      <nav className="h-fit overflow-hidden rounded-xl border border-border/50 bg-card/50 p-2">
         <div className="space-y-1">
-          <Button
-            variant={section === "general" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => setSection("general")}
-          >
-            General
-          </Button>
-          <Button
-            variant={section === "members" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => setSection("members")}
-          >
-            Members
-          </Button>
-          <Button
-            variant={section === "teams" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => setSection("teams")}
-          >
-            Teams
-          </Button>
-          <Button
-            variant={section === "danger" ? "secondary" : "ghost"}
-            className="w-full justify-start text-destructive hover:text-destructive"
-            onClick={() => setSection("danger")}
-          >
-            Danger Zone
-          </Button>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setSection(item.id)}
+              className={cn(
+                "flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                section === item.id
+                  ? item.danger
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                item.danger && section !== item.id && "text-destructive/70 hover:text-destructive"
+              )}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
-      </div>
+      </nav>
 
       <div className="space-y-6">
         {section === "general" && (
-          <div className="border border-border rounded-lg bg-card p-6 space-y-4">
-            <h3 className="text-lg font-semibold">General</h3>
-            <div className="space-y-2">
-              <Label htmlFor="org-display-name">Display name</Label>
-              <Input
-                id="org-display-name"
-                value={formData.displayName}
-                onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
-                disabled={!isOwner || updateOrg.isPending}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="org-description">Description</Label>
-              <Textarea
-                id="org-description"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                disabled={!isOwner || updateOrg.isPending}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50 p-6">
+            <h3 className="mb-4 text-lg font-semibold">General</h3>
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="org-email">Email</Label>
+                <Label htmlFor="org-display-name">Display name</Label>
                 <Input
-                  id="org-email"
-                  value={formData.email}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  id="org-display-name"
+                  value={formData.displayName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, displayName: e.target.value }))
+                  }
                   disabled={!isOwner || updateOrg.isPending}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="org-website">Website</Label>
+                <Label htmlFor="org-description">Description</Label>
+                <Textarea
+                  id="org-description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  disabled={!isOwner || updateOrg.isPending}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="org-email">Email</Label>
+                  <Input
+                    id="org-email"
+                    value={formData.email}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    disabled={!isOwner || updateOrg.isPending}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="org-website">Website</Label>
+                  <Input
+                    id="org-website"
+                    value={formData.website}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+                    disabled={!isOwner || updateOrg.isPending}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="org-location">Location</Label>
                 <Input
-                  id="org-website"
-                  value={formData.website}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+                  id="org-location"
+                  value={formData.location}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
                   disabled={!isOwner || updateOrg.isPending}
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="org-location">Location</Label>
-              <Input
-                id="org-location"
-                value={formData.location}
-                onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
-                disabled={!isOwner || updateOrg.isPending}
-              />
-            </div>
-            <div className="flex justify-end">
+            <div className="mt-6 flex justify-end">
               <Button onClick={handleSave} disabled={!isOwner || updateOrg.isPending}>
                 Save changes
               </Button>
@@ -862,9 +900,9 @@ function OrganizationSettingsTab({
         {section === "teams" && <OrganizationSettingsTeamsSection orgName={orgName} />}
 
         {section === "danger" && (
-          <div className="border border-destructive/30 rounded-lg bg-card p-6">
-            <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+          <div className="overflow-hidden rounded-xl border border-destructive/30 bg-card/50 p-6">
+            <h3 className="mb-2 text-lg font-semibold text-destructive">Danger Zone</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
               Delete this organization and all associated repositories.
             </p>
             <Button
@@ -894,24 +932,31 @@ function OrganizationTeamsTab({ orgName }: { orgName: string }) {
 
   if (teams.length === 0) {
     return (
-      <div className="py-20 text-center border border-dashed bg-muted/20">
-        <Users className="size-10 mx-auto mb-4 text-muted-foreground/50" />
-        <h3 className="text-base font-medium">No teams yet</h3>
-        <p className="text-sm text-muted-foreground">This organization hasn't created any teams yet.</p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="No teams yet"
+        description="This organization hasn't created any teams yet."
+      />
     );
   }
 
   return (
-    <div className="border border-border rounded-lg bg-card divide-y divide-border">
+    <div className="flex flex-col gap-3">
       {teams.map((team) => (
-        <div key={team.id} className="p-4">
+        <div
+          key={team.id}
+          className="overflow-hidden rounded-xl border border-border/50 bg-card/50 p-4 transition-all duration-300 hover:bg-card hover:border-border hover:shadow-sm"
+        >
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium">{team.name}</div>
-              {team.description && <div className="text-sm text-muted-foreground mt-1">{team.description}</div>}
+              {team.description && (
+                <div className="mt-1 text-sm text-muted-foreground">{team.description}</div>
+              )}
             </div>
-            <div className="text-sm text-muted-foreground capitalize">{team.permission}</div>
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
+              {team.permission}
+            </span>
           </div>
         </div>
       ))}
@@ -919,9 +964,70 @@ function OrganizationTeamsTab({ orgName }: { orgName: string }) {
   );
 }
 
+// Modern profile info item component
+function ProfileInfoItem({
+  icon: Icon,
+  children,
+  href,
+}: {
+  icon: React.ElementType;
+  children: React.ReactNode;
+  href?: string;
+}) {
+  const content = (
+    <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+      <Icon className="size-4 shrink-0 text-muted-foreground/70" />
+      <span className="truncate">{children}</span>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group block transition-colors hover:text-primary"
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return content;
+}
+
+// Modern social link component
+function SocialLink({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="flex size-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-all duration-200 hover:bg-primary/10 hover:text-primary"
+    >
+      <Icon className="size-4" />
+    </a>
+  );
+}
+
 function ProfilePage() {
   const { username } = Route.useParams();
-  const [tab, setTab] = useQueryState("tab", parseAsStringLiteral(["repositories", "starred", "packages", "members", "teams", "settings"]).withDefault("repositories"));
+  const [tab, setTab] = useQueryState(
+    "tab",
+    parseAsStringLiteral(["repositories", "starred", "packages", "members", "teams", "settings"]).withDefault(
+      "repositories"
+    )
+  );
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const { data: session } = useSession();
 
@@ -946,10 +1052,12 @@ function ProfilePage() {
   const orgTeams = orgTeamsData?.teams ?? [];
   const userRepos = reposData?.repos ?? [];
   const starredRepos = starredData?.repos ?? [];
-  const currentOrgMembership = orgMembers.find((member) => (member as any).user?.username === currentUsername);
+  const currentOrgMembership = orgMembers.find(
+    (member) => (member as any).user?.username === currentUsername
+  );
   const isOrgOwner = currentOrgMembership?.role === "owner";
   const canManageMembers = isOrgOwner;
-  
+
   const repoCount = isOrg ? orgRepos.length : userRepos.length;
   const starredCount = starredRepos.length;
   const memberCount = orgMembers.length;
@@ -957,13 +1065,13 @@ function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-12 animate-pulse">
-          <div className="lg:w-72 space-y-6">
-            <div className="w-64 h-64 bg-muted" />
+      <div className="container mx-auto max-w-7xl px-4 py-12">
+        <div className="flex animate-pulse flex-col gap-12 lg:flex-row">
+          <aside className="shrink-0 space-y-6 lg:w-80">
+            <div className="size-64 rounded-full bg-muted" />
             <div className="h-8 w-48 bg-muted" />
             <div className="h-4 w-full bg-muted" />
-          </div>
+          </aside>
           <div className="flex-1 space-y-6">
             <div className="h-10 w-64 bg-muted" />
             <TabSkeleton />
@@ -976,96 +1084,134 @@ function ProfilePage() {
   // If it's an organization, render org profile
   if (isOrg) {
     return (
-      <div className="container max-w-[1280px] mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-          <aside className="lg:w-72 shrink-0 space-y-3">
-            <Avatar className="lg:w-64 lg:h-64 w-40 h-40 rounded-full border-2 border-border">
-              <AvatarImage src={org.avatarUrl || undefined} className="object-cover" />
-              <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-4xl">
-                <Building2 className="size-16" />
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-semibold">{org.displayName}</h1>
-                {org.isVerified && <span className="text-primary" title="Verified">✓</span>}
-                {(currentUserId || currentUsername) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-muted-foreground"
-                    onClick={() => setIsReportDialogOpen(true)}
-                  >
-                    <Flag className="size-3.5" />
-                    Report
-                  </Button>
-                )}
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+          {/* Sidebar */}
+          <aside className="shrink-0 lg:w-80">
+            <div className="sticky top-24 space-y-6">
+              {/* Avatar with gradient ring */}
+              <div className="relative mx-auto w-fit lg:mx-0">
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-transparent" />
+                <Avatar className="relative size-40 lg:size-64">
+                  <AvatarImage src={org.avatarUrl || undefined} className="object-cover" />
+                  <AvatarFallback className="bg-muted text-4xl font-semibold text-muted-foreground">
+                    <Building2 className="size-16" />
+                  </AvatarFallback>
+                </Avatar>
               </div>
-              <p className="text-base text-muted-foreground">@{org.name}</p>
-            </div>
 
-            <ReportDialog
-              targetType="organization"
-              targetId={org.id}
-              targetName={org.displayName}
-              open={isReportDialogOpen}
-              onOpenChange={setIsReportDialogOpen}
-            />
+              {/* Name and username */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl font-bold tracking-tight">{org.displayName}</h1>
+                  {org.isVerified && (
+                    <span
+                      className="flex size-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground"
+                      title="Verified"
+                    >
+                      <svg className="size-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+                <p className="text-lg text-muted-foreground">@{org.name}</p>
+              </div>
 
-            {org.description && (
-              <div className="pt-2">
+              {/* Report button */}
+              {(currentUserId || currentUsername) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={() => setIsReportDialogOpen(true)}
+                >
+                  <Flag className="size-4" />
+                  Report
+                </Button>
+              )}
+
+              <ReportDialog
+                targetType="organization"
+                targetId={org.id}
+                targetName={org.displayName}
+                open={isReportDialogOpen}
+                onOpenChange={setIsReportDialogOpen}
+              />
+
+              {/* Bio */}
+              {org.description && (
                 <p className="text-sm leading-relaxed text-muted-foreground">{org.description}</p>
-              </div>
-            )}
+              )}
 
-            <div className="space-y-3 pt-2">
-              {org.email && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="size-4" />
-                  <span>{org.email}</span>
-                </div>
-              )}
-              {org.location && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="size-4" />
-                  <span>{org.location}</span>
-                </div>
-              )}
-              {org.website && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Globe className="size-4" />
-                  <a href={org.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline truncate">
+              {/* Metadata */}
+              <div className="space-y-2.5">
+                {org.email && <ProfileInfoItem icon={Mail}>{org.email}</ProfileInfoItem>}
+                {org.location && <ProfileInfoItem icon={MapPin}>{org.location}</ProfileInfoItem>}
+                {org.website && (
+                  <ProfileInfoItem icon={Globe} href={org.website}>
                     {org.website.replace(/^https?:\/\//, "")}
-                  </a>
-                </div>
-              )}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Created {formatDate(org.createdAt)}</span>
+                  </ProfileInfoItem>
+                )}
+                <ProfileInfoItem icon={Calendar}>Created {formatDate(org.createdAt)}</ProfileInfoItem>
               </div>
             </div>
           </aside>
 
-          <div className="w-full">
-            <Tabs value={tab} onValueChange={(value) => setTab(value === "repositories" ? null : (value as "members" | "teams" | "settings"))}>
-              <TabsList variant="line" className="w-full mb-6 h-auto bg-transparent p-0">
-                <TabsTrigger value="repositories" className="gap-2">
+          {/* Main content */}
+          <div className="min-w-0 flex-1">
+            <Tabs
+              value={tab}
+              onValueChange={(value) =>
+                setTab(value === "repositories" ? null : (value as "members" | "teams" | "settings"))
+              }
+            >
+              <TabsList className="mb-6 h-auto w-full justify-start rounded-none border-b border-border/50 bg-transparent p-0">
+                <TabsTrigger
+                  value="repositories"
+                  className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+                >
                   <BookOpen className="size-4" />
                   <span>Repositories</span>
-                  {repoCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({repoCount})</span>}
+                  {repoCount > 0 && (
+                    <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                      {repoCount}
+                    </span>
+                  )}
                 </TabsTrigger>
-                <TabsTrigger value="members" className="gap-2">
+                <TabsTrigger
+                  value="members"
+                  className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+                >
                   <Users className="size-4" />
                   <span>Members</span>
-                  {memberCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({memberCount})</span>}
+                  {memberCount > 0 && (
+                    <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                      {memberCount}
+                    </span>
+                  )}
                 </TabsTrigger>
-                <TabsTrigger value="teams" className="gap-2">
+                <TabsTrigger
+                  value="teams"
+                  className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+                >
                   <Users className="size-4" />
                   <span>Teams</span>
-                  {teamCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({teamCount})</span>}
+                  {teamCount > 0 && (
+                    <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                      {teamCount}
+                    </span>
+                  )}
                 </TabsTrigger>
                 {isOrgOwner && (
-                  <TabsTrigger value="settings" className="gap-2">
+                  <TabsTrigger
+                    value="settings"
+                    className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+                  >
                     <Settings className="size-4" />
                     <span>Settings</span>
                   </TabsTrigger>
@@ -1111,136 +1257,130 @@ function ProfilePage() {
   }
 
   return (
-    <div className="container max-w-[1280px] mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-12 items-start">
-        <aside className="lg:w-72 shrink-0 space-y-3">
-          <Avatar className="lg:w-64 lg:h-64 w-40 h-40 rounded-full border-2 border-border">
-            <AvatarImage src={user.avatarUrl || undefined} className="object-cover" />
-            <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-4xl">{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-semibold">{user.name}</h1>
-              {user.pronouns && <span className="text-sm text-muted-foreground">({user.pronouns})</span>}
-              {(!currentUserId || currentUserId !== user.id) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5 text-muted-foreground"
-                  onClick={() => setIsReportDialogOpen(true)}
-                >
-                  <Flag className="size-3.5" />
-                  Report
-                </Button>
-              )}
+    <div className="container mx-auto max-w-7xl px-4 py-8">
+      <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+        {/* Sidebar */}
+        <aside className="shrink-0 lg:w-80">
+          <div className="sticky top-24 space-y-6">
+            {/* Avatar with gradient ring */}
+            <div className="relative mx-auto w-fit lg:mx-0">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5" />
+              <Avatar className="relative size-40 lg:size-64">
+                <AvatarImage src={user.avatarUrl || undefined} className="object-cover" />
+                <AvatarFallback className="bg-muted text-5xl font-semibold text-muted-foreground">
+                  {user.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </div>
-            <p className="text-base text-muted-foreground">@{user.username}</p>
-          </div>
 
-          <ReportDialog
-            targetType="user"
-            targetId={user.id}
-            targetName={user.name}
-            open={isReportDialogOpen}
-            onOpenChange={setIsReportDialogOpen}
-          />
-
-          {user.bio && (
-            <div className="pt-2">
-              <p className="text-sm leading-relaxed text-muted-foreground">{user.bio}</p>
+            {/* Name and username */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
+                {user.pronouns && (
+                  <span className="text-sm text-muted-foreground">({user.pronouns})</span>
+                )}
+              </div>
+              <p className="text-lg text-muted-foreground">@{user.username}</p>
             </div>
-          )}
 
-          <div className="space-y-3 pt-2">
-            {user.company && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Building2 className="size-4" />
-                <span>{user.company}</span>
-              </div>
+            {/* Report button */}
+            {(!currentUserId || currentUserId !== user.id) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setIsReportDialogOpen(true)}
+              >
+                <Flag className="size-4" />
+                Report
+              </Button>
             )}
-            {user.location && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="size-4" />
-                <span>{user.location}</span>
-              </div>
-            )}
-            {user.website && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Globe className="size-4" />
-                <a href={user.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline truncate">
+
+            <ReportDialog
+              targetType="user"
+              targetId={user.id}
+              targetName={user.name}
+              open={isReportDialogOpen}
+              onOpenChange={setIsReportDialogOpen}
+            />
+
+            {/* Bio */}
+            {user.bio && <p className="text-sm leading-relaxed text-muted-foreground">{user.bio}</p>}
+
+            {/* Metadata */}
+            <div className="space-y-2.5">
+              {user.company && <ProfileInfoItem icon={Building2}>{user.company}</ProfileInfoItem>}
+              {user.location && <ProfileInfoItem icon={MapPin}>{user.location}</ProfileInfoItem>}
+              {user.website && (
+                <ProfileInfoItem icon={Globe} href={user.website}>
                   {user.website.replace(/^https?:\/\//, "")}
-                </a>
-              </div>
-            )}
-            {user.lastActiveAt && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Activity className="size-4" />
-                <span>Active {timeAgo(user.lastActiveAt)}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="size-4" />
-              <span>Joined {formatDate(user.createdAt)}</span>
+                </ProfileInfoItem>
+              )}
+              {user.lastActiveAt && (
+                <ProfileInfoItem icon={Activity}>Active {timeAgo(user.lastActiveAt)}</ProfileInfoItem>
+              )}
+              <ProfileInfoItem icon={Calendar}>Joined {formatDate(user.createdAt)}</ProfileInfoItem>
             </div>
-          </div>
 
-          {user.socialLinks && (
-            <div className="flex items-center gap-4 pt-2">
-              {user.socialLinks.github && (
-                <a
-                  href={user.socialLinks.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <GithubIcon className="h-5 w-5" />
-                </a>
-              )}
-              {user.socialLinks.twitter && (
-                <a
-                  href={user.socialLinks.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <XIcon className="h-5 w-5" />
-                </a>
-              )}
-              {user.socialLinks.linkedin && (
-                <a
-                  href={user.socialLinks.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <LinkedInIcon className="h-5 w-5" />
-                </a>
-              )}
-              {user.socialLinks.custom?.map((url, i) => (
-                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <LinkIcon className="size-5" />
-                </a>
-              ))}
-            </div>
-          )}
+            {/* Social links */}
+            {user.socialLinks && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {user.socialLinks.github && (
+                  <SocialLink href={user.socialLinks.github} icon={GithubIcon} label="GitHub" />
+                )}
+                {user.socialLinks.twitter && (
+                  <SocialLink href={user.socialLinks.twitter} icon={XIcon} label="Twitter" />
+                )}
+                {user.socialLinks.linkedin && (
+                  <SocialLink href={user.socialLinks.linkedin} icon={LinkedInIcon} label="LinkedIn" />
+                )}
+                {user.socialLinks.custom?.map((url, i) => (
+                  <SocialLink key={i} href={url} icon={LinkIcon} label={`Link ${i + 1}`} />
+                ))}
+              </div>
+            )}
+          </div>
         </aside>
 
-        <div className="w-full">
-          <Tabs value={tab} onValueChange={(value) => setTab(value === "repositories" ? null : (value as "starred" | "packages"))}>
-            <TabsList variant="line" className="w-full mb-6 h-auto bg-transparent p-0">
-              <TabsTrigger value="repositories" className="gap-2">
+        {/* Main content */}
+        <div className="min-w-0 flex-1">
+          <Tabs
+            value={tab}
+            onValueChange={(value) =>
+              setTab(value === "repositories" ? null : (value as "starred" | "packages"))
+            }
+          >
+            <TabsList className="mb-6 h-auto w-full justify-start rounded-none border-b border-border/50 bg-transparent p-0">
+              <TabsTrigger
+                value="repositories"
+                className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+              >
                 <BookOpen className="size-4" />
                 <span>Repositories</span>
-                {repoCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({repoCount})</span>}
+                {repoCount > 0 && (
+                  <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                    {repoCount}
+                  </span>
+                )}
               </TabsTrigger>
-              <TabsTrigger value="starred" className="gap-2">
+              <TabsTrigger
+                value="starred"
+                className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+              >
                 <Award className="size-4" />
                 <span>Starred</span>
-                {starredCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({starredCount})</span>}
+                {starredCount > 0 && (
+                  <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                    {starredCount}
+                  </span>
+                )}
               </TabsTrigger>
               {currentUsername === username && (
-                <TabsTrigger value="packages" className="gap-2">
+                <TabsTrigger
+                  value="packages"
+                  className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[selected]:border-primary data-[selected]:bg-transparent data-[selected]:shadow-none"
+                >
                   <Package className="size-4" />
                   <span>Packages</span>
                 </TabsTrigger>

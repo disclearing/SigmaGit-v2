@@ -4,17 +4,17 @@ import {
   useCreateTeam,
   useDeleteOrganization,
   useDeleteTeam,
-  useOrganization,
   useOrganizationMembers,
   useOrganizationRepos,
   useOrganizationTeams,
+  useProfileCounts,
+  useProfileResolve,
   useRemoveOrgMember,
   useRemoveTeamRepo,
   useTeam,
   useUpdateOrgMember,
   useUpdateOrganization,
   useUserPackages,
-  useUserProfile,
   useUserRepositories,
   useUserStarredRepos,
 } from "@sigmagit/hooks";
@@ -128,8 +128,8 @@ function RepositoriesTab({ username }: { username: string }) {
   );
 }
 
-function PackagesTab({ username }: { username: string }) {
-  const { data, isLoading } = useUserPackages(username);
+function PackagesTab({ username, enabled = true }: { username: string; enabled?: boolean }) {
+  const { data, isLoading } = useUserPackages(username, { enabled });
 
   if (isLoading) {
     return <TabSkeleton />;
@@ -1031,20 +1031,20 @@ function ProfilePage() {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const { data: session } = useSession();
 
-  // Resolve profile type with only 2 requests; secondary data is fetched after we know org vs user
-  const { data: org, isLoading: isLoadingOrg, error: orgError } = useOrganization(username);
-  const { data: user, isLoading: isLoadingUser, error: userError } = useUserProfile(username);
+  // Single request to resolve org vs user; then lazy-load tab data
+  const { data: resolved, isLoading, error: resolveError } = useProfileResolve(username);
+  const isOrg = resolved?.type === "organization";
+  const isUser = resolved?.type === "user";
+  const org = isOrg ? resolved.profile : null;
+  const user = isUser ? resolved.profile : null;
 
-  const isOrg = !!org && !orgError;
-  const isUser = !!user && !userError;
+  const { data: countsData } = useProfileCounts(username, { enabled: isUser });
+  const { data: orgReposData } = useOrganizationRepos(username, { enabled: isOrg && tab === "repositories" });
+  const { data: orgMembersData } = useOrganizationMembers(username, { enabled: isOrg && tab === "members" });
+  const { data: orgTeamsData } = useOrganizationTeams(username, { enabled: isOrg && tab === "teams" });
+  const { data: reposData } = useUserRepositories(username, { enabled: isUser && tab === "repositories" });
+  const { data: starredData } = useUserStarredRepos(username, { enabled: isUser && tab === "starred" });
 
-  const { data: orgReposData } = useOrganizationRepos(username, { enabled: isOrg });
-  const { data: orgMembersData } = useOrganizationMembers(username, { enabled: isOrg });
-  const { data: orgTeamsData } = useOrganizationTeams(username, { enabled: isOrg });
-  const { data: reposData } = useUserRepositories(username, { enabled: isUser });
-  const { data: starredData } = useUserStarredRepos(username, { enabled: isUser });
-
-  const isLoading = isLoadingOrg || isLoadingUser;
   const currentUsername = (session?.user as { username?: string } | undefined)?.username;
   const currentUserId = session?.user?.id;
   const orgMembers = orgMembersData?.members ?? [];
@@ -1058,10 +1058,10 @@ function ProfilePage() {
   const isOrgOwner = currentOrgMembership?.role === "owner";
   const canManageMembers = isOrgOwner;
 
-  const repoCount = isOrg ? orgRepos.length : userRepos.length;
-  const starredCount = starredRepos.length;
-  const memberCount = orgMembers.length;
-  const teamCount = orgTeams.length;
+  const repoCount = isOrg ? (org?.repoCount ?? orgRepos.length) : (countsData?.repoCount ?? userRepos.length);
+  const starredCount = isUser ? (countsData?.starredCount ?? starredRepos.length) : 0;
+  const memberCount = isOrg ? (org?.memberCount ?? orgMembers.length) : 0;
+  const teamCount = isOrg ? ((org as { teamCount?: number })?.teamCount ?? orgTeams.length) : 0;
 
   if (isLoading) {
     return (
@@ -1079,6 +1079,10 @@ function ProfilePage() {
         </div>
       </div>
     );
+  }
+
+  if (resolveError || !resolved) {
+    throw notFound();
   }
 
   // If it's an organization, render org profile
@@ -1251,8 +1255,8 @@ function ProfilePage() {
     );
   }
 
-  // Otherwise, render user profile
-  if (userError || !user) {
+  // Otherwise, render user profile (resolved.type === "user")
+  if (!user) {
     throw notFound();
   }
 
@@ -1397,7 +1401,7 @@ function ProfilePage() {
 
             {currentUsername === username && (
               <TabsContent value="packages" className="mt-0">
-                <PackagesTab username={username} />
+                <PackagesTab username={username} enabled={tab === "packages"} />
               </TabsContent>
             )}
           </Tabs>

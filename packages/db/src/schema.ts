@@ -231,6 +231,8 @@ export const repositories = pgTable(
   (table) => [
     index("repositories_forked_from_id_idx").on(table.forkedFromId),
     index("repositories_organization_id_idx").on(table.organizationId),
+    index("repositories_owner_updated_idx").on(table.ownerId, table.updatedAt),
+    index("repositories_owner_visibility_updated_idx").on(table.ownerId, table.visibility, table.updatedAt),
     index("repositories_search_idx").using("gin", table.searchVector),
   ]
 );

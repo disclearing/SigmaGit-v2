@@ -20,6 +20,16 @@ export function usePlatformStats() {
   });
 }
 
+export function useProfileResolve(username: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["profile", "resolve", username],
+    queryFn: () => api.users.resolve(username),
+    enabled: !!username,
+    staleTime: 30_000, // 30s so repeat visits feel instant
+  });
+}
+
 export function useUserProfile(username: string) {
   const api = useApi();
   return useQuery({
@@ -27,6 +37,16 @@ export function useUserProfile(username: string) {
     queryFn: () => api.users.getProfile(username),
     enabled: !!username,
     staleTime: 30_000, // 30s so repeat visits feel instant
+  });
+}
+
+export function useProfileCounts(username: string, options?: { enabled?: boolean }) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["user", username, "profile-counts"],
+    queryFn: () => api.users.getProfileCounts(username),
+    enabled: options?.enabled ?? !!username,
+    staleTime: 30_000,
   });
 }
 
@@ -45,6 +65,7 @@ export function useUserAvatarByUsername(username: string | null | undefined) {
     queryKey: ["user", username, "avatar"],
     queryFn: () => api.users.getAvatarByUsername(username!),
     enabled: !!username,
+    staleTime: 60_000, // 1 min so avatars in lists/profile feel instant
   });
 }
 

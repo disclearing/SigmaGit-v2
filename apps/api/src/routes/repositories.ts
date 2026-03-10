@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers } from "@sigmagit/db";
-import { eq, sql, desc, and } from "drizzle-orm";
+import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import git from "isomorphic-git";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
@@ -599,25 +599,35 @@ app.get("/api/repositories/user/:username", async (c) => {
     orderBy: desc(repositories.updatedAt),
   });
 
-  const reposWithStars = await Promise.all(
-    reposResult.map(async (repo) => {
-      const [starCount] = await db
-        .select({ count: sql<number>`COUNT(*)` })
-        .from(stars)
-        .where(eq(stars.repositoryId, repo.id));
+  if (reposResult.length === 0) {
+    return c.json({ repos: [] });
+  }
 
-      return {
-        ...repo,
-        owner: {
-          id: userResult.id,
-          username: userResult.username,
-          name: userResult.name,
-          avatarUrl: userResult.avatarUrl,
-        },
-        starCount: Number(starCount?.count) || 0,
-      };
+  const repoIds = reposResult.map((r) => r.id);
+  const countRows = await db
+    .select({
+      repositoryId: stars.repositoryId,
+      count: sql<number>`COUNT(*)::int`.as("cnt"),
     })
-  );
+    .from(stars)
+    .where(inArray(stars.repositoryId, repoIds))
+    .groupBy(stars.repositoryId);
+
+  const countByRepoId = new Map<string, number>();
+  for (const row of countRows) {
+    countByRepoId.set(row.repositoryId, Number(row.count) || 0);
+  }
+
+  const reposWithStars = reposResult.map((repo) => ({
+    ...repo,
+    owner: {
+      id: userResult.id,
+      username: userResult.username,
+      name: userResult.name,
+      avatarUrl: userResult.avatarUrl,
+    },
+    starCount: countByRepoId.get(repo.id) ?? 0,
+  }));
 
   return c.json({ repos: reposWithStars });
 });

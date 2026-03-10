@@ -1,12 +1,89 @@
 import { Hono } from "hono";
-import { db, users, repositories, stars } from "@sigmagit/db";
-import { eq, sql, desc, asc, and } from "drizzle-orm";
+import { db, users, repositories, stars, organizations, organizationMembers, teams } from "@sigmagit/db";
+import { eq, sql, desc, asc, and, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
+
+/** Resolve username to either a user or organization in one request. Prefers organization when both exist. */
+app.get("/api/users/:username/resolve", async (c) => {
+  const username = c.req.param("username");
+
+  const [orgRow, userRow] = await Promise.all([
+    db.select().from(organizations).where(eq(organizations.name, username)).limit(1),
+    db
+      .select({
+        id: users.id,
+        name: users.name,
+        username: users.username,
+        bio: users.bio,
+        location: users.location,
+        website: users.website,
+        pronouns: users.pronouns,
+        avatarUrl: users.avatarUrl,
+        company: users.company,
+        socialLinks: users.socialLinks,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        lastActiveAt: users.lastActiveAt,
+        email: users.email,
+        emailVerified: users.emailVerified,
+      })
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1),
+  ]);
+
+  const org = orgRow[0];
+  const user = userRow[0];
+
+  if (org) {
+    const [memberCount, repoCount, teamCount] = await Promise.all([
+      db.select({ count: sql<number>`COUNT(*)` }).from(organizationMembers).where(eq(organizationMembers.organizationId, org.id)),
+      db.select({ count: sql<number>`COUNT(*)` }).from(repositories).where(eq(repositories.organizationId, org.id)),
+      db.select({ count: sql<number>`COUNT(*)` }).from(teams).where(eq(teams.organizationId, org.id)),
+    ]);
+    return c.json({
+      type: "organization" as const,
+      profile: {
+        ...org,
+        memberCount: Number(memberCount[0]?.count) || 0,
+        repoCount: Number(repoCount[0]?.count) || 0,
+        teamCount: Number(teamCount[0]?.count) || 0,
+      },
+    });
+  }
+
+  if (user) {
+    const currentUser = c.get("user");
+    const isOwnProfile = currentUser?.id === user.id;
+    const response: Record<string, unknown> = {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      avatarUrl: cacheBustAvatarUrl(user.avatarUrl, user.updatedAt),
+      bio: user.bio,
+      location: user.location,
+      website: user.website,
+      pronouns: user.pronouns,
+      company: user.company,
+      socialLinks: user.socialLinks,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      lastActiveAt: user.lastActiveAt ?? undefined,
+    };
+    if (isOwnProfile) {
+      response.email = user.email;
+      response.emailVerified = user.emailVerified;
+    }
+    return c.json({ type: "user" as const, profile: response });
+  }
+
+  return c.json({ error: "Not found" }, 404);
+});
 
 function cacheBustAvatarUrl(avatarUrl: string | null, updatedAt: Date): string | null {
   if (!avatarUrl) return null;
@@ -144,6 +221,26 @@ app.get("/api/users/:username/profile", async (c) => {
 
   const result = await db.query.users.findFirst({
     where: eq(users.username, username),
+    columns: {
+      id: true,
+      name: true,
+      username: true,
+      avatarUrl: true,
+      updatedAt: true,
+      bio: true,
+      location: true,
+      website: true,
+      pronouns: true,
+      company: true,
+      gitEmail: true,
+      defaultRepositoryVisibility: true,
+      preferences: true,
+      socialLinks: true,
+      createdAt: true,
+      lastActiveAt: true,
+      email: true,
+      emailVerified: true,
+    },
   });
 
   if (!result) {
@@ -152,7 +249,7 @@ app.get("/api/users/:username/profile", async (c) => {
 
   const isOwnProfile = currentUser?.id === result.id;
 
-  const response: Record<string, any> = {
+  const response: Record<string, unknown> = {
     id: result.id,
     name: result.name,
     username: result.username,
@@ -168,11 +265,8 @@ app.get("/api/users/:username/profile", async (c) => {
     socialLinks: result.socialLinks,
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
+    lastActiveAt: result.lastActiveAt ?? undefined,
   };
-
-  if (result.lastActiveAt) {
-    response.lastActiveAt = result.lastActiveAt;
-  }
 
   if (isOwnProfile) {
     response.email = result.email;
@@ -180,6 +274,37 @@ app.get("/api/users/:username/profile", async (c) => {
   }
 
   return c.json(response);
+});
+
+/** Lightweight counts for profile tab badges (repo + starred) without loading full lists. */
+app.get("/api/users/:username/profile-counts", async (c) => {
+  const username = c.req.param("username");
+
+  const userResult = await db.query.users.findFirst({
+    where: eq(users.username, username),
+    columns: { id: true },
+  });
+
+  if (!userResult) {
+    return c.json({ repoCount: 0, starredCount: 0 });
+  }
+
+  const [repoCountRow, starredCountRow] = await Promise.all([
+    db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(repositories)
+      .where(and(eq(repositories.ownerId, userResult.id), eq(repositories.visibility, "public"))),
+    db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(stars)
+      .innerJoin(repositories, eq(stars.repositoryId, repositories.id))
+      .where(and(eq(stars.userId, userResult.id), eq(repositories.visibility, "public"))),
+  ]);
+
+  return c.json({
+    repoCount: Number(repoCountRow[0]?.count) || 0,
+    starredCount: Number(starredCountRow[0]?.count) || 0,
+  });
 });
 
 app.get("/api/users/:username/starred", async (c) => {
@@ -208,13 +333,31 @@ app.get("/api/users/:username/starred", async (c) => {
       ownerName: users.name,
       ownerAvatarUrl: users.avatarUrl,
       starredAt: stars.createdAt,
-      starCount: sql<number>`(SELECT COUNT(*) FROM stars WHERE repository_id = ${repositories.id})`.as("star_count"),
     })
     .from(stars)
     .innerJoin(repositories, eq(stars.repositoryId, repositories.id))
     .innerJoin(users, eq(repositories.ownerId, users.id))
     .where(and(eq(stars.userId, userResult.id), eq(repositories.visibility, "public")))
     .orderBy(desc(stars.createdAt));
+
+  if (starredRepos.length === 0) {
+    return c.json({ repos: [] });
+  }
+
+  const repoIds = starredRepos.map((r) => r.id);
+  const countRows = await db
+    .select({
+      repositoryId: stars.repositoryId,
+      count: sql<number>`COUNT(*)::int`.as("cnt"),
+    })
+    .from(stars)
+    .where(inArray(stars.repositoryId, repoIds))
+    .groupBy(stars.repositoryId);
+
+  const countByRepoId = new Map<string, number>();
+  for (const row of countRows) {
+    countByRepoId.set(row.repositoryId, Number(row.count) || 0);
+  }
 
   const repos = starredRepos.map((r) => ({
     id: r.id,
@@ -224,7 +367,7 @@ app.get("/api/users/:username/starred", async (c) => {
     defaultBranch: r.defaultBranch,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
-    starCount: Number(r.starCount) || 0,
+    starCount: countByRepoId.get(r.id) ?? 0,
     starredAt: r.starredAt,
     owner: {
       id: r.ownerId,

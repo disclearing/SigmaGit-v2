@@ -311,7 +311,14 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     },
 
     users: {
+      resolve: (username: string) =>
+        apiFetch<
+          | { type: "user"; profile: UserProfile }
+          | { type: "organization"; profile: Organization }
+        >(`/api/users/${username}/resolve`),
       getProfile: (username: string) => apiFetch<UserProfile>(`/api/users/${username}/profile`),
+      getProfileCounts: (username: string) =>
+        apiFetch<{ repoCount: number; starredCount: number }>(`/api/users/${username}/profile-counts`),
       getSummary: () => apiFetch<UserSummary>(`/api/users/me/summary`),
       getPlatformStats: () => apiFetch<PlatformStats>("/api/stats/platform"),
       getStarred: (username: string) => apiFetch<{ repos: RepositoryWithStars[] }>(`/api/users/${username}/starred`),

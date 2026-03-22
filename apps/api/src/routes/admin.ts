@@ -23,6 +23,7 @@ import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray
 import { authMiddleware, requireAdmin, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { repoCache } from "../cache";
+import { createGitStore, getCommitCountCached, listBranchesCached } from "../git";
 import { copyPrefix, deletePrefix, getRepoPrefix } from "../s3";
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -121,6 +122,64 @@ async function deleteRepositoryCompletely(
   await cleanupRepositoryStorage(repository);
   await invalidateRepositoryCaches(repository);
   await db.delete(repositories).where(eq(repositories.id, repository.id));
+}
+
+type EmptyRepoCandidate = Pick<
+  typeof repositories.$inferSelect,
+  "id" | "name" | "ownerId" | "organizationId" | "defaultBranch"
+>;
+
+async function isRepositoryActuallyEmpty(repository: EmptyRepoCandidate): Promise<boolean> {
+  const storageOwnerIds = new Set<string>([repository.ownerId]);
+  if (repository.organizationId) {
+    storageOwnerIds.add(repository.organizationId);
+  }
+
+  for (const storageOwnerId of storageOwnerIds) {
+    try {
+      const store = createGitStore(storageOwnerId, repository.name);
+      const branches = await listBranchesCached(store);
+      const branchCandidates = new Set<string>([...branches, repository.defaultBranch, "main"]);
+
+      for (const branch of branchCandidates) {
+        const commitCount = await getCommitCountCached(store, branch);
+        if (commitCount > 0) {
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error(
+        `[Admin Utils] Failed to verify emptiness for repo ${repository.id} under storage owner ${storageOwnerId}:`,
+        error
+      );
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function getActuallyEmptyRepositories(): Promise<EmptyRepoCandidate[]> {
+  const candidates = await db
+    .select({
+      id: repositories.id,
+      name: repositories.name,
+      ownerId: repositories.ownerId,
+      organizationId: repositories.organizationId,
+      defaultBranch: repositories.defaultBranch,
+    })
+    .from(repositories)
+    .leftJoin(repoBranchMetadata, eq(repoBranchMetadata.repoId, repositories.id))
+    .where(sql`${repoBranchMetadata.repoId} IS NULL`);
+
+  const emptyRepositories: EmptyRepoCandidate[] = [];
+  for (const repository of candidates) {
+    if (await isRepositoryActuallyEmpty(repository)) {
+      emptyRepositories.push(repository);
+    }
+  }
+
+  return emptyRepositories;
 }
 
 app.get("/api/admin/stats", async (c) => {
@@ -286,11 +345,7 @@ app.get("/api/admin/system-stats", async (c) => {
 
 // Preview counts for each cleanup (no mutations)
 app.get("/api/admin/utils/preview", async (c) => {
-  const emptyRepos = await db
-    .select({ id: repositories.id })
-    .from(repositories)
-    .leftJoin(repoBranchMetadata, eq(repoBranchMetadata.repoId, repositories.id))
-    .where(sql`${repoBranchMetadata.repoId} IS NULL`);
+  const emptyRepos = await getActuallyEmptyRepositories();
 
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -343,16 +398,7 @@ app.get("/api/admin/utils/preview", async (c) => {
 // Run cleanup: empty repos (repos with no branch metadata / never pushed)
 app.post("/api/admin/utils/cleanup-empty-repos", async (c) => {
   const actor = c.get("user")!;
-  const emptyRepos = await db
-    .select({
-      id: repositories.id,
-      name: repositories.name,
-      ownerId: repositories.ownerId,
-      organizationId: repositories.organizationId,
-    })
-    .from(repositories)
-    .leftJoin(repoBranchMetadata, eq(repoBranchMetadata.repoId, repositories.id))
-    .where(sql`${repoBranchMetadata.repoId} IS NULL`);
+  const emptyRepos = await getActuallyEmptyRepositories();
 
   let deleted = 0;
   for (const row of emptyRepos) {

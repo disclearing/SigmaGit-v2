@@ -119,7 +119,7 @@ function CommitPage() {
                     <span className="text-muted-foreground">Commit: </span>
                     <code className="font-mono text-xs">{oid}</code>
                   </div>
-                  {diffData?.parent && (
+                  {diffData.parent && (
                     <div className="mt-1 text-sm">
                       <span className="text-muted-foreground">Parent: </span>
                       <Link

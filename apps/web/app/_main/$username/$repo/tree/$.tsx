@@ -83,7 +83,7 @@ function TreePage() {
                     repo: repoName,
                     _splat: `${branch}/${pathParts.slice(0, i + 1).join("/")}`,
                   }}
-                  className="text-accent hover:underline"
+                  className="text-primary hover:underline"
                 >
                   {part}
                 </Link>

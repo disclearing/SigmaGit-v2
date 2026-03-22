@@ -104,7 +104,7 @@ function EditGistPage() {
   }
 
   const gistOwnerId = (gist as any).ownerId ?? (gist as any).owner?.id;
-  const isOwner = !!(session?.user?.id && session.user.id === gistOwnerId);
+  const isOwner = !!(session?.user.id && session.user.id === gistOwnerId);
 
   if (!isOwner) {
     return (

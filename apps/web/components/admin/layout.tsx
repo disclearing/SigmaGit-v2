@@ -20,7 +20,7 @@ import {
   Users,
   Wrench,
 } from "lucide-react";
-import { useCurrentUserSummary, useAdminReportsCounts, useAdminDmcaCounts } from "@sigmagit/hooks";
+import { useAdminDmcaCounts, useAdminReportsCounts, useCurrentUserSummary } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

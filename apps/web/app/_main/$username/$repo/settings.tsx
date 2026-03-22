@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from "react";
+import {  useEffect, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useDeleteRepository, useRepoPageData, useRepositoryInfo, useUpdateRepository } from "@sigmagit/hooks";
 import { toast } from "sonner";
 import { AlertTriangle, Globe, Loader2, Lock, Shield, Trash2, Users, Webhook } from "lucide-react";
+import type {FormEvent} from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,7 @@ import { BranchProtectionTab } from "@/components/repo-settings/branch-protectio
 import { WebhooksTab } from "@/components/repo-settings/webhooks-tab";
 
 const tabTriggerClassName =
-  "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground";
+  "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[selected]:bg-transparent data-[selected]:text-foreground data-[selected]:border-b-2 data-[selected]:border-foreground";
 
 export const Route = createFileRoute("/_main/$username/$repo/settings")({
   head: ({ params }) => ({
@@ -33,9 +34,6 @@ export const Route = createFileRoute("/_main/$username/$repo/settings")({
 type TabValue = "general" | "collaborators" | "branch-protection" | "webhooks" | "danger";
 
 function GeneralTab({
-  username,
-  repoName,
-  repo,
   formData,
   setFormData,
   hasChanges,
@@ -265,7 +263,7 @@ function RepoSettingsPage() {
       {
         onSuccess: (updated) => {
           toast.success("Settings saved");
-          if (updated && updated.name !== repo.name) {
+          if (updated.name !== repo.name) {
             navigate({
               to: "/$username/$repo/settings",
               params: { username, repo: updated.name },
@@ -330,10 +328,10 @@ function RepoSettingsPage() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => setTab((v as TabValue) ?? "general")}
+        onValueChange={(v) => setTab(v as TabValue)}
       >
         <div className="mb-6 overflow-x-auto">
-          <TabsList variant="line" className="h-auto min-w-max gap-1 bg-transparent p-0">
+          <TabsList className="h-auto min-w-max gap-1 bg-transparent p-0">
             <TabsTrigger value="general" className={tabTriggerClassName}>
               General
             </TabsTrigger>

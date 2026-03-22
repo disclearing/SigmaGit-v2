@@ -117,7 +117,7 @@ function AdminGists() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gists</h1>
           <p className="text-muted-foreground mt-2">
-            Manage {data?.gists?.length || 0} platform gists
+            Manage {data?.gists.length || 0} platform gists
           </p>
         </div>
       </div>
@@ -166,7 +166,7 @@ function AdminGists() {
             <div>
               <CardTitle>Gist List</CardTitle>
               <CardDescription>
-                Showing {data?.gists?.length || 0} gists
+                Showing {data?.gists.length || 0} gists
               </CardDescription>
             </div>
           </div>
@@ -299,12 +299,12 @@ function AdminGists() {
           </Button>
           <span className="text-sm text-muted-foreground">
             Page {page + 1}
-            {data?.hasMore && " of more"}
+            {data.hasMore && " of more"}
           </span>
           <Button
             variant="outline"
-            onClick={() => setPage((p) => (data?.hasMore ? p + 1 : p))}
-            disabled={!data?.hasMore}
+            onClick={() => setPage((p) => (data.hasMore ? p + 1 : p))}
+            disabled={!data.hasMore}
             className="gap-2"
           >
             Next

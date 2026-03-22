@@ -65,7 +65,7 @@ export function NewRepositoryModal({ open, onOpenChange }: NewRepositoryModalPro
       setFormData({
         name: "",
         description: "",
-        visibility: currentUser?.user.defaultRepositoryVisibility as "public" | "private" || "public",
+        visibility: currentUser?.user.defaultRepositoryVisibility || "public",
         organizationId: "personal",
         license: "none",
       });

@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Download, Package, Trash2, Upload } from "lucide-react";
-import { useRelease, useReleaseAssets, useRepoTags, useUpdateRelease, useUploadReleaseAsset, useDeleteReleaseAsset } from "@sigmagit/hooks";
+import { useDeleteReleaseAsset, useRelease, useReleaseAssets, useRepoTags, useUpdateRelease, useUploadReleaseAsset } from "@sigmagit/hooks";
 import { getApiUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

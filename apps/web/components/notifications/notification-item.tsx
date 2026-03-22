@@ -43,7 +43,7 @@ export function NotificationItem({
   notification: Notification;
   onMarkRead?: () => void;
 }) {
-  const config = typeConfig[notification.type] || typeConfig.issue_comment;
+  const config = typeConfig[notification.type] ?? typeConfig.issue_comment;
   const Icon = config.icon;
   const url = getNotificationUrl(notification);
 
@@ -68,7 +68,7 @@ export function NotificationItem({
           <Avatar className="size-9" size="sm">
             <AvatarImage src={notification.actor.avatarUrl || undefined} />
             <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-xs font-semibold">
-              {notification.actor.name?.charAt(0) || notification.actor.username?.charAt(0) || "?"}
+              {notification.actor.name.charAt(0) || notification.actor.username.charAt(0) || "?"}
             </AvatarFallback>
           </Avatar>
         ) : (

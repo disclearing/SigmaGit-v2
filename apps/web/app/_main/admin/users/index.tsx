@@ -128,7 +128,7 @@ function AdminUsers() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground mt-2">
-            Manage {data?.users?.length || 0} platform users, roles, and permissions
+            Manage {data?.users.length || 0} platform users, roles, and permissions
           </p>
         </div>
         <div className="flex gap-2">
@@ -186,7 +186,7 @@ function AdminUsers() {
             <div>
               <CardTitle>User List</CardTitle>
               <CardDescription>
-                Showing {data?.users?.length || 0} users
+                Showing {data?.users.length || 0} users
               </CardDescription>
             </div>
           </div>
@@ -206,7 +206,7 @@ function AdminUsers() {
               <tbody className="divide-y divide-border">
               {data?.users && data.users.length > 0 ? (
                   data.users.map((user) => {
-                    const roleStyle = roleConfig[user.role as keyof typeof roleConfig] || roleConfig.user;
+                    const roleStyle = roleConfig[user.role as keyof typeof roleConfig];
                     const RoleIcon = roleStyle.icon;
                     return (
                       <tr key={user.id} className="hover:bg-accent/30 transition-colors">
@@ -339,12 +339,12 @@ function AdminUsers() {
           </Button>
           <span className="text-sm text-muted-foreground">
             Page {page + 1}
-            {data?.hasMore && " of more"}
+            {data.hasMore && " of more"}
           </span>
           <Button
             variant="outline"
-            onClick={() => setPage((p) => (data?.hasMore ? p + 1 : p))}
-            disabled={!data?.hasMore}
+            onClick={() => setPage((p) => (data.hasMore ? p + 1 : p))}
+            disabled={!data.hasMore}
             className="gap-2"
           >
             Next

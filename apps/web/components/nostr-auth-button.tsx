@@ -18,12 +18,12 @@ import { getApiUrl } from "@/lib/utils";
 declare global {
   interface Window {
     nostr?: {
-      getPublicKey(): Promise<string>;
-      signEvent(event: unknown): Promise<unknown>;
+      getPublicKey: () => Promise<string>;
+      signEvent: (event: unknown) => Promise<unknown>;
     };
     alby?: {
       nwc?: {
-        enable(options: { name: string; description: string }): Promise<{
+        enable: (options: { name: string; description: string }) => Promise<{
           connectionString: string;
         }>;
       };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSubmitReport } from "@sigmagit/hooks";
 import { toast } from "sonner";
+import type { ReportReason, ReportTargetType } from "@sigmagit/hooks";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { ReportReason, ReportTargetType } from "@sigmagit/hooks";
 
-const REPORT_REASONS: { value: ReportReason; label: string }[] = [
+const REPORT_REASONS: Array<{ value: ReportReason; label: string }> = [
   { value: "spam", label: "Spam" },
   { value: "harassment", label: "Harassment" },
   { value: "inappropriate", label: "Inappropriate content" },

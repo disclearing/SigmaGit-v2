@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { BookOpen, Code2, GitBranch, Shield, Terminal, User } from "lucide-react";
 import { createMeta } from "@/lib/seo";
 import { Badge } from "@/components/ui/badge";

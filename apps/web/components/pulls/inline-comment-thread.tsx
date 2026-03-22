@@ -42,7 +42,7 @@ function CommentItem({
       <Avatar className="size-6 shrink-0">
         <AvatarImage src={comment.author.avatarUrl || undefined} alt={comment.author.name} />
         <AvatarFallback className="text-xs">
-          {comment.author.name?.charAt(0) || comment.author.username?.charAt(0) || "?"}
+          {comment.author.name.charAt(0) || comment.author.username.charAt(0) || "?"}
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">

@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {  useEffect, useRef, useState } from "react";
 import {
-  useCollaborators,
   useAddCollaborator,
-  useUpdateCollaborator,
+  useCollaborators,
   useRemoveCollaborator,
   useSearch,
+  useUpdateCollaborator,
 } from "@sigmagit/hooks";
-import type { Collaborator, CollaboratorPermission } from "@sigmagit/hooks";
 import { timeAgo } from "@sigmagit/lib";
 import { toast } from "sonner";
 import { Loader2, Plus, Search, Trash2, User } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import type {FormEvent} from "react";
+import type { Collaborator, CollaboratorPermission } from "@sigmagit/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const PERMISSIONS: { value: CollaboratorPermission; label: string }[] = [
+const PERMISSIONS: Array<{ value: CollaboratorPermission; label: string }> = [
   { value: "read", label: "Read" },
   { value: "write", label: "Write" },
   { value: "admin", label: "Admin" },
@@ -69,8 +70,8 @@ export function CollaboratorsTab({ owner, repoName }: CollaboratorsTabProps) {
   const userResults = (searchData?.results ?? []).filter(
     (r) =>
       r.type === "user" &&
-      !collaboratorUsernames.has((r.title ?? "").toLowerCase()) &&
-      (r.title ?? "").toLowerCase() !== owner.toLowerCase()
+      !collaboratorUsernames.has(r.title.toLowerCase()) &&
+      r.title.toLowerCase() !== owner.toLowerCase()
   );
 
   useEffect(() => {

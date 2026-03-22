@@ -124,7 +124,7 @@ function AdminRepositories() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Repositories</h1>
           <p className="text-muted-foreground mt-2">
-            Manage {data?.repositories?.length || 0} platform repositories
+            Manage {data?.repositories.length || 0} platform repositories
           </p>
         </div>
       </div>
@@ -173,7 +173,7 @@ function AdminRepositories() {
             <div>
               <CardTitle>Repository List</CardTitle>
               <CardDescription>
-                Showing {data?.repositories?.length || 0} repositories
+                Showing {data?.repositories.length || 0} repositories
               </CardDescription>
             </div>
           </div>
@@ -212,10 +212,10 @@ function AdminRepositories() {
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <div className="size-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                            {(repo.ownerDisplayName ?? repo.ownerUsername ?? repo.ownerId).charAt(0).toUpperCase()}
+                            {(repo.ownerDisplayName || repo.ownerUsername || repo.ownerId).charAt(0).toUpperCase()}
                           </div>
                           <span className="text-sm text-muted-foreground">
-                            {repo.ownerDisplayName ?? repo.ownerUsername ?? repo.ownerId}
+                            {repo.ownerDisplayName || repo.ownerUsername || repo.ownerId}
                           </span>
                         </div>
                     </td>
@@ -247,7 +247,7 @@ function AdminRepositories() {
                     <td className="p-4">
                       <div className="flex justify-end gap-2">
                           <a 
-                            href={`/${repo.ownerUsername ?? repo.ownerId}/${repo.name}`} 
+                            href={`/${repo.ownerUsername || repo.ownerId}/${repo.name}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
@@ -262,7 +262,7 @@ function AdminRepositories() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-48">
                               <a 
-                                href={`/${repo.ownerUsername ?? repo.ownerId}/${repo.name}`}
+                                href={`/${repo.ownerUsername || repo.ownerId}/${repo.name}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground gap-2"
@@ -321,12 +321,12 @@ function AdminRepositories() {
           </Button>
           <span className="text-sm text-muted-foreground">
             Page {page + 1}
-            {data?.hasMore && " of more"}
+            {data.hasMore && " of more"}
           </span>
           <Button
             variant="outline"
-            onClick={() => setPage((p) => (data?.hasMore ? p + 1 : p))}
-            disabled={!data?.hasMore}
+            onClick={() => setPage((p) => (data.hasMore ? p + 1 : p))}
+            disabled={!data.hasMore}
             className="gap-2"
           >
             Next

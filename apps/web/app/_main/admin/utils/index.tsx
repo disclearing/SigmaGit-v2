@@ -4,9 +4,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   useAdminUtilsPreview,
   useCleanupEmptyRepos,
-  useCleanupUnactivatedAccounts,
   useCleanupExpiredSessions,
   useCleanupExpiredVerifications,
+  useCleanupUnactivatedAccounts,
 } from "@sigmagit/hooks";
 import {
   AlertTriangle,
@@ -173,7 +173,7 @@ function AdminUtilsPage() {
         <div className="text-center">
           <h3 className="text-xl font-semibold">Error loading utils</h3>
           <p className="text-sm text-muted-foreground mt-2">
-            {(error as Error)?.message ?? "Please try again later."}
+            {error instanceof Error ? error.message : "Please try again later."}
           </p>
         </div>
       </div>

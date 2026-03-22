@@ -2,9 +2,9 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { createMeta } from "@/lib/seo";
 import { Briefcase, Heart, Loader2, Users, Zap } from "lucide-react";
 import { useState } from "react";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -36,7 +36,7 @@ type JobListing = {
   createdAt: string;
 };
 
-async function fetchJobs(): Promise<JobListing[]> {
+async function fetchJobs(): Promise<Array<JobListing>> {
   const apiUrl = getApiUrl();
   if (!apiUrl) throw new Error("API URL not configured");
   const res = await fetch(`${apiUrl}/api/careers/jobs`, { credentials: "include" });

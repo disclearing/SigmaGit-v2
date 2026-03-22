@@ -1045,8 +1045,8 @@ function ProfilePage() {
   const { data: reposData } = useUserRepositories(username, { enabled: isUser && tab === "repositories" });
   const { data: starredData } = useUserStarredRepos(username, { enabled: isUser && tab === "starred" });
 
-  const currentUsername = (session?.user as { username?: string } | undefined)?.username;
-  const currentUserId = session?.user?.id;
+  const currentUsername = (session?.user as { username?: string } | undefined).username;
+  const currentUserId = session?.user.id;
   const orgMembers = orgMembersData?.members ?? [];
   const orgRepos = orgReposData?.repositories ?? [];
   const orgTeams = orgTeamsData?.teams ?? [];
@@ -1061,7 +1061,7 @@ function ProfilePage() {
   const repoCount = isOrg ? (org?.repoCount ?? orgRepos.length) : (countsData?.repoCount ?? userRepos.length);
   const starredCount = isUser ? (countsData?.starredCount ?? starredRepos.length) : 0;
   const memberCount = isOrg ? (org?.memberCount ?? orgMembers.length) : 0;
-  const teamCount = isOrg ? ((org as { teamCount?: number })?.teamCount ?? orgTeams.length) : 0;
+  const teamCount = isOrg ? ((org as { teamCount?: number }).teamCount ?? orgTeams.length) : 0;
 
   if (isLoading) {
     return (

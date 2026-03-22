@@ -55,7 +55,7 @@ function RepoPage() {
   const isEmpty = treeData?.isEmpty ?? true;
   const treeCommits = treeCommitsData?.files;
   const readmeOid = readmeOidData?.readmeOid;
-  const lastCommit = commitData?.commits?.[0];
+  const lastCommit = commitData?.commits[0];
 
   return (
     <div className="container max-w-[1280px] mx-auto py-6 space-y-6">

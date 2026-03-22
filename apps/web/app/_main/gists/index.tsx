@@ -2,7 +2,6 @@
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { usePublicGists } from "@sigmagit/hooks";
-import { createMeta } from "@/lib/seo";
 import {
   Clock,
   Code2,
@@ -14,6 +13,7 @@ import {
   User,
 } from "lucide-react";
 import { getLanguage, timeAgo } from "@sigmagit/lib";
+import { createMeta } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

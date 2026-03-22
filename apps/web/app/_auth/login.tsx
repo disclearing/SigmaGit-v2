@@ -24,9 +24,14 @@ function LoginPage() {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined" && PublicKeyCredential.isConditionalMediationAvailable && PublicKeyCredential.isConditionalMediationAvailable()) {
-      void authClient.signIn.passkey({ autoFill: true });
-    }
+    if (typeof window === "undefined") return;
+    void PublicKeyCredential.isConditionalMediationAvailable()
+      .then((available) => {
+        if (available) {
+          void authClient.signIn.passkey({ autoFill: true });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {

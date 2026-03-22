@@ -18,12 +18,17 @@ function Tabs({
   )
 }
 
-function TabsList({ className, ...props }: TabsPrimitive.List.Props) {
+function TabsList({
+  className,
+  variant,
+  ...props
+}: TabsPrimitive.List.Props & { variant?: "default" | "line" }) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
         "inline-flex h-10 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+        variant === "line" && "bg-transparent h-auto p-0",
         className
       )}
       {...props}

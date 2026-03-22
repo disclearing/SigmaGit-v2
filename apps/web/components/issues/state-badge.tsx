@@ -25,7 +25,7 @@ const stateConfig = {
 };
 
 export function StateBadge({ state, className }: StateBadgeProps) {
-  const config = stateConfig[state] || stateConfig.open;
+  const config = stateConfig[state];
   const Icon = config.icon;
 
   return (

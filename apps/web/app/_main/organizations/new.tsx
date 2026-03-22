@@ -45,7 +45,7 @@ function NewOrganizationPage() {
           toast.success("Organization created!");
           navigate({
             to: "/$username",
-            params: { username: data?.name || formData.name.toLowerCase() },
+            params: { username: data.name || formData.name.toLowerCase() },
           });
         },
         onError: (err) => {

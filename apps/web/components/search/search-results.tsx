@@ -21,7 +21,7 @@ const stateConfig = {
 };
 
 export function SearchResultItem({ result }: { result: SearchResult }) {
-  const config = typeConfig[result.type] || typeConfig.code;
+  const config = typeConfig[result.type];
   const Icon = config.icon;
 
   return (

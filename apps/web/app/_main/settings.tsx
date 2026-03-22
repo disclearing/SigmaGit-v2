@@ -34,7 +34,7 @@ import { getApiUrl } from "@/lib/utils";
 import { parseAsStringLiteral, useQueryState } from "@/lib/hooks";
 
 const tabTriggerClassName =
-  "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground";
+  "gap-1.5 text-sm px-3 py-2 rounded-none whitespace-nowrap text-muted-foreground data-[selected]:bg-transparent data-[selected]:text-foreground data-[selected]:border-b-2 data-[selected]:border-foreground";
 
 export const Route = createFileRoute("/_main/settings")({
   head: () => ({ meta: createMeta({ title: "Settings", description: "Manage your account, profile, and preferences.", noIndex: true }) }),
@@ -588,7 +588,7 @@ function TokensTab() {
       { name: newKeyName || "Personal Access Token" },
       {
         onSuccess: (result) => {
-          if (result?.key) {
+          if (result.key) {
             setCreatedKey(result.key);
             setNewKeyName("");
             refetchKeys();
@@ -962,7 +962,7 @@ function SettingsPage() {
         <h1 className="text-3xl font-semibold mb-8">Settings</h1>
         <Tabs value={tab} onValueChange={(value) => setTab(value === "profile" ? null : (value as "account" | "security" | "tokens"))}>
           <div className="mb-8 overflow-x-auto">
-            <TabsList variant="line" className="h-auto min-w-max gap-1 bg-transparent p-0">
+            <TabsList className="h-auto min-w-max gap-1 bg-transparent p-0">
             <TabsTrigger value="profile" className={tabTriggerClassName}>
               <User className="size-4" />
               Profile

@@ -54,7 +54,7 @@ export const Route = createFileRoute("/sitemap")({
       GET: async ({ request }) => {
         const base = new URL(request.url).origin;
         const apiUrl = getApiUrl();
-        const urls: string[] = [];
+        const urls: Array<string> = [];
 
         // Static routes
         for (const path of STATIC_PATHS) {

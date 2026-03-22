@@ -177,8 +177,8 @@ function AdminAuditLogs() {
           <span className="text-sm text-muted-foreground">Page {page + 1}</span>
           <Button
             variant="outline"
-            onClick={() => setPage((p) => (data?.hasMore ? p + 1 : p))}
-            disabled={!data?.hasMore}
+            onClick={() => setPage((p) => (data.hasMore ? p + 1 : p))}
+            disabled={!data.hasMore}
             className="gap-2"
           >
             Next

@@ -116,7 +116,7 @@ function UserGrid({ sortBy, page, perPage, setPage }: { sortBy: "newest" | "olde
               <Avatar className="size-10 shrink-0 rounded-full border border-border">
                 <AvatarImage src={user.avatarUrl || undefined} />
                 <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
-                  {user.name?.charAt(0).toUpperCase() || "U"}
+                  {user.name.charAt(0).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">

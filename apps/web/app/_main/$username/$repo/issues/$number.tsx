@@ -35,7 +35,7 @@ function IssueDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
-  const currentUserId = session?.user?.id;
+  const currentUserId = session?.user.id;
 
   const issueNumber = parseInt(number, 10);
 
@@ -201,8 +201,8 @@ function IssueDetailPage() {
         {currentUserId && !issue.locked && (
           <div className="mt-6 border-t border-border pt-6">
             <CommentForm
-              currentUserAvatar={session?.user?.image}
-              currentUserName={session?.user?.name || ""}
+              currentUserAvatar={session.user.image}
+              currentUserName={session.user.name || ""}
               onSubmit={handleCreateComment}
             />
           </div>

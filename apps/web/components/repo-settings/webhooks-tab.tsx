@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import {  useState } from "react";
 import {
-  useRepoWebhooks,
   useCreateRepoWebhook,
-  useUpdateRepoWebhook,
   useDeleteRepoWebhook,
+  useRepoWebhooks,
+  useUpdateRepoWebhook,
 } from "@sigmagit/hooks";
-import type { RepositoryWebhook, WebhookEvent } from "@sigmagit/hooks";
 import { toast } from "sonner";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import type {FormEvent} from "react";
+import type { RepositoryWebhook, WebhookEvent } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const WEBHOOK_EVENTS: WebhookEvent[] = ["push", "pull_request", "issues", "tag", "branch"];
+const WEBHOOK_EVENTS: Array<WebhookEvent> = ["push", "pull_request", "issues", "tag", "branch"];
 const EVENT_LABELS: Record<WebhookEvent, string> = {
   push: "Push",
   pull_request: "Pull request",
@@ -52,7 +53,7 @@ export function WebhooksTab({ owner, repoName }: WebhooksTabProps) {
   const [deleteTarget, setDeleteTarget] = useState<RepositoryWebhook | null>(null);
   const [url, setUrl] = useState("");
   const [secret, setSecret] = useState("");
-  const [events, setEvents] = useState<WebhookEvent[]>(["push"]);
+  const [events, setEvents] = useState<Array<WebhookEvent>>(["push"]);
   const [contentType, setContentType] = useState<"json" | "form">("json");
   const [active, setActive] = useState(true);
 
@@ -78,8 +79,8 @@ export function WebhooksTab({ owner, repoName }: WebhooksTabProps) {
     setEditingHook(hook);
     setUrl(hook.url);
     setSecret("");
-    setEvents(hook.events ?? ["push"]);
-    setContentType(hook.contentType ?? "json");
+    setEvents(hook.events);
+    setContentType(hook.contentType);
     setActive(hook.active);
     setDialogOpen(true);
   }
@@ -192,7 +193,7 @@ export function WebhooksTab({ owner, repoName }: WebhooksTabProps) {
                       {hook.url}
                     </p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {(hook.events ?? []).map((ev) => (
+                      {hook.events.map((ev) => (
                         <Badge key={ev} variant="secondary" className="text-xs">
                           {EVENT_LABELS[ev]}
                         </Badge>

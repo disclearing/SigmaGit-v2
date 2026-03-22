@@ -38,7 +38,7 @@ function DiscussionDetailPage() {
   const markAnswer = useMarkDiscussionAnswer(discussion?.id || "", username, repo, discussionNumber);
 
   const comments = commentsData?.comments || [];
-  const isAuthor = session?.user?.id === discussion?.author.id;
+  const isAuthor = discussion ? session?.user.id === discussion.author.id : false;
 
   async function handleSubmitComment(e: React.FormEvent) {
     e.preventDefault();
@@ -125,7 +125,7 @@ function DiscussionDetailPage() {
             <Avatar className="size-6">
               <AvatarImage src={discussion.author.avatarUrl || undefined} />
               <AvatarFallback className="text-xs">
-                {discussion.author.name?.charAt(0) || discussion.author.username?.charAt(0)}
+                {discussion.author.name.charAt(0) || discussion.author.username.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <Link to="/$username" params={{ username: discussion.author.username }} className="hover:underline">
@@ -162,7 +162,7 @@ function DiscussionDetailPage() {
               <Avatar className="size-8">
                 <AvatarImage src={comment.author.avatarUrl || undefined} />
                 <AvatarFallback className="text-xs">
-                  {comment.author.name?.charAt(0) || comment.author.username?.charAt(0)}
+                  {comment.author.name.charAt(0) || comment.author.username.charAt(0)}
                 </AvatarFallback>
               </Avatar>
 

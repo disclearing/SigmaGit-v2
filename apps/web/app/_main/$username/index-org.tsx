@@ -139,9 +139,9 @@ function OrganizationProfilePage() {
   const { data: membersData } = useOrganizationMembers(username);
   const { data: teamsData } = useOrganizationTeams(username);
 
-  const repoCount = reposData?.repositories?.length || 0;
-  const memberCount = membersData?.members?.length || 0;
-  const teamCount = teamsData?.teams?.length || 0;
+  const repoCount = reposData?.repositories.length || 0;
+  const memberCount = membersData?.members.length || 0;
+  const teamCount = teamsData?.teams.length || 0;
 
   if (isLoading) {
     return (

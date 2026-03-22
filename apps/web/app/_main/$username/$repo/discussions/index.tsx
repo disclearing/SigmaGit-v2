@@ -69,7 +69,7 @@ function DiscussionsListPage() {
               <Avatar className="size-10 shrink-0">
                 <AvatarImage src={discussion.author.avatarUrl || undefined} />
                 <AvatarFallback>
-                  {discussion.author.name?.charAt(0) || discussion.author.username?.charAt(0)}
+                  {discussion.author.name.charAt(0) || discussion.author.username.charAt(0)}
                 </AvatarFallback>
               </Avatar>
 

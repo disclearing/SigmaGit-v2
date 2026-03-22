@@ -15,7 +15,7 @@ export function usePasskeys() {
     queryFn: async () => {
       const result = await authClient.passkey.listUserPasskeys();
       if (result.error) throw result.error;
-      return (result.data ?? []) as unknown as Array<Passkey>;
+      return result.data as unknown as Array<Passkey>;
     },
   });
 }

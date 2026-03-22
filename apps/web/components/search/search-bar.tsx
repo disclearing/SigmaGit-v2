@@ -145,6 +145,7 @@ export function SearchBar({ className }: { className?: string }) {
         </div>
       )}
 
+      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
       {isOpen && query.length >= 2 && data?.results?.length === 0 && !isLoading && (
         <div className="absolute top-full mt-2 w-full bg-popover border border-border rounded-xl shadow-2xl z-[60] p-6 text-center">
           <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">

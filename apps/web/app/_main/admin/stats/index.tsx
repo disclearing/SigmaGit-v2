@@ -1,6 +1,6 @@
 "use client";
 
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute  } from "@tanstack/react-router";
 import { useAdminStats, useAdminSystemStats } from "@sigmagit/hooks";
 import {
   Activity,
@@ -22,7 +22,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_main/admin/stats/")({
@@ -44,7 +43,7 @@ function formatUptime(seconds: number): string {
   const h = Math.floor((seconds % 86400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
-  const parts: string[] = [];
+  const parts: Array<string> = [];
   if (d > 0) parts.push(`${d}d`);
   if (h > 0) parts.push(`${h}h`);
   if (m > 0) parts.push(`${m}m`);
@@ -328,6 +327,7 @@ function AdminStatsPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold tabular-nums">
+                      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
                       {stats?.userCount?.toLocaleString() ?? "—"}
                     </p>
                     <p className="text-sm text-muted-foreground">Users</p>
@@ -346,6 +346,7 @@ function AdminStatsPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold tabular-nums">
+                      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
                       {stats?.repoCount?.toLocaleString() ?? "—"}
                     </p>
                     <p className="text-sm text-muted-foreground">Repositories</p>
@@ -363,7 +364,8 @@ function AdminStatsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold tabular-nums">
-                    {stats?.publicRepoCount?.toLocaleString() ?? "—"}
+                      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+                      {stats?.publicRepoCount?.toLocaleString() ?? "—"}
                   </p>
                   <p className="text-sm text-muted-foreground">Public repos</p>
                 </div>
@@ -378,7 +380,8 @@ function AdminStatsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold tabular-nums">
-                    {stats?.privateRepoCount?.toLocaleString() ?? "—"}
+                      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+                      {stats?.privateRepoCount?.toLocaleString() ?? "—"}
                   </p>
                   <p className="text-sm text-muted-foreground">Private repos</p>
                 </div>
@@ -440,7 +443,8 @@ function AdminStatsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold tabular-nums">
-                    {stats?.adminCount?.toLocaleString() ?? "—"}
+                      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+                      {stats?.adminCount?.toLocaleString() ?? "—"}
                   </p>
                   <p className="text-sm text-muted-foreground">Admins</p>
                 </div>

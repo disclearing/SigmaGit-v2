@@ -57,7 +57,7 @@ function GistDetailPage() {
 
   const comments = commentsData?.comments ?? [];
   const isStarred = starredData?.starred ?? false;
-  const isOwner = !!(session?.user?.id && gist && session.user.id === ((gist as any).ownerId ?? (gist as any).owner?.id));
+  const isOwner = !!(session?.user.id && gist && session.user.id === ((gist as any).ownerId ?? (gist as any).owner?.id));
 
   if (isLoading) {
     return (

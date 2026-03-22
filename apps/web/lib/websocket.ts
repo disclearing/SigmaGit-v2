@@ -35,7 +35,7 @@ export function useWebSocket() {
 
     try {
       const session = await authClient.getSession();
-      const token = session.data?.session?.token;
+      const token = session.data?.session.token;
       if (!token) {
         // Session may not be ready yet; keep retrying in background.
         reconnectTimeoutRef.current = setTimeout(() => {

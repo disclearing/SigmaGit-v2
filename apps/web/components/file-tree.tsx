@@ -59,6 +59,7 @@ const FILE_ICONS: Record<string, React.ElementType> = {
 function getFileIcon(name: string, type: "blob" | "tree") {
   if (type === "tree") return Folder;
   const ext = name.split(".").pop()?.toLowerCase() || "";
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return FILE_ICONS[ext] || File;
 }
 
@@ -99,7 +100,7 @@ export function FileTree({ files, username, repoName, branch, basePath, commits,
             <div className="hidden md:flex flex-1 items-center gap-3 min-w-0">
               {isLoadingCommits ? (
                 <div className="h-4 w-48 bg-secondary/50 animate-pulse" />
-              ) : commit?.message ? (
+              ) : commit.message ? (
                 <span className="text-sm text-muted-foreground truncate">
                   {truncateMessage(commit.message)}
                 </span>
@@ -109,7 +110,7 @@ export function FileTree({ files, username, repoName, branch, basePath, commits,
             <div className="hidden sm:block shrink-0 text-right">
               {isLoadingCommits ? (
                 <div className="h-4 w-16 bg-secondary/50 animate-pulse ml-auto" />
-              ) : commit?.timestamp ? (
+              ) : commit.timestamp ? (
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {timeAgo(commit.timestamp)}
                 </span>

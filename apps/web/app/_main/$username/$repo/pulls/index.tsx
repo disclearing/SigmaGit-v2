@@ -71,7 +71,7 @@ function PullsContent() {
           </Tabs>
 
           <div className="flex items-center gap-2">
-            {labels && labels.length > 0 && (
+            {labels.length > 0 && (
               <div className="relative">
                 <Button
                   variant="outline"

@@ -42,7 +42,7 @@ function PullRequestDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
-  const currentUserId = session?.user?.id;
+  const currentUserId = session?.user.id;
 
   const prNumber = parseInt(number, 10);
 
@@ -239,8 +239,8 @@ function PullRequestDetailPage() {
         {currentUserId && (
           <div className="mt-6 border-t border-border pt-6">
             <CommentForm
-              currentUserAvatar={session?.user?.image}
-              currentUserName={session?.user?.name || ""}
+              currentUserAvatar={session.user.image}
+              currentUserName={session.user.name || ""}
               onSubmit={handleCreateComment}
             />
           </div>

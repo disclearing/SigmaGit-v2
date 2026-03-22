@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import {  useState } from "react";
 import {
   useBranchProtectionRules,
   useCreateBranchProtectionRule,
-  useUpdateBranchProtectionRule,
   useDeleteBranchProtectionRule,
+  useUpdateBranchProtectionRule,
 } from "@sigmagit/hooks";
-import type { BranchProtectionRule } from "@sigmagit/hooks";
 import { toast } from "sonner";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import type {FormEvent} from "react";
+import type { BranchProtectionRule } from "@sigmagit/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,7 +55,7 @@ function ruleToForm(rule: BranchProtectionRule | null): RuleFormState {
     requireApprovals: rule.requireApprovals,
     dismissStaleReviews: rule.dismissStaleReviews,
     requireStatusChecks: rule.requireStatusChecks,
-    requiredStatusChecks: (rule.requiredStatusChecks ?? []).join(", "),
+    requiredStatusChecks: rule.requiredStatusChecks.join(", "),
     allowForcePush: rule.allowForcePush,
     allowDeletion: rule.allowDeletion,
   };
@@ -196,7 +197,7 @@ export function BranchProtectionTab({ owner, repoName }: BranchProtectionTabProp
                     <p className="text-xs text-muted-foreground mt-1">
                       {rule.requirePullRequest && `PR required (${rule.requireApprovals} approval(s)) · `}
                       {rule.dismissStaleReviews && "Dismiss stale reviews · "}
-                      {rule.requireStatusChecks && `Status checks: ${(rule.requiredStatusChecks ?? []).join(", ") || "—"} · `}
+                      {rule.requireStatusChecks && `Status checks: ${rule.requiredStatusChecks.join(", ") || "—"} · `}
                       {rule.allowForcePush && "Force push allowed · "}
                       {rule.allowDeletion && "Deletion allowed"}
                       {!rule.requirePullRequest && !rule.dismissStaleReviews && !rule.requireStatusChecks && !rule.allowForcePush && !rule.allowDeletion && "No extra restrictions"}

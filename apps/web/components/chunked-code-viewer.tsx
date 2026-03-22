@@ -59,6 +59,7 @@ export function ChunkedCodeViewer({ username, repoName, branch, filePath, langua
       let result = "";
       let loaded = 0;
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;

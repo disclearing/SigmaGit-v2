@@ -65,6 +65,7 @@ function LoggedInHomePage({ session }: { session: { user: { username?: string;[k
                   <Avatar className="size-20 rounded-full border-4 border-background shadow-lg">
                 <AvatarImage src={user?.avatarUrl || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground font-bold text-2xl">
+                      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
                       {user?.name?.charAt(0).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
@@ -188,6 +189,7 @@ function RepositoryCardSkeleton() {
 function LandingPage() {
   const { data: platformStats, isLoading: statsLoading } = usePlatformStats();
 
+  /* eslint-disable @typescript-eslint/no-unnecessary-condition */
   const stats = [
     {
       number:
@@ -210,6 +212,7 @@ function LandingPage() {
       label: "Server Uptime",
     },
   ];
+  /* eslint-enable @typescript-eslint/no-unnecessary-condition */
 
   return (
     <div className="flex flex-col">

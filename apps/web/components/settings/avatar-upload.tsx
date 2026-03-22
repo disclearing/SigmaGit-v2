@@ -44,7 +44,7 @@ export function AvatarUpload({ currentAvatar, name }: AvatarUploadProps) {
 
     updateAvatarMutation.mutate(file, {
       onSuccess: (result) => {
-        if (result?.avatarUrl) {
+        if (result.avatarUrl) {
           setPreview(result.avatarUrl);
         }
         toast.success("Avatar updated successfully");

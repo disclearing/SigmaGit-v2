@@ -5,9 +5,9 @@ import { GitBranch, Play, RefreshCw } from 'lucide-react';
 import { useDispatchWorkflow, useSyncWorkflows, useWorkflows } from '@sigmagit/hooks';
 import { toast } from 'sonner';
 import { Link } from '@tanstack/react-router';
+import { RunDialog } from './run-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RunDialog } from './run-dialog';
 
 interface WorkflowListProps {
   owner: string;

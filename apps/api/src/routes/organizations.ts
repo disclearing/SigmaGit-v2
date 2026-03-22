@@ -812,7 +812,17 @@ app.get("/api/organizations/:org/repositories", async (c) => {
     .where(eq(repositories.organizationId, org.id))
     .orderBy(desc(repositories.createdAt));
 
-  return c.json({ repositories: repos });
+  const reposWithOwner = repos.map((repo) => ({
+    ...repo,
+    owner: {
+      id: org.id,
+      username: org.name,
+      name: org.displayName,
+      avatarUrl: org.avatarUrl,
+    },
+  }));
+
+  return c.json({ repositories: reposWithOwner });
 });
 
 app.post("/api/organizations/:org/invitations", requireAuth, async (c) => {

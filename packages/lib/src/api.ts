@@ -11,6 +11,7 @@ import type {
   IssueComment,
   IssueFilters,
   Label,
+  Owner,
   PRComment,
   PRCount,
   PRDiff,
@@ -1548,7 +1549,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
         getTeams: (org: string) => apiFetch<{ teams: Team[] }>(`/api/organizations/${org}/teams`),
 
-        getRepositories: (org: string) => apiFetch<{ repositories: Repository[] }>(`/api/organizations/${org}/repositories`),
+      getRepositories: (org: string) => apiFetch<{ repositories: (Repository & { owner: Owner })[] }>(`/api/organizations/${org}/repositories`),
 
         getInvitations: (org: string) =>
           apiFetch<{ invitations: OrganizationInvitation[] }>(`/api/organizations/${org}/invitations`),

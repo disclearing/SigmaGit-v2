@@ -263,7 +263,7 @@ function RepoSettingsPage() {
       {
         onSuccess: (updated) => {
           toast.success("Settings saved");
-          if (updated.name !== repo.name) {
+          if (updated && updated.name !== repo.name) {
             navigate({
               to: "/$username/$repo/settings",
               params: { username, repo: updated.name },
@@ -328,7 +328,7 @@ function RepoSettingsPage() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => setTab(v as TabValue)}
+        onValueChange={(v) => setTab((v as TabValue) ?? "general")}
       >
         <div className="mb-6 overflow-x-auto">
           <TabsList className="h-auto min-w-max gap-1 bg-transparent p-0">

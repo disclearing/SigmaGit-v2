@@ -1045,7 +1045,7 @@ function ProfilePage() {
   const { data: reposData } = useUserRepositories(username, { enabled: isUser && tab === "repositories" });
   const { data: starredData } = useUserStarredRepos(username, { enabled: isUser && tab === "starred" });
 
-  const currentUsername = (session?.user as { username?: string } | undefined).username;
+  const currentUsername = (session?.user as { username?: string })?.username;
   const currentUserId = session?.user.id;
   const orgMembers = orgMembersData?.members ?? [];
   const orgRepos = orgReposData?.repositories ?? [];

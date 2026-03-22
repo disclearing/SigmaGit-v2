@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "gitbruv",
+      "name": "sigmagit",
       "devDependencies": {
         "prettier": "^3.8.1",
         "turbo": "^2.8.12",

@@ -1086,7 +1086,7 @@ function ProfilePage() {
   }
 
   // If it's an organization, render org profile
-  if (isOrg) {
+  if (isOrg && org) {
     return (
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
@@ -1272,7 +1272,7 @@ function ProfilePage() {
               <Avatar className="relative size-40 lg:size-64">
                 <AvatarImage src={user.avatarUrl || undefined} className="object-cover" />
                 <AvatarFallback className="bg-muted text-5xl font-semibold text-muted-foreground">
-                  {user.name.charAt(0).toUpperCase()}
+                  {(user.name || "?").charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -1280,12 +1280,12 @@ function ProfilePage() {
             {/* Name and username */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
+                <h1 className="text-2xl font-bold tracking-tight">{user.name || "Unknown"}</h1>
                 {user.pronouns && (
                   <span className="text-sm text-muted-foreground">({user.pronouns})</span>
                 )}
               </div>
-              <p className="text-lg text-muted-foreground">@{user.username}</p>
+              <p className="text-lg text-muted-foreground">@{user.username || "unknown"}</p>
             </div>
 
             {/* Report button */}
@@ -1304,7 +1304,7 @@ function ProfilePage() {
             <ReportDialog
               targetType="user"
               targetId={user.id}
-              targetName={user.name}
+              targetName={user.name || "Unknown User"}
               open={isReportDialogOpen}
               onOpenChange={setIsReportDialogOpen}
             />
@@ -1324,7 +1324,7 @@ function ProfilePage() {
               {user.lastActiveAt && (
                 <ProfileInfoItem icon={Activity}>Active {timeAgo(user.lastActiveAt)}</ProfileInfoItem>
               )}
-              <ProfileInfoItem icon={Calendar}>Joined {formatDate(user.createdAt)}</ProfileInfoItem>
+              {user.createdAt && <ProfileInfoItem icon={Calendar}>Joined {formatDate(user.createdAt)}</ProfileInfoItem>}
             </div>
 
             {/* Social links */}

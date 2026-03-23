@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers } from "@sigmagit/db";
+import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers, repositoryCollaborators } from "@sigmagit/db";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import git from "isomorphic-git";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
@@ -12,6 +12,22 @@ const app = new Hono<{ Variables: AuthVariables }>();
 
 const REPOSITORY_VISIBILITIES = ["public", "private"] as const;
 type RepositoryVisibility = (typeof REPOSITORY_VISIBILITIES)[number];
+
+async function canAccessRepository(
+  repo: { id: string; ownerId: string; visibility: string },
+  currentUser: { id: string } | null
+): Promise<boolean> {
+  if (repo.visibility === "public") return true;
+  if (!currentUser) return false;
+  if (currentUser.id === repo.ownerId) return true;
+  const collaborator = await db.query.repositoryCollaborators.findFirst({
+    where: and(
+      eq(repositoryCollaborators.repositoryId, repo.id),
+      eq(repositoryCollaborators.userId, currentUser.id)
+    ),
+  });
+  return Boolean(collaborator);
+}
 
 const LICENSES = [
   "mit",
@@ -240,7 +256,8 @@ async function getForkedFromInfo(forkedFromId: string | null, currentUserId?: st
     return null;
   }
 
-  if (row.visibility === "private" && currentUserId !== row.ownerId) {
+  const userObj = currentUserId ? { id: currentUserId } : null;
+  if (!(await canAccessRepository({ id: row.id, ownerId: row.ownerId, visibility: row.visibility }, userObj))) {
     return null;
   }
 
@@ -721,7 +738,7 @@ app.get("/api/repositories/:owner/:name", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (row.visibility === "private" && currentUser?.id !== row.ownerId) {
+  if (!(await canAccessRepository({ id: row.id, ownerId: row.ownerId, visibility: row.visibility }, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -783,7 +800,7 @@ app.get("/api/repositories/:owner/:name/with-stars", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (row.visibility === "private" && currentUser?.id !== row.ownerId) {
+  if (!(await canAccessRepository({ id: row.id, ownerId: row.ownerId, visibility: row.visibility }, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -847,7 +864,7 @@ app.get("/api/repositories/:owner/:name/forks", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (source.visibility === "private" && currentUser?.id !== source.ownerId) {
+  if (!(await canAccessRepository({ id: source.id, ownerId: source.ownerId, visibility: source.visibility }, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 

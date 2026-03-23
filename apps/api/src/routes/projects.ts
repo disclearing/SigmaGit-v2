@@ -8,6 +8,7 @@ import {
   projectItems,
   issues,
   pullRequests,
+  repositoryCollaborators,
 } from "@sigmagit/db";
 import { eq, sql, and, asc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
@@ -15,6 +16,22 @@ import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/a
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
+
+async function canAccessRepository(
+  repo: { id: string; ownerId: string; visibility: string },
+  userId?: string
+): Promise<boolean> {
+  if (repo.visibility === "public") return true;
+  if (!userId) return false;
+  if (userId === repo.ownerId) return true;
+  const collaborator = await db.query.repositoryCollaborators.findFirst({
+    where: and(
+      eq(repositoryCollaborators.repositoryId, repo.id),
+      eq(repositoryCollaborators.userId, userId)
+    ),
+  });
+  return Boolean(collaborator);
+}
 
 async function getRepoAndCheckAccess(owner: string, name: string, userId?: string) {
   const result = await db
@@ -29,9 +46,11 @@ async function getRepoAndCheckAccess(owner: string, name: string, userId?: strin
     .limit(1);
 
   const row = result[0];
-  if (!row) return null;
+  if (!row) {
+    return null;
+  }
 
-  if (row.visibility === "private" && userId !== row.ownerId) {
+  if (!(await canAccessRepository(row, userId))) {
     return null;
   }
 
@@ -178,7 +197,7 @@ app.get("/api/projects/:id", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser?.id))) {
     return c.json({ error: "Project not found" }, 404);
   }
 

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, users, repositories, stars, repoBranchMetadata } from "@sigmagit/db";
+import { db, users, repositories, stars, repoBranchMetadata, repositoryCollaborators } from "@sigmagit/db";
 import { eq, sql, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset, sanitizePathForGit } from "../lib/validation";
@@ -26,6 +26,27 @@ import {
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
+
+async function canAccessRepository(
+  repo: { id: string; ownerId: string; visibility: string },
+  currentUser: { id: string } | null,
+  writeRequired = false
+): Promise<boolean> {
+  if (repo.visibility === "public") return true;
+  if (!currentUser) return false;
+  if (currentUser.id === repo.ownerId) return true;
+  const collaborator = await db.query.repositoryCollaborators.findFirst({
+    where: and(
+      eq(repositoryCollaborators.repositoryId, repo.id),
+      eq(repositoryCollaborators.userId, currentUser.id)
+    ),
+  });
+  if (!collaborator) return false;
+  if (writeRequired) {
+    return collaborator.permission === "write" || collaborator.permission === "admin";
+  }
+  return true;
+}
 
 async function getForkCount(repoId: string): Promise<number> {
   const [countRow] = await db
@@ -59,7 +80,8 @@ async function getForkedFromInfo(forkedFromId: string | null, currentUserId?: st
     return null;
   }
 
-  if (row.visibility === "private" && currentUserId !== row.ownerId) {
+  const userObj = currentUserId ? { id: currentUserId } : null;
+  if (!(await canAccessRepository({ id: row.id, ownerId: row.ownerId, visibility: row.visibility }, userObj))) {
     return null;
   }
 
@@ -145,7 +167,7 @@ app.get("/api/repositories/:owner/:name/branches", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -170,10 +192,7 @@ app.post("/api/repositories/:owner/:name/branches", requireAuth, async (c) => {
   if (!result) return c.json({ error: "Repository not found" }, 404);
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser.id !== repo.ownerId) {
-    return c.json({ error: "Repository not found" }, 404);
-  }
-  if (currentUser.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser, true))) {
     return c.json({ error: "Not authorized" }, 403);
   }
 
@@ -330,7 +349,7 @@ app.get("/api/repositories/:owner/:name/tags", async (c) => {
   if (!result) return c.json({ error: "Repository not found" }, 404);
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -431,7 +450,7 @@ app.get("/api/repositories/:owner/:name/commits", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -469,7 +488,7 @@ app.get("/api/repositories/:owner/:name/commits/count", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -498,7 +517,7 @@ app.get("/api/repositories/:owner/:name/commits/:oid/diff", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -544,7 +563,7 @@ app.get("/api/repositories/:owner/:name/tree", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -587,7 +606,7 @@ app.get("/api/repositories/:owner/:name/tree-commits", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -620,7 +639,7 @@ app.get("/api/repositories/:owner/:name/file", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -649,7 +668,7 @@ app.get("/api/repositories/:owner/:name/readme-oid", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -687,7 +706,7 @@ app.get("/api/repositories/:owner/:name/readme", async (c) => {
 
   const { repo, store } = result;
 
-  if (repo.visibility === "private" && currentUser?.id !== repo.ownerId) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -729,7 +748,7 @@ app.get("/api/repositories/:owner/:name/info", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (row.visibility === "private" && currentUser?.id !== row.ownerId) {
+  if (!(await canAccessRepository({ id: row.id, ownerId: row.ownerId, visibility: row.visibility }, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 
@@ -794,7 +813,7 @@ app.get("/api/repositories/:owner/:name/page-data", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (row.visibility === "private" && currentUser?.id !== row.ownerId) {
+  if (!(await canAccessRepository({ id: row.ownerId, ownerId: row.ownerId, visibility: row.visibility }, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 

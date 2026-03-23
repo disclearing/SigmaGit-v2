@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, users, repositories } from "@sigmagit/db";
+import { db, users, repositories, repositoryCollaborators } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, type AuthVariables } from "../middleware/auth";
 import { sanitizePathForGit } from "../lib/validation";
@@ -8,6 +8,22 @@ import { createGitStore, getFile } from "../git";
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
+
+async function canAccessRepository(
+  repo: { id: string; ownerId: string; visibility: string },
+  currentUser: { id: string } | null
+): Promise<boolean> {
+  if (repo.visibility === "public") return true;
+  if (!currentUser) return false;
+  if (currentUser.id === repo.ownerId) return true;
+  const collaborator = await db.query.repositoryCollaborators.findFirst({
+    where: and(
+      eq(repositoryCollaborators.repositoryId, repo.id),
+      eq(repositoryCollaborators.userId, currentUser.id)
+    ),
+  });
+  return Boolean(collaborator);
+}
 
 app.get("/file/:username/:repo/:branch/*", async (c) => {
   const username = c.req.param("username");
@@ -37,7 +53,7 @@ app.get("/file/:username/:repo/:branch/*", async (c) => {
     return c.json({ error: "Repository not found" }, 404);
   }
 
-  if (row.visibility === "private" && currentUser?.id !== row.ownerId) {
+  if (!(await canAccessRepository({ id: row.userId, ownerId: row.ownerId, visibility: row.visibility }, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 

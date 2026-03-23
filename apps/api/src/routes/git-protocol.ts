@@ -171,6 +171,10 @@ async function getRepoAndStore(owner: string, name: string) {
 }
 
 async function canReadRepository(repo: { id: string; ownerId: string; visibility: string }, currentUser: AuthUser | null): Promise<boolean> {
+  // Admins always have read access
+  if (currentUser?.role === "admin") {
+    return true;
+  }
   if (repo.visibility === "public") {
     return true;
   }
@@ -191,6 +195,7 @@ async function canWriteRepository(repo: { id: string; ownerId: string }, current
   if (!currentUser) {
     return false;
   }
+  // Admins need explicit collaborator write access (not bypassed)
   if (currentUser.id === repo.ownerId) {
     return true;
   }

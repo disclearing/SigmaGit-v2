@@ -8,32 +8,16 @@ import {
   projectItems,
   issues,
   pullRequests,
-  repositoryCollaborators,
 } from "@sigmagit/db";
 import { eq, sql, and, asc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { canAccessRepository } from "../lib/access";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
 
-async function canAccessRepository(
-  repo: { id: string; ownerId: string; visibility: string },
-  userId?: string
-): Promise<boolean> {
-  if (repo.visibility === "public") return true;
-  if (!userId) return false;
-  if (userId === repo.ownerId) return true;
-  const collaborator = await db.query.repositoryCollaborators.findFirst({
-    where: and(
-      eq(repositoryCollaborators.repositoryId, repo.id),
-      eq(repositoryCollaborators.userId, userId)
-    ),
-  });
-  return Boolean(collaborator);
-}
-
-async function getRepoAndCheckAccess(owner: string, name: string, userId?: string) {
+async function getRepoAndCheckAccess(owner: string, name: string, user?: { id: string; role?: string } | null) {
   const result = await db
     .select({
       id: repositories.id,
@@ -50,7 +34,7 @@ async function getRepoAndCheckAccess(owner: string, name: string, userId?: strin
     return null;
   }
 
-  if (!(await canAccessRepository(row, userId))) {
+  if (!(await canAccessRepository(row, user))) {
     return null;
   }
 

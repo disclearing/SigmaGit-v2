@@ -1,8 +1,9 @@
 import { Hono } from "hono";
-import { db, users, repositories, stars, repoBranchMetadata, repositoryCollaborators } from "@sigmagit/db";
+import { db, users, repositories, stars, repoBranchMetadata } from "@sigmagit/db";
 import { eq, sql, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset, sanitizePathForGit } from "../lib/validation";
+import { canAccessRepository } from "../lib/access";
 import { deliverWebhookEvent } from "./repo-webhooks";
 import {
   createGitStore,
@@ -26,27 +27,6 @@ import {
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
-
-async function canAccessRepository(
-  repo: { id: string; ownerId: string; visibility: string },
-  currentUser: { id: string } | null,
-  writeRequired = false
-): Promise<boolean> {
-  if (repo.visibility === "public") return true;
-  if (!currentUser) return false;
-  if (currentUser.id === repo.ownerId) return true;
-  const collaborator = await db.query.repositoryCollaborators.findFirst({
-    where: and(
-      eq(repositoryCollaborators.repositoryId, repo.id),
-      eq(repositoryCollaborators.userId, currentUser.id)
-    ),
-  });
-  if (!collaborator) return false;
-  if (writeRequired) {
-    return collaborator.permission === "write" || collaborator.permission === "admin";
-  }
-  return true;
-}
 
 async function getForkCount(repoId: string): Promise<number> {
   const [countRow] = await db

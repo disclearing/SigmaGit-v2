@@ -3,6 +3,7 @@ import { db, users, repositories, workflows, workflowRuns, workflowJobs, workflo
 import { eq, and, desc, asc, inArray } from 'drizzle-orm';
 import { authMiddleware, requireAuth, type AuthVariables } from '../middleware/auth';
 import { parseLimit, parsePage } from '../lib/validation';
+import { canAccessRepository } from '../lib/access';
 import { syncWorkflows } from '../workflows/sync';
 import { triggerWorkflows } from '../workflows/trigger';
 
@@ -12,7 +13,7 @@ app.use('*', authMiddleware);
 
 // ─── Helper ────────────────────────────────────────────────────────────────────
 
-async function getRepoAccess(owner: string, name: string, userId?: string) {
+async function getRepoAccess(owner: string, name: string, user?: { id: string; role?: string } | null) {
   const [row] = await db
     .select({
       id: repositories.id,
@@ -26,7 +27,7 @@ async function getRepoAccess(owner: string, name: string, userId?: string) {
     .limit(1);
 
   if (!row) return null;
-  if (row.visibility === 'private' && userId !== row.ownerId) return null;
+  if (!(await canAccessRepository(row, user))) return null;
   return row;
 }
 
@@ -37,7 +38,7 @@ app.post('/api/repositories/:owner/:repo/workflows/sync', requireAuth, async (c)
   const repo = c.req.param('repo');
   const user = c.get('user')!;
 
-  const repoRow = await getRepoAccess(owner, repo, user.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
   if (user.id !== repoRow.ownerId) return c.json({ error: 'Forbidden' }, 403);
 
@@ -59,7 +60,7 @@ app.get('/api/repositories/:owner/:repo/workflows', async (c) => {
   const repo = c.req.param('repo');
   const user = c.get('user');
 
-  const repoRow = await getRepoAccess(owner, repo, user?.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
 
   const wfs = await db

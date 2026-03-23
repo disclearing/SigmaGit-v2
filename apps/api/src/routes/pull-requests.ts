@@ -11,11 +11,11 @@ import {
   prReviewers,
   prReactions,
   labels,
-  repositoryCollaborators,
 } from "@sigmagit/db";
 import { eq, sql, and, desc, or, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
+import { canAccessRepository } from "../lib/access";
 import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, squashMerge, rebaseMerge, repoCache } from "../git";
 import { deliverWebhookEvent } from "./repo-webhooks";
 import { triggerWorkflows } from "../workflows/trigger";
@@ -26,23 +26,7 @@ app.use("*", authMiddleware);
 
 const VALID_EMOJIS = ["+1", "-1", "laugh", "hooray", "confused", "heart", "rocket", "eyes"];
 
-async function canAccessRepository(
-  repo: { id: string; ownerId: string; visibility: string },
-  userId?: string
-): Promise<boolean> {
-  if (repo.visibility === "public") return true;
-  if (!userId) return false;
-  if (userId === repo.ownerId) return true;
-  const collaborator = await db.query.repositoryCollaborators.findFirst({
-    where: and(
-      eq(repositoryCollaborators.repositoryId, repo.id),
-      eq(repositoryCollaborators.userId, userId)
-    ),
-  });
-  return Boolean(collaborator);
-}
-
-async function getRepoAndCheckAccess(owner: string, name: string, userId?: string) {
+async function getRepoAndCheckAccess(owner: string, name: string, user?: { id: string; role?: string } | null) {
   const result = await db
     .select({
       id: repositories.id,
@@ -60,7 +44,7 @@ async function getRepoAndCheckAccess(owner: string, name: string, userId?: strin
     return null;
   }
 
-  if (!(await canAccessRepository(row, userId))) {
+  if (!(await canAccessRepository(row, user))) {
     return null;
   }
 

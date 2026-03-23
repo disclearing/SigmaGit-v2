@@ -13,6 +13,7 @@ import {
 import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
+import { canAccessRepository } from "../lib/access";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -20,7 +21,7 @@ app.use("*", authMiddleware);
 
 const VALID_EMOJIS = ["+1", "-1", "laugh", "hooray", "confused", "heart", "rocket", "eyes"];
 
-async function getRepoAndCheckAccess(owner: string, name: string, userId?: string) {
+async function getRepoAndCheckAccess(owner: string, name: string, user?: { id: string; role?: string } | null) {
   const result = await db
     .select({
       id: repositories.id,
@@ -37,7 +38,7 @@ async function getRepoAndCheckAccess(owner: string, name: string, userId?: strin
     return null;
   }
 
-  if (row.visibility === "private" && userId !== row.ownerId) {
+  if (!(await canAccessRepository(row, user))) {
     return null;
   }
 

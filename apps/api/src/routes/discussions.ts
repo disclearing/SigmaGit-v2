@@ -11,6 +11,7 @@ import {
 import { eq, sql, and, desc, isNull, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
+import { canAccessRepository } from "../lib/access";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -18,7 +19,7 @@ app.use("*", authMiddleware);
 
 const VALID_EMOJIS = ["+1", "-1", "laugh", "hooray", "confused", "heart", "rocket", "eyes"];
 
-async function getRepoAndCheckAccess(owner: string, name: string, userId?: string) {
+async function getRepoAndCheckAccess(owner: string, name: string, user?: { id: string; role?: string } | null) {
   const result = await db
     .select({
       id: repositories.id,
@@ -33,7 +34,7 @@ async function getRepoAndCheckAccess(owner: string, name: string, userId?: strin
   const row = result[0];
   if (!row) return null;
 
-  if (row.visibility === "private" && userId !== row.ownerId) {
+  if (!(await canAccessRepository(row, user))) {
     return null;
   }
 
@@ -237,7 +238,7 @@ app.get("/api/repositories/:owner/:name/discussions", async (c) => {
   const limit = parseLimit(c.req.query("limit"), 20, 50);
   const offset = parseOffset(c.req.query("offset"), 0);
 
-  const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser?.id);
+  const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser);
   if (!repoAccess) {
     return c.json({ error: "Repository not found" }, 404);
   }
@@ -267,7 +268,7 @@ app.get("/api/repositories/:owner/:name/discussions/categories", async (c) => {
   const name = c.req.param("name");
   const currentUser = c.get("user");
 
-  const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser?.id);
+  const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser);
   if (!repoAccess) {
     return c.json({ error: "Repository not found" }, 404);
   }
@@ -287,7 +288,7 @@ app.post("/api/repositories/:owner/:name/discussions/categories", requireAuth, a
   const user = c.get("user")!;
   const body = await c.req.json<{ name: string; emoji?: string; description?: string }>();
 
-  const repoAccess = await getRepoAndCheckAccess(owner, name, user.id);
+  const repoAccess = await getRepoAndCheckAccess(owner, name, user);
   if (!repoAccess) {
     return c.json({ error: "Repository not found" }, 404);
   }
@@ -319,7 +320,7 @@ app.get("/api/repositories/:owner/:name/discussions/:number", async (c) => {
   const number = parseInt(c.req.param("number"), 10);
   const currentUser = c.get("user");
 
-  const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser?.id);
+  const repoAccess = await getRepoAndCheckAccess(owner, name, currentUser);
   if (!repoAccess) {
     return c.json({ error: "Repository not found" }, 404);
   }
@@ -342,7 +343,7 @@ app.post("/api/repositories/:owner/:name/discussions", requireAuth, async (c) =>
   const user = c.get("user")!;
   const body = await c.req.json<{ title: string; body: string; categoryId?: string }>();
 
-  const repoAccess = await getRepoAndCheckAccess(owner, name, user.id);
+  const repoAccess = await getRepoAndCheckAccess(owner, name, user);
   if (!repoAccess) {
     return c.json({ error: "Repository not found" }, 404);
   }

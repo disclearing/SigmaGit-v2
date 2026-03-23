@@ -1,9 +1,10 @@
 import { Hono } from "hono";
-import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers, repositoryCollaborators } from "@sigmagit/db";
+import { db, users, repositories, stars, repoBranchMetadata, organizations, organizationMembers } from "@sigmagit/db";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import git from "isomorphic-git";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
+import { canAccessRepository } from "../lib/access";
 import { putObject, deletePrefix, getRepoPrefix, copyPrefix, listObjects } from "../s3";
 import { repoCache } from "../cache";
 import { createGitStore } from "../git";
@@ -12,22 +13,6 @@ const app = new Hono<{ Variables: AuthVariables }>();
 
 const REPOSITORY_VISIBILITIES = ["public", "private"] as const;
 type RepositoryVisibility = (typeof REPOSITORY_VISIBILITIES)[number];
-
-async function canAccessRepository(
-  repo: { id: string; ownerId: string; visibility: string },
-  currentUser: { id: string } | null
-): Promise<boolean> {
-  if (repo.visibility === "public") return true;
-  if (!currentUser) return false;
-  if (currentUser.id === repo.ownerId) return true;
-  const collaborator = await db.query.repositoryCollaborators.findFirst({
-    where: and(
-      eq(repositoryCollaborators.repositoryId, repo.id),
-      eq(repositoryCollaborators.userId, currentUser.id)
-    ),
-  });
-  return Boolean(collaborator);
-}
 
 const LICENSES = [
   "mit",

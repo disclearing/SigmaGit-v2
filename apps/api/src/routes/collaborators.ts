@@ -2,28 +2,11 @@ import { Hono } from "hono";
 import { db, users, repositories, repositoryCollaborators } from "@sigmagit/db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { canAccessRepository } from "../lib/access";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
-
-// ─── Helper: check if user has access to repository ────────────────────────
-
-async function canAccessRepository(
-  repo: { id: string; ownerId: string; visibility: string },
-  userId?: string
-): Promise<boolean> {
-  if (repo.visibility === "public") return true;
-  if (!userId) return false;
-  if (userId === repo.ownerId) return true;
-  const collaborator = await db.query.repositoryCollaborators.findFirst({
-    where: and(
-      eq(repositoryCollaborators.repositoryId, repo.id),
-      eq(repositoryCollaborators.userId, userId)
-    ),
-  });
-  return Boolean(collaborator);
-}
 
 // ─── Helper: check if user is repo owner or admin collaborator ───────────────
 
@@ -60,7 +43,7 @@ app.get("/api/repositories/:owner/:name/collaborators", async (c) => {
   const repo = result[0];
   if (!repo) return c.json({ error: "Repository not found" }, 404);
 
-  if (!(await canAccessRepository(repo, currentUser?.id))) {
+  if (!(await canAccessRepository(repo, currentUser))) {
     return c.json({ error: "Repository not found" }, 404);
   }
 

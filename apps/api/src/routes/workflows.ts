@@ -80,7 +80,7 @@ app.post('/api/repositories/:owner/:repo/workflows/:workflowId/dispatch', requir
   const workflowId = c.req.param('workflowId');
   const user = c.get('user')!;
 
-  const repoRow = await getRepoAccess(owner, repo, user.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
   if (user.id !== repoRow.ownerId) return c.json({ error: 'Forbidden' }, 403);
 
@@ -125,7 +125,7 @@ app.get('/api/repositories/:owner/:repo/runs', async (c) => {
   const repo = c.req.param('repo');
   const user = c.get('user');
 
-  const repoRow = await getRepoAccess(owner, repo, user?.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
 
   const page = parsePage(c.req.query('page'), 1);
@@ -164,7 +164,7 @@ app.get('/api/repositories/:owner/:repo/runs/:runId', async (c) => {
   const runId = c.req.param('runId');
   const user = c.get('user');
 
-  const repoRow = await getRepoAccess(owner, repo, user?.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
 
   const [run] = await db
@@ -209,7 +209,7 @@ app.get('/api/repositories/:owner/:repo/runs/:runId/jobs/:jobId/logs', async (c)
   const jobId = c.req.param('jobId');
   const user = c.get('user');
 
-  const repoRow = await getRepoAccess(owner, repo, user?.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
 
   const [job] = await db
@@ -249,7 +249,7 @@ app.post('/api/repositories/:owner/:repo/runs/:runId/cancel', requireAuth, async
   const runId = c.req.param('runId');
   const user = c.get('user')!;
 
-  const repoRow = await getRepoAccess(owner, repo, user.id);
+  const repoRow = await getRepoAccess(owner, repo, user);
   if (!repoRow) return c.json({ error: 'Repository not found' }, 404);
   if (user.id !== repoRow.ownerId) return c.json({ error: 'Forbidden' }, 403);
 

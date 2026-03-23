@@ -135,14 +135,27 @@ export const initAuth = async () => {
       secondaryStorage: redis
         ? {
             get: async (key) => {
-              return await redis.get(key);
+              try {
+                return await redis.get(key);
+              } catch (err) {
+                console.error("[Redis] get error:", err instanceof Error ? err.message : "Unknown error");
+                return null;
+              }
             },
             set: async (key, value, ttl) => {
-              if (ttl) await redis.set(key, value, { EX: ttl });
-              else await redis.set(key, value);
+              try {
+                if (ttl) await redis.set(key, value, { EX: ttl });
+                else await redis.set(key, value);
+              } catch (err) {
+                console.warn("[Redis] set error (session will fall back to DB):", err instanceof Error ? err.message : "Unknown error");
+              }
             },
             delete: async (key) => {
-              await redis.del(key);
+              try {
+                await redis.del(key);
+              } catch (err) {
+                console.warn("[Redis] delete error:", err instanceof Error ? err.message : "Unknown error");
+              }
             },
           }
         : undefined,

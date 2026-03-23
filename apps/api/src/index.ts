@@ -2,12 +2,26 @@ import { Hono } from "hono";
 import { createMiddleware } from "hono/factory";
 import { config, getAllowedOrigins } from "./config";
 import { initAuth } from "./auth";
+import { getRedis } from "./redis";
 import { mountRoutes } from "./routes";
 import { handleWebSocketUpgrade, websocketHandlers } from "./websocket";
 import { memoryMiddleware, requestSizeMiddleware, gitLimitsMiddleware } from "./middleware/limits";
 import { startMigrationWorker } from "./workers/migration";
 import { startRunnerHealthWorker } from "./workers/runner-health";
 import "./monitoring";
+
+// Log Redis connection status at startup
+if (config.redisUrl) {
+  const redis = await getRedis();
+  if (redis) {
+    const role = await redis.info("replication").then(info => info.includes("role:master") ? "master" : "replica").catch(() => "unknown");
+    console.log(`[Redis] Connected successfully (role: ${role})`);
+  } else {
+    console.log("[Redis] Connection failed, will retry on first request");
+  }
+} else {
+  console.log("[Redis] REDIS_URL not configured, running without cache");
+}
 
 const app = new Hono();
 

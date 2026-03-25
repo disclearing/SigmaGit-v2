@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_main/admin")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data } = await authClient.getSession();
     if (!data?.session) {
       throw redirect({ to: "/" });

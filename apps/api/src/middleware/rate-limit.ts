@@ -58,6 +58,7 @@ async function getLimiter(tier: RateLimitTier): Promise<RateLimiterAbstract> {
       points: config.points,
       duration: config.duration,
       blockDuration: config.blockDuration,
+      useRedisPackage: true,
     });
   } else {
     limiter = new RateLimiterMemory({

@@ -12,31 +12,34 @@ type RateLimitTier = 'general' | 'auth' | 'write' | 'api-key';
 interface RateLimitConfig {
   keyPrefix: string;
   points: number;
-  duration: number; // seconds
-  blockDuration?: number; // seconds, for brute force protection
+  duration: number;
+  blockDuration?: number;
 }
 
 const RATE_LIMIT_CONFIGS: Record<RateLimitTier, RateLimitConfig> = {
   general: {
     keyPrefix: 'rl_general',
-    points: 120,
+    points: 60,
     duration: 60,
+    blockDuration: 7200,
   },
   auth: {
     keyPrefix: 'rl_auth',
     points: 10,
     duration: 60,
-    blockDuration: 300, // 5 min block after exhausting attempts
+    blockDuration: 7200,
   },
   write: {
     keyPrefix: 'rl_write',
-    points: 60,
+    points: 30,
     duration: 60,
+    blockDuration: 3600,
   },
   'api-key': {
     keyPrefix: 'rl_apikey',
-    points: 1000,
+    points: 500,
     duration: 60,
+    blockDuration: 3600,
   },
 };
 
@@ -119,7 +122,6 @@ function createRateLimiter(tier: RateLimitTier) {
           429
         );
       }
-      // If rate limiter fails (e.g. Redis down), allow the request through
       console.error('[RateLimit] Limiter error:', err);
       await next();
     }
@@ -164,3 +166,70 @@ export const generalRateLimit = createRateLimiter('general');
 export const authRateLimit = createRateLimiter('auth');
 export const writeRateLimit = createRateLimiter('write');
 export const apiKeyRateLimit = createApiKeyRateLimiter();
+
+const unauthenticatedLimiter = new Map<string, { count: number; resetAt: number }>();
+const UNAUTH_LIMIT = 15;
+const UNAUTH_WINDOW = 60_000;
+const UNAUTH_BLOCK = 7_200_000;
+const unauthBlocked = new Map<string, number>();
+
+function hasSessionCookie(c: any): boolean {
+  const cookieHeader = c.req.header('cookie');
+  if (!cookieHeader) return false;
+  return /sigmagit(_dev)?_session/.test(cookieHeader);
+}
+
+export function unauthenticatedRateLimit() {
+  return createMiddleware(async (c, next) => {
+    if (c.req.header('x-api-key') || hasSessionCookie(c)) {
+      await next();
+      return;
+    }
+
+    const key = getClientIp(c);
+    const now = Date.now();
+
+    const blockExpiry = unauthBlocked.get(key);
+    if (blockExpiry && blockExpiry > now) {
+      const retryAfter = Math.ceil((blockExpiry - now) / 1000);
+      c.header('Retry-After', String(retryAfter));
+      return c.json({ error: 'Too many requests', retryAfter }, 429);
+    }
+    if (blockExpiry) {
+      unauthBlocked.delete(key);
+    }
+
+    let entry = unauthenticatedLimiter.get(key);
+    if (!entry || entry.resetAt < now) {
+      entry = { count: 0, resetAt: now + UNAUTH_WINDOW };
+      unauthenticatedLimiter.set(key, entry);
+    }
+
+    entry.count++;
+    if (entry.count > UNAUTH_LIMIT) {
+      unauthBlocked.set(key, now + UNAUTH_BLOCK);
+      unauthenticatedLimiter.delete(key);
+      c.header('Retry-After', String(UNAUTH_BLOCK / 1000));
+      return c.json({ error: 'Too many unauthenticated requests', retryAfter: UNAUTH_BLOCK / 1000 }, 429);
+    }
+
+    await next();
+  });
+}
+
+let activeRequests = 0;
+const MAX_CONCURRENT = 50;
+
+export function concurrencyLimiter() {
+  return createMiddleware(async (c, next) => {
+    if (activeRequests >= MAX_CONCURRENT) {
+      return c.json({ error: 'Server busy, try again later', retryAfter: 5 }, 503);
+    }
+    activeRequests++;
+    try {
+      await next();
+    } finally {
+      activeRequests--;
+    }
+  });
+}

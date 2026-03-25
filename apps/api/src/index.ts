@@ -6,6 +6,7 @@ import { getRedis } from "./redis";
 import { mountRoutes } from "./routes";
 import { handleWebSocketUpgrade, websocketHandlers } from "./websocket";
 import { memoryMiddleware, requestSizeMiddleware, gitLimitsMiddleware } from "./middleware/limits";
+import { generalRateLimit, apiKeyRateLimit } from "./middleware/rate-limit";
 import { startMigrationWorker } from "./workers/migration";
 import { startRunnerHealthWorker } from "./workers/runner-health";
 import "./monitoring";
@@ -73,6 +74,8 @@ app.use("*", createMiddleware(async (c, next) => {
 app.use("*", memoryMiddleware);
 app.use("*", requestSizeMiddleware);
 app.use("*", gitLimitsMiddleware);
+app.use("*", generalRateLimit);
+app.use("*", apiKeyRateLimit);
 
 mountRoutes(app);
 

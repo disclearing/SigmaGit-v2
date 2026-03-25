@@ -14,6 +14,7 @@ import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { canAccessRepository } from "../lib/access";
+import { writeRateLimit } from "../middleware/rate-limit";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -324,7 +325,7 @@ app.get("/api/repositories/:owner/:name/issues", async (c) => {
   return c.json({ issues: issueList, hasMore });
 });
 
-app.post("/api/repositories/:owner/:name/issues", requireAuth, async (c) => {
+app.post("/api/repositories/:owner/:name/issues", requireAuth, writeRateLimit, async (c) => {
   const owner = c.req.param("owner");
   const name = c.req.param("name");
   const user = c.get("user")!;

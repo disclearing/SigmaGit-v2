@@ -3,10 +3,12 @@ import { db, users, repositories, issues, pullRequests } from "@sigmagit/db";
 import { eq, sql, and, or, ilike, desc } from "drizzle-orm";
 import { authMiddleware, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
+import { writeRateLimit } from "../middleware/rate-limit";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
 app.use("*", authMiddleware);
+app.use("*", writeRateLimit);
 
 type SearchResultType = "repository" | "issue" | "pull_request" | "user";
 

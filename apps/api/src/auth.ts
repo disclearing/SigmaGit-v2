@@ -51,8 +51,161 @@ const BLOCKED_EMAIL_DOMAINS = [
   'spamgourmet.com',
 ];
 
+const ALLOWED_EMAIL_DOMAINS = [
+  // Gmail
+  'gmail.com',
+  // Hotmail/Outlook/Live
+  'hotmail.com',
+  'hotmail.co.uk',
+  'hotmail.fr',
+  'hotmail.de',
+  'hotmail.it',
+  'hotmail.es',
+  'hotmail.nl',
+  'hotmail.be',
+  'hotmail.ca',
+  'hotmail.com.au',
+  'outlook.com',
+  'outlook.co.uk',
+  'outlook.fr',
+  'outlook.de',
+  'outlook.it',
+  'outlook.es',
+  'outlook.nl',
+  'outlook.be',
+  'outlook.ca',
+  'outlook.com.au',
+  'live.com',
+  'live.co.uk',
+  'live.fr',
+  'live.de',
+  'live.it',
+  'live.es',
+  'live.nl',
+  'live.be',
+  'live.ca',
+  'live.com.au',
+  // Yahoo
+  'yahoo.com',
+  'yahoo.co.uk',
+  'yahoo.fr',
+  'yahoo.de',
+  'yahoo.it',
+  'yahoo.es',
+  'yahoo.nl',
+  'yahoo.be',
+  'yahoo.ca',
+  'yahoo.com.au',
+  'yahoo.co.in',
+  // iCloud/Apple
+  'icloud.com',
+  'me.com',
+  'mac.com',
+];
+
+const BANNED_USERNAME_WORDS = [
+  // Common swear words
+  'fuck', 'shit', 'ass', 'bitch', 'damn', 'hell', 'crap', 'piss',
+  'dick', 'cock', 'pussy', 'whore', 'slut', 'bastard', 'cunt',
+  'bollocks', 'bugger', 'arse', 'bloody', 'frig', 'effing',
+  // Antisemitic terms
+  'kike', 'hebe', 'yid', 'hooknose', 'sheeny', 'oven', 'holohoax',
+  'gas', 'hitler', 'nazi', 'thirdreich', 'ww2', 'holocaust',
+  'reich', 'aryan', 'goebbels', 'mengele', 'auschwitz',
+  // Other hate speech
+  'nigger', 'nigga', 'faggot', 'dyke', 'tranny', 'retard', 'spic',
+  'wetback', 'chink', 'gook', 'kaffir', 'cracker', 'honky',
+  'darkie', 'redskin', 'squaw', 'paki', 'wop', 'kraut', 'jap',
+  // Common evasions (leetspeak/variations) - basic
+  'fuk', 'fck', 'sh1t', 'b1tch', 'a$$', 'a55', 'd1ck', 'c0ck',
+  'p*ssy', 'f4g', 'n1g', 'k1ke', 'h8', 'h8t', 'n4zi',
+];
+
+const GENERIC_SPAM_USERNAMES = [
+  // Common spam patterns
+  'test', 'testing', 'abc', 'abcd', 'xyz', '123', '1234', 'user',
+  'demo', 'example', 'sample', 'temp', 'temporary', 'null', 'undefined',
+  'admin', 'administrator', 'moderator', 'staff', 'support', 'help',
+  'changeme', 'replace', 'delete', 'remove', 'spam', 'bot',
+  // Common throwaway
+  'guest', 'anonymous', 'noone', 'nobody', 'someone', 'anyone',
+  'username', 'password', 'email', 'address', 'phone', 'number',
+  // Single/short generic
+  'a', 'b', 'c', 'x', 'y', 'z', 'i', 'me', 'you', 'he', 'she', 'it',
+  'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+  'do', 'does', 'did', 'done', 'have', 'has', 'had', 'having',
+  'will', 'would', 'could', 'should', 'may', 'might', 'shall', 'can',
+  // Common sequences
+  'qwerty', 'asdfgh', 'zxcvbn', 'qazwsx', 'abcd', 'wxyz',
+];
+
+const BANNED_PATTERNS = [
+  // Common evasion patterns with separators
+  /f[\*\.\-\_\\\/\|\s]?u[\*\.\-\_\\\/\|\s]?c[\*\.\-\_\\\/\|\s]?k/i,
+  /s[\*\.\-\_\\\/\|\s]?h[\*\.\-\_\\\/\|\s]?i[\*\.\-\_\\\/\|\s]?t/i,
+  /b[\*\.\-\_\\\/\|\s]?i[\*\.\-\_\\\/\|\s]?t[\*\.\-\_\\\/\|\s]?c[\*\.\-\_\\\/\|\s]?h/i,
+  /d[\*\.\-\_\\\/\|\s]?i[\*\.\-\_\\\/\|\s]?c[\*\.\-\_\\\/\|\s]?k/i,
+  /c[\*\.\-\_\\\/\|\s]?o[\*\.\-\_\\\/\|\s]?c[\*\.\-\_\\\/\|\s]?k/i,
+  /p[\*\.\-\_\\\/\|\s]?u[\*\.\-\_\\\/\|\s]?s[\*\.\-\_\\\/\|\s]?s[\*\.\-\_\\\/\|\s]?y/i,
+  /w[\*\.\-\_\\\/\|\s]?h[\*\.\-\_\\\/\|\s]?o[\*\.\-\_\\\/\|\s]?r[\*\.\-\_\\\/\|\s]?e/i,
+  /s[\*\.\-\_\\\/\|\s]?l[\*\.\-\_\\\/\|\s]?u[\*\.\-\_\\\/\|\s]?t/i,
+  /b[\*\.\-\_\\\/\|\s]?a[\*\.\-\_\\\/\|\s]?s[\*\.\-\_\\\/\|\s]?t[\*\.\-\_\\\/\|\s]?a[\*\.\-\_\\\/\|\s]?r[\*\.\-\_\\\/\|\s]?d/i,
+  /c[\*\.\-\_\\\/\|\s]?u[\*\.\-\_\\\/\|\s]?n[\*\.\-\_\\\/\|\s]?t/i,
+  /k[\*\.\-\_\\\/\|\s]?i[\*\.\-\_\\\/\|\s]?k[\*\.\-\_\\\/\|\s]?e/i,
+  /n[\*\.\-\_\\\/\|\s]?a[\*\.\-\_\\\/\|\s]?z[\*\.\-\_\\\/\|\s]?i/i,
+  /h[\*\.\-\_\\\/\|\s]?i[\*\.\-\_\\\/\|\s]?t[\*\.\-\_\\\/\|\s]?l[\*\.\-\_\\\/\|\s]?e[\*\.\-\_\\\/\|\s]?r/i,
+  // Leetspeak patterns
+  /f[\*\.\-\_\\\/\|\s]?4[\*\.\-\_\\\/\|\s]?g/i,
+  /n[\*\.\-\_\\\/\|\s]?1[\*\.\-\_\\\/\|\s]?g/i,
+  /k[\*\.\-\_\\\/\|\s]?1[\*\.\-\_\\\/\|\s]?k[\*\.\-\_\\\/\|\s]?3/i,
+  /n[\*\.\-\_\\\/\|\s]?4[\*\.\-\_\\\/\|\s]?z[\*\.\-\_\\\/\|\s]?i/i,
+  /h[\*\.\-\_\\\/\|\s]?8/i,
+  // Repeated characters (e.g., "aaa", "111", "!!!")
+  /^(.)\1{2,}$/,
+  // Sequential characters (e.g., "abc", "123", "xyz")
+  /(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i,
+  /(012|123|234|345|456|567|678|789|890)/,
+  // Keyboard walks (common patterns)
+  /qwerty|asdfgh|zxcvbn|qazwsx|qweasd|asdfzxc/i,
+];
+
 function containsEmoji(str: string): boolean {
   return /\p{Extended_Pictographic}/u.test(str);
+}
+
+function containsBannedWords(username: string): boolean {
+  const lowerUsername = username.toLowerCase();
+  return BANNED_USERNAME_WORDS.some(word => 
+    lowerUsername.includes(word.toLowerCase())
+  );
+}
+
+function containsBannedPattern(username: string): boolean {
+  return BANNED_PATTERNS.some(pattern => pattern.test(username));
+}
+
+function isGenericUsername(username: string): boolean {
+  const lowerUsername = username.toLowerCase();
+  
+  // Check against list of known generic usernames
+  if (GENERIC_SPAM_USERNAMES.includes(lowerUsername)) {
+    return true;
+  }
+  
+  // Check for sequential patterns (e.g., "abc", "123") using regex
+  const sequentialPattern = /(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i;
+  const sequentialNumbers = /(012|123|234|345|456|567|678|789|890)/;
+  
+  if (sequentialPattern.test(lowerUsername) || sequentialNumbers.test(lowerUsername)) {
+    return true;
+  }
+  
+  // Check for repeated characters (e.g., "aaa", "111")
+  if (/^(.)\1{2,}$/.test(lowerUsername)) {
+    return true;
+  }
+  
+  return false;
 }
 
 function isValidUsername(username: string): { valid: boolean; error?: string } {
@@ -93,6 +246,30 @@ function isValidUsername(username: string): { valid: boolean; error?: string } {
     };
   }
 
+  // Check for banned words (swear words, hate speech, antisemitic terms)
+  if (containsBannedWords(username)) {
+    return {
+      valid: false,
+      error: 'Username contains prohibited content. Please choose a different username.',
+    };
+  }
+
+  // Check for banned patterns (evasion attempts, leetspeak, etc.)
+  if (containsBannedPattern(username)) {
+    return {
+      valid: false,
+      error: 'Username contains prohibited patterns. Please choose a different username.',
+    };
+  }
+
+  // Check for generic/spammy usernames
+  if (isGenericUsername(username)) {
+    return {
+      valid: false,
+      error: 'Username is too generic or commonly used by spammers. Please choose a more unique username.',
+    };
+  }
+
   return { valid: true };
 }
 
@@ -100,6 +277,12 @@ function isBlockedEmailDomain(email: string): boolean {
   const domain = email.split('@')[1]?.toLowerCase();
   if (!domain) return true;
   return BLOCKED_EMAIL_DOMAINS.includes(domain);
+}
+
+function isAllowedEmailDomain(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return false;
+  return ALLOWED_EMAIL_DOMAINS.includes(domain);
 }
 
 let authInstance: ReturnType<typeof betterAuth> | null = null;
@@ -186,7 +369,9 @@ export const initAuth = async () => {
         apiKey({
           defaultPrefix: 'sigmagit_',
           rateLimit: {
-            enabled: false,
+            enabled: true,
+            maxRequests: 1000,
+            timeWindow: '1m',
           },
         }),
         expo(),
@@ -227,7 +412,14 @@ export const initAuth = async () => {
               if (isBlockedEmailDomain(user.email)) {
                 throw new APIError('BAD_REQUEST', {
                   message:
-                    'This email domain is not allowed. Please use a different email address.',
+                    'This email domain is blocked. Please use a different email address.',
+                });
+              }
+
+              if (config.emailDomainRestriction.enabled && !isAllowedEmailDomain(user.email)) {
+                throw new APIError('BAD_REQUEST', {
+                  message:
+                    'Please use an email from a supported provider (Gmail, Hotmail, Outlook, Yahoo, or iCloud).',
                 });
               }
 

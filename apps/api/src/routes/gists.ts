@@ -4,6 +4,7 @@ import { eq, and, sql, desc, count, or, ilike, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { randomUUID } from "crypto";
+import { writeRateLimit } from "../middleware/rate-limit";
 
 const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -71,7 +72,7 @@ async function attachFilesAndOwnersToGists<T extends { id: string; ownerId: stri
   }));
 }
 
-app.post("/api/gists", requireAuth, async (c) => {
+app.post("/api/gists", requireAuth, writeRateLimit, async (c) => {
   const user = c.get("user")!;
   const body = await c.req.json();
   const { description, visibility, files } = body;

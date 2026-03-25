@@ -16,6 +16,7 @@ import { eq, sql, and, desc, or, inArray } from "drizzle-orm";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { canAccessRepository } from "../lib/access";
+import { writeRateLimit } from "../middleware/rate-limit";
 import { createGitStore, getCommits, getTree, getCommitDiff, performMerge, squashMerge, rebaseMerge, repoCache } from "../git";
 import { deliverWebhookEvent } from "./repo-webhooks";
 import { triggerWorkflows } from "../workflows/trigger";
@@ -568,7 +569,7 @@ app.get("/api/repositories/:owner/:name/pulls", async (c) => {
   return c.json({ pullRequests: prList, hasMore });
 });
 
-app.post("/api/repositories/:owner/:name/pulls", requireAuth, async (c) => {
+app.post("/api/repositories/:owner/:name/pulls", requireAuth, writeRateLimit, async (c) => {
   const owner = c.req.param("owner");
   const name = c.req.param("name");
   const user = c.get("user")!;

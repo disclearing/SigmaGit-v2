@@ -3,6 +3,7 @@ import { db, users, repositories, stars, repoBranchMetadata, organizations, orga
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import git from "isomorphic-git";
 import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { writeRateLimit } from "../middleware/rate-limit";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { canAccessRepository } from "../lib/access";
 import { putObject, deletePrefix, getRepoPrefix, copyPrefix, listObjects } from "../s3";
@@ -258,7 +259,7 @@ async function getForkedFromInfo(forkedFromId: string | null, currentUserId?: st
   };
 }
 
-app.post("/api/repositories", requireAuth, async (c) => {
+app.post("/api/repositories", requireAuth, writeRateLimit, async (c) => {
   const user = c.get("user")!;
   const body = await c.req.json<{
     name: string;
@@ -367,7 +368,7 @@ app.post("/api/repositories", requireAuth, async (c) => {
   return c.json(repo);
 });
 
-app.post("/api/repositories/:owner/:name/fork", requireAuth, async (c) => {
+app.post("/api/repositories/:owner/:name/fork", requireAuth, writeRateLimit, async (c) => {
   const user = c.get("user")!;
   const owner = c.req.param("owner");
   const name = c.req.param("name").replace(/\.git$/, "");

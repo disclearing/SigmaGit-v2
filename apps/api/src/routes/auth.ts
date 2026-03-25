@@ -4,8 +4,16 @@ import { getAuth, verifyCredentials } from "../auth";
 import { db, users, verifications, accounts } from "@sigmagit/db";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
 import { isPasswordCompromised } from "../security/pwned";
+import { authRateLimit } from "../middleware/rate-limit";
 
 const app = new Hono();
+
+app.use("/api/auth/sign-in/*", authRateLimit);
+app.use("/api/auth/sign-up/*", authRateLimit);
+app.use("/api/auth/verify-credentials", authRateLimit);
+app.use("/api/auth/forgot-password", authRateLimit);
+app.use("/api/auth/reset-password", authRateLimit);
+app.use("/api/auth/resend-verification", authRateLimit);
 
 function generateToken(): string {
   const array = new Uint8Array(32);

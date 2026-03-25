@@ -15,7 +15,8 @@ export function useAdminSystemStats() {
   return useQuery({
     queryKey: ["admin", "system-stats"],
     queryFn: () => api.admin.getSystemStats(),
-    refetchInterval: 30_000, // refresh every 30s for uptime
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
 }
 

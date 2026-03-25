@@ -16,7 +16,8 @@ export function usePlatformStats() {
     queryKey: ["platform", "stats"],
     queryFn: () => api.users.getPlatformStats(),
     staleTime: 60_000,
-    refetchInterval: 60_000,
+    refetchInterval: 120_000,
+    refetchIntervalInBackground: false,
   });
 }
 

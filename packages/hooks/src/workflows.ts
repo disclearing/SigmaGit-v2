@@ -51,10 +51,10 @@ export function useWorkflowRun(owner: string, repo: string, runId: string) {
     refetchInterval: (query) => {
       const run = query.state.data?.run;
       if (!run) return false;
-      // Poll while run is active
       if (run.status === 'queued' || run.status === 'in_progress') return 5000;
       return false;
     },
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -74,6 +74,7 @@ export function useJobLogs(
     queryFn: () => api.workflows.getJobLogs(owner, repo, runId, jobId),
     enabled: !!owner && !!repo && !!runId && !!jobId,
     refetchInterval: isActive ? 3000 : false,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -95,6 +96,7 @@ export function useRunners() {
     queryKey: ['runners'],
     queryFn: () => api.runners.list(),
     refetchInterval: 15000,
+    refetchIntervalInBackground: false,
   });
 }
 

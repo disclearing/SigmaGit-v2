@@ -21,13 +21,13 @@ const RATE_LIMIT_CONFIGS: Record<RateLimitTier, RateLimitConfig> = {
     keyPrefix: 'rl_general',
     points: 60,
     duration: 60,
-    blockDuration: 7200,
+    blockDuration: 300,
   },
   auth: {
     keyPrefix: 'rl_auth',
     points: 10,
     duration: 60,
-    blockDuration: 7200,
+    blockDuration: 1800,
   },
   write: {
     keyPrefix: 'rl_write',
@@ -176,11 +176,18 @@ const unauthBlocked = new Map<string, number>();
 function hasSessionCookie(c: any): boolean {
   const cookieHeader = c.req.header('cookie');
   if (!cookieHeader) return false;
-  return /sigmagit(_dev)?_session/.test(cookieHeader);
+  return cookieHeader.includes('sigmagit');
 }
 
 export function unauthenticatedRateLimit() {
   return createMiddleware(async (c, next) => {
+    const path = c.req.path;
+
+    if (path.startsWith('/api/auth/')) {
+      await next();
+      return;
+    }
+
     if (c.req.header('x-api-key') || hasSessionCookie(c)) {
       await next();
       return;

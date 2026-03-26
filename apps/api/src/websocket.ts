@@ -115,8 +115,15 @@ export async function handleWebSocketUpgrade(
 
   try {
     const auth = getAuth();
+
+  const cookieName = process.env.NODE_ENV === 'production' 
+    ? "sigmagit.session_token" 
+    : "sigmagit_dev.session_token";
+  const sessionCookie = `${cookieName}=${encodeURIComponent(token)}`;
+  const cookieHeader = `${sessionCookie}; ${request.headers.get("cookie") || ""}`;
+
     const session = await auth.api.getSession({
-      headers: new Headers({ Authorization: `Bearer ${token}` }),
+      headers: new Headers({ cookie: cookieHeader }),
     });
 
     if (!session?.user) {

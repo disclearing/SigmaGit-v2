@@ -22,13 +22,11 @@ function RateLimitedPage() {
           Too many requests. Please wait a few minutes before trying again.
         </p>
 
-        <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border mb-8">
-          <iframe
-            className="absolute inset-0 w-full h-full"
-            src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0"
-            title="Never Gonna Give You Up"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
+        <div className="w-full max-w-md mx-auto rounded-lg overflow-hidden border border-border mb-8">
+          <img
+            src="https://pics.memoryleaked.dev/u/d4ujoO.gif"
+            alt="Never Gonna Give You Up"
+            className="w-full h-auto"
           />
         </div>
 

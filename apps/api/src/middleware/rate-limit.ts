@@ -19,27 +19,27 @@ interface RateLimitConfig {
 const RATE_LIMIT_CONFIGS: Record<RateLimitTier, RateLimitConfig> = {
   general: {
     keyPrefix: 'rl_general',
-    points: 60,
+    points: 30,
     duration: 60,
-    blockDuration: 300,
+    blockDuration: 600,
   },
   auth: {
     keyPrefix: 'rl_auth',
-    points: 10,
+    points: 5,
     duration: 60,
-    blockDuration: 1800,
+    blockDuration: 3600,
   },
   write: {
     keyPrefix: 'rl_write',
-    points: 30,
+    points: 20,
     duration: 60,
-    blockDuration: 3600,
+    blockDuration: 7200,
   },
   'api-key': {
     keyPrefix: 'rl_apikey',
-    points: 500,
+    points: 200,
     duration: 60,
-    blockDuration: 3600,
+    blockDuration: 7200,
   },
 };
 
@@ -168,9 +168,9 @@ export const writeRateLimit = createRateLimiter('write');
 export const apiKeyRateLimit = createApiKeyRateLimiter();
 
 const unauthenticatedLimiter = new Map<string, { count: number; resetAt: number }>();
-const UNAUTH_LIMIT = 15;
+const UNAUTH_LIMIT = 5;
 const UNAUTH_WINDOW = 60_000;
-const UNAUTH_BLOCK = 7_200_000;
+const UNAUTH_BLOCK = 14_400_000;
 const unauthBlocked = new Map<string, number>();
 
 function hasSessionCookie(c: any): boolean {
@@ -225,7 +225,7 @@ export function unauthenticatedRateLimit() {
 }
 
 let activeRequests = 0;
-const MAX_CONCURRENT = 50;
+const MAX_CONCURRENT = 20;
 
 export function concurrencyLimiter() {
   return createMiddleware(async (c, next) => {

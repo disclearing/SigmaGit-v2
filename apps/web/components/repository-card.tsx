@@ -71,11 +71,11 @@ export default function RepositoryCard({ repository, showOwner = false, variant 
         to="/$username/$repo"
         params={{ username: ownerUsername, repo: repository.name }}
         className={cn(
-          "absolute inset-0",
+          "absolute inset-0 z-0",
           isListVariant ? "" : "rounded-xl"
         )}
       />
-      <span className="sr-only">View {repository.name}</span>
+      <span className="sr-only pointer-events-none">View {repository.name}</span>
 
       <div className="flex items-start justify-between gap-4 relative">
         <div className="min-w-0 flex-1">

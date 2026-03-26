@@ -388,17 +388,12 @@ class LocalStorageBackend implements StorageBackend {
   }
 }
 
-let localStorageInstance: StorageBackend | null = null;
-
 export function getStorageBackend(): StorageBackend {
   const type = config.storage.type;
 
   switch (type) {
     case 'local':
-      if (!localStorageInstance) {
-        localStorageInstance = new LocalStorageBackend();
-      }
-      return localStorageInstance;
+      return new LocalStorageBackend();
     case 's3':
     default:
       return new S3StorageBackend();

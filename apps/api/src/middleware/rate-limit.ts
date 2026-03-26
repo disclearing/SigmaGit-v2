@@ -241,7 +241,7 @@ export function unauthenticatedRateLimit() {
 }
 
 let activeRequests = 0;
-const MAX_CONCURRENT = 1000;
+const MAX_CONCURRENT = 20;
 
 export function concurrencyLimiter() {
   return createMiddleware(async (c, next) => {

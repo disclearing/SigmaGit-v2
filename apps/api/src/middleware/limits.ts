@@ -6,7 +6,8 @@ const MEMORY_THRESHOLD = 0.92; // 92% of heap
 // Don't reject based on ratio alone until the heap is meaningfully large.
 // Bun starts with a small heap that grows on demand, so heapUsed/heapTotal
 // can spike above 80% at startup even when there's no real memory pressure.
-const MIN_HEAP_TO_ENFORCE = 256 * 1024 * 1024; // 256 MB
+// Set to 1GB so we only start rejecting when we're truly close to 2GB ceiling.
+const MIN_HEAP_TO_ENFORCE = 1024 * 1024 * 1024; // 1 GB
 export const GIT_PUSH_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
 export const GIT_MAX_OBJECTS_PER_PUSH = 50000;
 export const GIT_MAX_DELTA_DEPTH = 100;
@@ -139,7 +140,7 @@ export function scheduleGC() {
 export function forceGCIfNeeded(): void {
   const usage = getMemoryUsage();
 
-  if (usage.percent > 0.85) {
+  if (usage.percent > 0.90) {
     console.warn(`[Memory] Usage at ${(usage.percent * 100).toFixed(2)}%, forcing GC`);
     scheduleGC();
   }

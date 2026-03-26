@@ -3,6 +3,9 @@ import { config } from "./config";
 
 let redis: RedisClientType | null = null;
 let reconnectAttempts = 0;
+let lastHealthCheck = 0;
+let isRedisHealthy = false;
+const HEALTH_CHECK_INTERVAL = 5_000; // 5 seconds
 const MAX_RECONNECT_ATTEMPTS = 5;
 const INITIAL_RECONNECT_DELAY = 1000;
 
@@ -20,9 +23,20 @@ export const getRedis = async (): Promise<RedisClientType | null> => {
     return null;
   }
 
-  if (redis && await isHealthy(redis)) {
-    reconnectAttempts = 0;
-    return redis;
+  if (redis) {
+    const now = Date.now();
+    if (isRedisHealthy && (now - lastHealthCheck) < HEALTH_CHECK_INTERVAL) {
+      return redis;
+    }
+
+    // Time to do a health check
+    lastHealthCheck = now;
+    if (await isHealthy(redis)) {
+      isRedisHealthy = true;
+      reconnectAttempts = 0;
+      return redis;
+    }
+    isRedisHealthy = false;
   }
 
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
@@ -50,6 +64,8 @@ export const getRedis = async (): Promise<RedisClientType | null> => {
 
     redis = newClient as any;
     reconnectAttempts = 0;
+    isRedisHealthy = true;
+    lastHealthCheck = Date.now();
     console.log("[Redis] Connected successfully");
     return redis;
   } catch (error) {

@@ -1,18 +1,23 @@
-import { getMemoryUsage, forceGCIfNeeded } from './middleware/limits';
+import { forceGCIfNeeded } from './middleware/limits';
 
 const MEMORY_LOG_INTERVAL = 60 * 1000; // 1 minute
-const MEMORY_ALERT_THRESHOLD = 0.9; // 90%
+const MEMORY_ALERT_THRESHOLD = 0.92; // 92% (matches rejection threshold)
 
 export function startMemoryMonitoring(): void {
   setInterval(() => {
-    const usage = getMemoryUsage();
+    const mem = process.memoryUsage();
+    const usage = {
+      used: mem.heapUsed,
+      total: mem.heapTotal,
+      percent: mem.heapUsed / mem.heapTotal,
+    };
 
     console.log({
       '[Memory]': {
         heapUsed: `${(usage.used / 1024 / 1024).toFixed(2)} MB`,
         heapTotal: `${(usage.total / 1024 / 1024).toFixed(2)} MB`,
-        external: `${((process.memoryUsage().external) / 1024 / 1024).toFixed(2)} MB`,
-        rss: `${((process.memoryUsage().rss) / 1024 / 1024).toFixed(2)} MB`,
+        external: `${(mem.external / 1024 / 1024).toFixed(2)} MB`,
+        rss: `${(mem.rss / 1024 / 1024).toFixed(2)} MB`,
         percent: `${(usage.percent * 100).toFixed(2)}%`,
       }
     });

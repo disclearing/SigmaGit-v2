@@ -30,8 +30,8 @@ const loggingMiddleware = createMiddleware(async (c, next) => {
   const start = Date.now();
   const method = c.req.method;
   const path = c.req.path;
-  const url = new URL(c.req.url);
-  const query = url.search;
+  const queryPos = c.req.url.indexOf('?');
+  const query = queryPos >= 0 ? c.req.url.slice(queryPos) : '';
 
   await next();
 

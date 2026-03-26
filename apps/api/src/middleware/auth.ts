@@ -21,6 +21,7 @@ export type AuthVariables = {
 export type AdminVariables = AuthVariables;
 
 const USER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const USER_CACHE_MAX_SIZE = 10_000;
 const userCache = new Map<string, { user: AuthUser; expiresAt: number }>();
 
 // Periodic cleanup to prevent memory leaks
@@ -44,6 +45,11 @@ function getCachedUser(userId: string): AuthUser | null {
 }
 
 function cacheUser(userId: string, user: AuthUser) {
+  if (userCache.size >= USER_CACHE_MAX_SIZE) {
+    // Evict oldest entry (first in Map iteration order)
+    const oldest = userCache.keys().next().value;
+    if (oldest) userCache.delete(oldest);
+  }
   userCache.set(userId, { user, expiresAt: Date.now() + USER_CACHE_TTL });
 }
 

@@ -127,14 +127,12 @@ export async function refExists(fs: S3Fs, dir: string, ref: string): Promise<boo
 
     return true;
   } catch (error) {
-    console.error(`[Git] refExists: ${ref} failed:`, error instanceof Error ? error.message : error);
     try {
       const refPath = normalizeRef(ref);
       const content = await fs.promises.readFile(refPath, "utf8");
 
       return content.toString().trim().length === 40;
     } catch (readError) {
-      console.error(`[Git] refExists: failed to read ref file:`, readError);
       return false;
     }
   }

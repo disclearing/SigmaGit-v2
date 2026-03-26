@@ -63,6 +63,8 @@ export interface ApiClientConfig {
   fetchOptions?: RequestInit;
 }
 
+import { setRateLimitCooldown } from "./query";
+
 export function createApiClient(config: ApiClientConfig): ApiClient {
   const { baseUrl, getAuthHeaders, fetchOptions = {} } = config;
 
@@ -82,8 +84,11 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     });
 
     if (!res.ok) {
-      if (res.status === 429 && typeof window !== 'undefined') {
-        window.location.href = '/rate-limited';
+      if (res.status === 429) {
+        setRateLimitCooldown();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/rate-limited';
+        }
       }
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || `Request failed: ${res.status}`);

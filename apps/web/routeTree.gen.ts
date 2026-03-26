@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './app/__root'
 import { Route as SitemapRouteImport } from './app/sitemap'
-import { Route as RateLimitedRouteImport } from './app/rate-limited'
 import { Route as MainRouteImport } from './app/_main'
 import { Route as AuthRouteImport } from './app/_auth'
 import { Route as SplatRouteImport } from './app/$'
@@ -19,6 +18,7 @@ import { Route as MainTermsRouteImport } from './app/_main/terms'
 import { Route as MainSettingsRouteImport } from './app/_main/settings'
 import { Route as MainSecurityRouteImport } from './app/_main/security'
 import { Route as MainSearchRouteImport } from './app/_main/search'
+import { Route as MainRateLimitedRouteImport } from './app/_main/rate-limited'
 import { Route as MainPrivacyRouteImport } from './app/_main/privacy'
 import { Route as MainFeaturesRouteImport } from './app/_main/features'
 import { Route as MainExploreRouteImport } from './app/_main/explore'
@@ -89,11 +89,6 @@ const SitemapRoute = SitemapRouteImport.update({
   path: '/sitemap',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RateLimitedRoute = RateLimitedRouteImport.update({
-  id: '/rate-limited',
-  path: '/rate-limited',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MainRoute = MainRouteImport.update({
   id: '/_main',
   getParentRoute: () => rootRouteImport,
@@ -130,6 +125,11 @@ const MainSecurityRoute = MainSecurityRouteImport.update({
 const MainSearchRoute = MainSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainRateLimitedRoute = MainRateLimitedRouteImport.update({
+  id: '/rate-limited',
+  path: '/rate-limited',
   getParentRoute: () => MainRoute,
 } as any)
 const MainPrivacyRoute = MainPrivacyRouteImport.update({
@@ -483,7 +483,6 @@ const MainUsernameRepoCommitsBranchOidRoute =
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof MainIndexRoute
-  '/rate-limited': typeof RateLimitedRoute
   '/sitemap': typeof SitemapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
@@ -498,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof MainExploreRoute
   '/features': typeof MainFeaturesRoute
   '/privacy': typeof MainPrivacyRoute
+  '/rate-limited': typeof MainRateLimitedRoute
   '/search': typeof MainSearchRoute
   '/security': typeof MainSecurityRoute
   '/settings': typeof MainSettingsRouteWithChildren
@@ -557,7 +557,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/': typeof MainIndexRoute
-  '/rate-limited': typeof RateLimitedRoute
   '/sitemap': typeof SitemapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
@@ -570,6 +569,7 @@ export interface FileRoutesByTo {
   '/explore': typeof MainExploreRoute
   '/features': typeof MainFeaturesRoute
   '/privacy': typeof MainPrivacyRoute
+  '/rate-limited': typeof MainRateLimitedRoute
   '/search': typeof MainSearchRoute
   '/security': typeof MainSecurityRoute
   '/settings': typeof MainSettingsRouteWithChildren
@@ -629,7 +629,6 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_main': typeof MainRouteWithChildren
-  '/rate-limited': typeof RateLimitedRoute
   '/sitemap': typeof SitemapRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
@@ -644,6 +643,7 @@ export interface FileRoutesById {
   '/_main/explore': typeof MainExploreRoute
   '/_main/features': typeof MainFeaturesRoute
   '/_main/privacy': typeof MainPrivacyRoute
+  '/_main/rate-limited': typeof MainRateLimitedRoute
   '/_main/search': typeof MainSearchRoute
   '/_main/security': typeof MainSecurityRoute
   '/_main/settings': typeof MainSettingsRouteWithChildren
@@ -706,7 +706,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/$'
     | '/'
-    | '/rate-limited'
     | '/sitemap'
     | '/forgot-password'
     | '/login'
@@ -721,6 +720,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/features'
     | '/privacy'
+    | '/rate-limited'
     | '/search'
     | '/security'
     | '/settings'
@@ -780,7 +780,6 @@ export interface FileRouteTypes {
   to:
     | '/$'
     | '/'
-    | '/rate-limited'
     | '/sitemap'
     | '/forgot-password'
     | '/login'
@@ -793,6 +792,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/features'
     | '/privacy'
+    | '/rate-limited'
     | '/search'
     | '/security'
     | '/settings'
@@ -851,7 +851,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/_auth'
     | '/_main'
-    | '/rate-limited'
     | '/sitemap'
     | '/_auth/forgot-password'
     | '/_auth/login'
@@ -866,6 +865,7 @@ export interface FileRouteTypes {
     | '/_main/explore'
     | '/_main/features'
     | '/_main/privacy'
+    | '/_main/rate-limited'
     | '/_main/search'
     | '/_main/security'
     | '/_main/settings'
@@ -928,7 +928,6 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
   MainRoute: typeof MainRouteWithChildren
-  RateLimitedRoute: typeof RateLimitedRoute
   SitemapRoute: typeof SitemapRoute
 }
 
@@ -939,13 +938,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap'
       fullPath: '/sitemap'
       preLoaderRoute: typeof SitemapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rate-limited': {
-      id: '/rate-limited'
-      path: '/rate-limited'
-      fullPath: '/rate-limited'
-      preLoaderRoute: typeof RateLimitedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main': {
@@ -1002,6 +994,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof MainSearchRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/rate-limited': {
+      id: '/_main/rate-limited'
+      path: '/rate-limited'
+      fullPath: '/rate-limited'
+      preLoaderRoute: typeof MainRateLimitedRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/privacy': {
@@ -1652,6 +1651,7 @@ interface MainRouteChildren {
   MainExploreRoute: typeof MainExploreRoute
   MainFeaturesRoute: typeof MainFeaturesRoute
   MainPrivacyRoute: typeof MainPrivacyRoute
+  MainRateLimitedRoute: typeof MainRateLimitedRoute
   MainSearchRoute: typeof MainSearchRoute
   MainSecurityRoute: typeof MainSecurityRoute
   MainSettingsRoute: typeof MainSettingsRouteWithChildren
@@ -1673,6 +1673,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainExploreRoute: MainExploreRoute,
   MainFeaturesRoute: MainFeaturesRoute,
   MainPrivacyRoute: MainPrivacyRoute,
+  MainRateLimitedRoute: MainRateLimitedRoute,
   MainSearchRoute: MainSearchRoute,
   MainSecurityRoute: MainSecurityRoute,
   MainSettingsRoute: MainSettingsRouteWithChildren,
@@ -1691,7 +1692,6 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
   MainRoute: MainRouteWithChildren,
-  RateLimitedRoute: RateLimitedRoute,
   SitemapRoute: SitemapRoute,
 }
 export const routeTree = rootRouteImport

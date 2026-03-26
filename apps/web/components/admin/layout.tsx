@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   BarChart3,
@@ -13,12 +14,14 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  Menu,
   Server,
   Settings,
   Shield,
   ShieldAlert,
   Users,
   Wrench,
+  X,
 } from "lucide-react";
 import { useAdminDmcaCounts, useAdminReportsCounts, useCurrentUserSummary } from "@sigmagit/hooks";
 import { cn } from "@/lib/utils";
@@ -29,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut, useSession } from "@/lib/auth-client";
 
 export function AdminLayout() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { data: session } = useSession();
   const { data: user } = useCurrentUserSummary(!!session?.user);
@@ -53,9 +57,105 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* Mobile Header */}
+      <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-gradient-to-br from-primary to-primary/70 p-2">
+            <Shield className="size-4 text-primary-foreground" />
+          </div>
+          <span className="font-bold text-sm">Admin Panel</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <Menu className="size-5" />
+        </Button>
+      </div>
+
       <div className="flex min-h-0 flex-1">
-        {/* Sidebar */}
-        <aside className="sticky top-0 hidden h-full min-h-screen w-64 flex-shrink-0 flex-col border-r border-border bg-card lg:flex xl:w-72">
+        {/* Mobile Sidebar Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div 
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <aside className="absolute left-0 top-0 h-full w-72 flex-shrink-0 flex-col border-r border-border bg-card animate-in slide-in-from-left">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-gradient-to-br from-primary to-primary/70 p-2">
+                    <Shield className="size-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h1 className="font-bold">Admin Panel</h1>
+                    <p className="text-xs text-muted-foreground">Platform Management</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <X className="size-5" />
+                </Button>
+              </div>
+              {/* Navigation */}
+              <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.to || (item.to !== "/admin" && location.pathname.startsWith(item.to));
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <Icon className="size-4" />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+              {/* Footer */}
+              <div className="p-4 border-t border-border">
+                {user && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+                    <Avatar className="size-9">
+                      <AvatarImage src={user.avatarUrl ?? undefined} />
+                      <AvatarFallback className="text-sm font-semibold bg-gradient-to-br from-muted to-muted/50">
+                        {user.name?.charAt(0) ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">Administrator</p>
+                    </div>
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2 mt-3 text-muted-foreground"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="size-4" />
+                  <span>Sign out</span>
+                </Button>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {/* Desktop Sidebar */}
+        <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-border bg-card lg:flex xl:w-72">
           {/* Header */}
           <div className="p-5 xl:p-6 border-b border-border">
             <div className="flex items-center gap-3">

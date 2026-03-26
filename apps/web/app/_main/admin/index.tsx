@@ -58,8 +58,8 @@ const colorVariants = {
 
 function StatCard({ title, value, icon: Icon, subtitle, trend, color = "blue", href }: StatCardProps) {
   const content = (
-    <Card className={cn("group transition-all duration-300 hover:shadow-lg hover:border-primary/20", href && "cursor-pointer")}>
-      <CardContent className="p-6">
+    <Card className={cn("h-full flex flex-col group transition-all duration-300 hover:shadow-lg hover:border-primary/20", href && "cursor-pointer")}>
+      <CardContent className="p-6 flex-1">
         <div className="flex items-start justify-between">
           <div className="space-y-3">
             <div className={cn("p-3 rounded-xl bg-gradient-to-br w-fit", colorVariants[color])}>

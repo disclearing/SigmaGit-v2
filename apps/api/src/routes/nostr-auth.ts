@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db, users, sessions } from "@sigmagit/db";
 import { getAuth } from "../auth";
 import { config } from "../config";
+import { invalidateCachedUser } from "../middleware/auth";
 
 const app = new Hono();
 
@@ -234,6 +235,7 @@ app.post("/api/auth/nostr", async (c) => {
       }
 
       await db.update(users).set(updates).where(eq(users.id, user.id));
+      invalidateCachedUser(user.id);
 
       // Refresh user data
       const refreshed = await db.query.users.findFirst({
@@ -389,6 +391,7 @@ app.post("/api/auth/nostr/link", async (c) => {
     }
 
     await db.update(users).set(updates).where(eq(users.id, currentUser.id));
+    invalidateCachedUser(currentUser.id);
 
     return c.json({
       success: true,

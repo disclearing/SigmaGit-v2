@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { db, users, repositories, accounts, userSshKeys } from "@sigmagit/db";
 import { eq, ne, and, isNull } from "drizzle-orm";
-import { authMiddleware, requireAuth, type AuthVariables } from "../middleware/auth";
+import { authMiddleware, requireAuth, invalidateCachedUser, type AuthVariables } from "../middleware/auth";
 import { config } from "../config";
 import { putObject, deleteObject, deletePrefix, getRepoPrefix } from "../s3";
 import { isPasswordCompromised } from "../security/pwned";

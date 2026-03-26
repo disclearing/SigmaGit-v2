@@ -20,12 +20,22 @@ export * from "./schema";
 export { schema };
 
 export function createDatabase(connectionString: string) {
-  const client = postgres(connectionString);
+  const client = postgres(connectionString, {
+    max: 50,
+    idle_timeout: 20,
+    connect_timeout: 10,
+    max_lifetime: 60 * 30,
+  });
   return drizzle(client, { schema });
 }
 
 const connectionString = process.env.DATABASE_URL!;
-const client = postgres(connectionString);
+const client = postgres(connectionString, {
+  max: 50,
+  idle_timeout: 20,
+  connect_timeout: 10,
+  max_lifetime: 60 * 30,
+});
 export const db = drizzle(client, { schema });
 
 export type Database = ReturnType<typeof createDatabase>;

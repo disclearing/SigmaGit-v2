@@ -20,7 +20,7 @@ import {
   notifications,
 } from "@sigmagit/db";
 import { eq, sql, desc, count, and, or, ilike, gte, lte, inArray, lt, notInArray } from "drizzle-orm";
-import { authMiddleware, requireAdmin, type AuthVariables } from "../middleware/auth";
+import { authMiddleware, requireAdmin, invalidateCachedUser, type AuthVariables } from "../middleware/auth";
 import { parseLimit, parseOffset } from "../lib/validation";
 import { repoCache } from "../cache";
 import { createGitStore, getCommitCountCached, listBranchesCached } from "../git";
@@ -613,6 +613,7 @@ app.patch("/api/admin/users/:id", async (c) => {
   }
 
   await db.update(users).set(updates).where(eq(users.id, id));
+  invalidateCachedUser(id);
 
   await logAuditEvent(
     actor.id,

@@ -99,8 +99,14 @@ function setRateLimitHeaders(
   c.header('RateLimit-Policy', `${config.points};w=${config.duration}`);
 }
 
-function createRateLimiter(tier: RateLimitTier) {
+function createRateLimiter(tier: RateLimitTier, skipPaths: string[] = []) {
   return createMiddleware(async (c, next) => {
+    const path = c.req.path;
+    if (skipPaths.some(p => path === p || path.startsWith(p))) {
+      await next();
+      return;
+    }
+
     const limiter = await getLimiter(tier);
     const config = RATE_LIMIT_CONFIGS[tier];
     const key = getClientIp(c);
@@ -162,9 +168,9 @@ function createApiKeyRateLimiter() {
   });
 }
 
-export const generalRateLimit = createRateLimiter('general');
-export const authRateLimit = createRateLimiter('auth');
-export const writeRateLimit = createRateLimiter('write');
+export const generalRateLimit = createRateLimiter('general', ['/ws']);
+export const authRateLimit = createRateLimiter('auth', ['/ws']);
+export const writeRateLimit = createRateLimiter('write', ['/ws']);
 export const apiKeyRateLimit = createApiKeyRateLimiter();
 
 const unauthenticatedLimiter = new Map<string, { count: number; resetAt: number }>();
@@ -183,7 +189,7 @@ export function unauthenticatedRateLimit() {
   return createMiddleware(async (c, next) => {
     const path = c.req.path;
 
-    if (path.startsWith('/api/auth/')) {
+    if (path.startsWith('/api/auth/') || path === '/ws') {
       await next();
       return;
     }
@@ -229,6 +235,11 @@ const MAX_CONCURRENT = 20;
 
 export function concurrencyLimiter() {
   return createMiddleware(async (c, next) => {
+    const path = c.req.path;
+    if (path === '/ws') {
+      await next();
+      return;
+    }
     if (activeRequests >= MAX_CONCURRENT) {
       return c.json({ error: 'Server busy, try again later', retryAfter: 5 }, 503);
     }

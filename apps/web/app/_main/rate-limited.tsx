@@ -25,9 +25,9 @@ function RateLimitedPage() {
         <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border mb-8">
           <iframe
             className="absolute inset-0 w-full h-full"
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0"
             title="Never Gonna Give You Up"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         </div>

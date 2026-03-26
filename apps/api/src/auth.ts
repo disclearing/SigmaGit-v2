@@ -393,6 +393,12 @@ export const initAuth = async () => {
             required: true,
             input: true,
           },
+          role: {
+            type: 'string',
+            required: false,
+            input: false,
+            returned: true,
+          },
         },
       },
       advanced: {

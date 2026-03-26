@@ -19,7 +19,7 @@ interface RateLimitConfig {
 const RATE_LIMIT_CONFIGS: Record<RateLimitTier, RateLimitConfig> = {
   general: {
     keyPrefix: 'rl_general',
-    points: 30,
+    points: 500,
     duration: 60,
     blockDuration: 600,
   },
@@ -109,7 +109,10 @@ function createRateLimiter(tier: RateLimitTier, skipPaths: string[] = []) {
 
     const limiter = await getLimiter(tier);
     const config = RATE_LIMIT_CONFIGS[tier];
-    const key = getClientIp(c);
+    
+    // Use user ID if authenticated, otherwise use IP
+    const user = c.get("user");
+    const key = user ? `user:${user.id}` : getClientIp(c);
 
     try {
       const res = await limiter.consume(key);
@@ -174,9 +177,9 @@ export const writeRateLimit = createRateLimiter('write', ['/ws']);
 export const apiKeyRateLimit = createApiKeyRateLimiter();
 
 const unauthenticatedLimiter = new Map<string, { count: number; resetAt: number }>();
-const UNAUTH_LIMIT = 5;
+const UNAUTH_LIMIT = 100;
 const UNAUTH_WINDOW = 60_000;
-const UNAUTH_BLOCK = 14_400_000;
+const UNAUTH_BLOCK = 3_600_000;
 const unauthBlocked = new Map<string, number>();
 
 function hasSessionCookie(c: any): boolean {
@@ -190,6 +193,13 @@ export function unauthenticatedRateLimit() {
     const path = c.req.path;
 
     if (path.startsWith('/api/auth/') || path === '/ws') {
+      await next();
+      return;
+    }
+
+    // Skip if authenticated (use user ID key instead)
+    const user = c.get("user");
+    if (user) {
       await next();
       return;
     }

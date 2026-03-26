@@ -254,4 +254,4 @@ For support, please open an issue on [GitHub Issues](https://github.com/sigmagit
 
 ---
 
-Made with ❤️ using Bun, TypeScript, and React
+Made with ❤️ using Bun, TypeScript, React and TanStack

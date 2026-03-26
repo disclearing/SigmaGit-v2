@@ -77,8 +77,8 @@ export default function RepositoryCard({ repository, showOwner = false, variant 
       />
       <span className="sr-only pointer-events-none">View {repository.name}</span>
 
-      <div className="flex items-start justify-between gap-4 relative">
-        <div className="min-w-0 flex-1">
+      <div className="flex items-start justify-between gap-4 relative pointer-events-none">
+        <div className="min-w-0 flex-1 pointer-events-auto">
           {/* Header */}
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
@@ -88,7 +88,7 @@ export default function RepositoryCard({ repository, showOwner = false, variant 
                       to="/$username"
                       params={{ username: ownerUsername }}
                       onClick={(e) => e.stopPropagation()}
-                    className="z-10 text-muted-foreground hover:text-primary font-normal transition-colors truncate"
+                    className="z-10 pointer-events-auto text-muted-foreground hover:text-primary font-normal transition-colors truncate"
                     >
                       {ownerUsername}
                     </Link>
@@ -150,6 +150,7 @@ export default function RepositoryCard({ repository, showOwner = false, variant 
         </div>
 
         {/* Star button */}
+        <div className="pointer-events-auto">
         <Button
           variant={isStarred ? "secondary" : "outline"}
           size="sm"
@@ -169,6 +170,7 @@ export default function RepositoryCard({ repository, showOwner = false, variant 
           />
           {isStarred ? "Starred" : "Star"}
         </Button>
+        </div>
       </div>
     </div>
   );

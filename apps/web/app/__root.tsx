@@ -34,6 +34,30 @@ function NotFound() {
   );
 }
 
+function LazyDatabuddy({ clientId }: { clientId: string }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <Databuddy
+      clientId={clientId}
+      trackHashChanges={true}
+      trackAttributes={true}
+      trackOutgoingLinks={true}
+      trackInteractions={true}
+      trackScrollDepth={true}
+      trackWebVitals={true}
+      trackErrors={true}
+    />
+  );
+}
+
 function MaintenanceGate({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -41,19 +65,25 @@ function MaintenanceGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${getApiUrl()}/api/status`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setMaintenanceMode(data.maintenanceMode === true);
-      })
-      .catch(() => {
-        if (!cancelled) setMaintenanceMode(false);
-      })
-      .finally(() => {
-        if (!cancelled) setChecked(true);
-      });
+    
+    // Defer status check to not block initial render
+    const timer = setTimeout(() => {
+      fetch(`${getApiUrl()}/api/status`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (!cancelled) setMaintenanceMode(data.maintenanceMode === true);
+        })
+        .catch(() => {
+          if (!cancelled) setMaintenanceMode(false);
+        })
+        .finally(() => {
+          if (!cancelled) setChecked(true);
+        });
+    }, 1500);
+    
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, []);
 
@@ -109,16 +139,7 @@ function RootLayout() {
           </MaintenanceGate>
           <Toaster richColors position="top-right" />
           {enableDatabuddy ? (
-            <Databuddy
-              clientId={databuddyClientId}
-              trackHashChanges={true}
-              trackAttributes={true}
-              trackOutgoingLinks={true}
-              trackInteractions={true}
-              trackScrollDepth={true}
-              trackWebVitals={true}
-              trackErrors={true}
-            />
+            <LazyDatabuddy clientId={databuddyClientId} />
           ) : null}
         </ThemeProvider>
         <Scripts />

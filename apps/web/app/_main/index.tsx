@@ -348,7 +348,7 @@ function LandingPage() {
       {/* Stats Section */}
       <section className="py-20 lg:py-32">
         <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8" style={{ minHeight: '80px' }}>
             {stats.map((stat) => (
               <StatCard key={stat.label} number={stat.number} label={stat.label} />
             ))}

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './app/__root'
 import { Route as SitemapRouteImport } from './app/sitemap'
+import { Route as RateLimitedRouteImport } from './app/rate-limited'
 import { Route as MainRouteImport } from './app/_main'
 import { Route as AuthRouteImport } from './app/_auth'
 import { Route as SplatRouteImport } from './app/$'
@@ -86,6 +87,11 @@ import { Route as MainUsernameRepoCommitsBranchOidRouteImport } from './app/_mai
 const SitemapRoute = SitemapRouteImport.update({
   id: '/sitemap',
   path: '/sitemap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RateLimitedRoute = RateLimitedRouteImport.update({
+  id: '/rate-limited',
+  path: '/rate-limited',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainRoute = MainRouteImport.update({
@@ -477,6 +483,7 @@ const MainUsernameRepoCommitsBranchOidRoute =
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof MainIndexRoute
+  '/rate-limited': typeof RateLimitedRoute
   '/sitemap': typeof SitemapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
@@ -550,6 +557,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/': typeof MainIndexRoute
+  '/rate-limited': typeof RateLimitedRoute
   '/sitemap': typeof SitemapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
@@ -621,6 +629,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_main': typeof MainRouteWithChildren
+  '/rate-limited': typeof RateLimitedRoute
   '/sitemap': typeof SitemapRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
@@ -697,6 +706,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/$'
     | '/'
+    | '/rate-limited'
     | '/sitemap'
     | '/forgot-password'
     | '/login'
@@ -770,6 +780,7 @@ export interface FileRouteTypes {
   to:
     | '/$'
     | '/'
+    | '/rate-limited'
     | '/sitemap'
     | '/forgot-password'
     | '/login'
@@ -840,6 +851,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/_auth'
     | '/_main'
+    | '/rate-limited'
     | '/sitemap'
     | '/_auth/forgot-password'
     | '/_auth/login'
@@ -916,6 +928,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
   MainRoute: typeof MainRouteWithChildren
+  RateLimitedRoute: typeof RateLimitedRoute
   SitemapRoute: typeof SitemapRoute
 }
 
@@ -926,6 +939,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap'
       fullPath: '/sitemap'
       preLoaderRoute: typeof SitemapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rate-limited': {
+      id: '/rate-limited'
+      path: '/rate-limited'
+      fullPath: '/rate-limited'
+      preLoaderRoute: typeof RateLimitedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main': {
@@ -1671,6 +1691,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
   MainRoute: MainRouteWithChildren,
+  RateLimitedRoute: RateLimitedRoute,
   SitemapRoute: SitemapRoute,
 }
 export const routeTree = rootRouteImport

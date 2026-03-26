@@ -82,6 +82,9 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     });
 
     if (!res.ok) {
+      if (res.status === 429 && typeof window !== 'undefined') {
+        window.location.href = '/rate-limited';
+      }
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || `Request failed: ${res.status}`);
     }

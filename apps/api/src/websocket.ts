@@ -1,5 +1,6 @@
 import type { ServerWebSocket } from "bun";
-import { getAuth } from "./auth";
+import { db, sessions } from "@sigmagit/db";
+import { eq, and, gt } from "drizzle-orm";
 
 type WebSocketData = {
   userId: string;
@@ -114,26 +115,25 @@ export async function handleWebSocketUpgrade(
   }
 
   try {
-    const auth = getAuth();
-
-  const cookieName = process.env.NODE_ENV === 'production' 
-    ? "sigmagit.session_token" 
-    : "sigmagit_dev.session_token";
-  const sessionCookie = `${cookieName}=${encodeURIComponent(token)}`;
-  const cookieHeader = `${sessionCookie}; ${request.headers.get("cookie") || ""}`;
-
-    const session = await auth.api.getSession({
-      headers: new Headers({ cookie: cookieHeader }),
+    const session = await db.query.sessions.findFirst({
+      where: and(
+        eq(sessions.token, token),
+        gt(sessions.expiresAt, new Date())
+      ),
+      columns: {
+        id: true,
+        userId: true,
+      },
     });
 
-    if (!session?.user) {
+    if (!session) {
       return new Response("Unauthorized", { status: 401 });
     }
 
     const upgraded = server.upgrade(request, {
       data: {
-        userId: session.user.id,
-        sessionId: session.session.id,
+        userId: session.userId,
+        sessionId: session.id,
         timestamp: Date.now(),
         lastPing: Date.now(),
       },

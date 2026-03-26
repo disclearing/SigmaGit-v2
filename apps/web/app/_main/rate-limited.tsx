@@ -24,7 +24,7 @@ function RateLimitedPage() {
 
         <div className="w-full max-w-md mx-auto rounded-lg overflow-hidden border border-border mb-8">
           <img
-            src="https://pics.memoryleaked.dev/u/d4ujoO.gif"
+            src="https://pics.memoryleaked.dev/r/d4ujoO.gif"
             alt="Never Gonna Give You Up"
             className="w-full h-auto"
           />
